@@ -1,0 +1,54 @@
+# ---------------------------------------------------------------
+# Reference PDFs (course-supplied templates & guidelines)
+# Kept locally under docs/ but never committed.
+# ---------------------------------------------------------------
+*.pdf
+docs/*.pdf
+!docs/submissions/*.pdf
+
+# ---------------------------------------------------------------
+# Node / MERN
+# ---------------------------------------------------------------
+node_modules/
+dist/
+build/
+.cache/
+coverage/
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ---------------------------------------------------------------
+# Environment / secrets
+# ---------------------------------------------------------------
+.env
+.env.*
+!.env.example
+
+# ---------------------------------------------------------------
+# Python (analytics / aptitude-scoring service)
+# ---------------------------------------------------------------
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+env/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ---------------------------------------------------------------
+# Editors / OS
+# ---------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
