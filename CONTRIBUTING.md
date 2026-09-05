@@ -20,7 +20,7 @@ Fill this in before the proposal is submitted — the guidelines require Name + 
 
 | # | Name | SRN | GitHub Handle | Feature Area |
 |:-:|:-----|:----|:--------------|:-------------|
-| 1 | `<name>` | `<SRN>` | `@<handle>` | Identity, Profiles & Admin |
+| 1 | `Deekshith Gowda G` | `PES1UG24CS142` | `Member 1` | Identity, Profiles & Admin |
 | 2 | SHARATH HG  | PES1UG25CS844 | MEMBER 2 | Internship Listings & Discovery |
 | 3 | `<name>` | `<SRN>` | `@<handle>` | Applications & Recruiter Workflow |
 | 4 | `<name>` | `<SRN>` | `@<handle>` | Aptitude Tests, Progress & Analytics |
