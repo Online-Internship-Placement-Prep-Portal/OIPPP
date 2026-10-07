@@ -1,0 +1,28 @@
+@startuml seq_status_update
+actor Recruiter
+participant "React Client" as C
+participant "Auth Middleware" as MW
+participant "ApplicationService" as AS
+participant "AuditLogger" as AL
+database MongoDB as DB
+participant "NotificationService" as NS
+participant "SMTP Provider" as SMTP
+Recruiter -> C : mark applicant "Shortlisted"
+C -> MW : PATCH /api/applications/{id}/status
+MW -> MW : verify JWT, role == RECRUITER
+MW -> AS : updateStatus(id, SHORTLISTED, recruiterId)
+AS -> DB : load application + listing
+alt recruiter does not own listing
+  AS --> C : 403 NOT_LISTING_OWNER
+else transition not allowed (e.g. OFFER -> APPLIED)
+  AS --> C : 422 INVALID_TRANSITION
+else valid
+  AS -> DB : update status (version check)
+  AS -> AL : log(actor, from, to, timestamp)
+  AL -> DB : insert audit entry
+  AS -> NS : notify(studentId, STATUS_CHANGED)
+  NS -> DB : save in-app notification
+  NS -> SMTP : send email (async, 3 retries)
+  AS --> C : 200 {status: "SHORTLISTED"}
+end
+@enduml

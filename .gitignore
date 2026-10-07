@@ -5,6 +5,11 @@
 *.pdf
 docs/*.pdf
 !docs/submissions/*.pdf
+!Deliverables_Part-1/*.pdf
+
+# course templates and superseded drafts, kept locally only
+docs/new/
+docs/old/
 
 # ---------------------------------------------------------------
 # Node / MERN

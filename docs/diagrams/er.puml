@@ -1,0 +1,62 @@
+@startuml er
+!pragma layout smetana
+hide circle
+skinparam linetype ortho
+entity User {
+  *_id : ObjectId
+  --
+  email : string <<unique>>
+  passwordHash : string
+  role : STUDENT | RECRUITER | ADMIN
+  status : ACTIVE | PENDING | DISABLED
+}
+entity StudentProfile {
+  *userId : ObjectId
+  --
+  srn, branch, cgpa, gradYear
+  skills : string[]
+  resumeFileId : ObjectId
+}
+entity Listing {
+  *_id
+  --
+  recruiterId, company, role, location
+  stipend, skills[], deadline
+  status : OPEN | CLOSED
+}
+entity Application {
+  *_id
+  --
+  studentId, listingId <<unique pair>>
+  status, coverNote, history[]
+}
+entity Test {
+  *_id
+  --
+  title, durationMin, questionIds[]
+}
+entity Question {
+  *_id
+  --
+  topic, text, options[], answerIdx
+}
+entity Attempt {
+  *_id
+  --
+  studentId, testId <<unique pair>>
+  answers, endsAt, status, score
+}
+entity Notification {
+  *_id
+  --
+  userId, type, message, read
+}
+User ||--o| StudentProfile
+User ||--o{ Listing : posts
+User ||--o{ Application : submits
+Listing ||--o{ Application
+Test }o--o{ Question
+User ||--o{ Attempt
+Test ||--o{ Attempt
+User ||--o{ Notification
+@enduml

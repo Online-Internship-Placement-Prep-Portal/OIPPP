@@ -1,0 +1,52 @@
+@startuml use_case
+!pragma layout smetana
+left to right direction
+skinparam actorStyle awesome
+
+
+
+skinparam packageStyle rectangle
+actor Student
+actor Recruiter
+actor "Placement Admin" as Admin
+actor "Registered User" as User
+actor "Mail Service" as Mail <<system>>
+rectangle "OIPPP System" {
+  usecase "Manage Profile & Resume" as UC2
+  usecase "Search & Filter Listings" as UC3
+  usecase "Bookmark Listing" as UC4
+  usecase "Apply to Internship" as UC5
+  usecase "Track Application Status" as UC6
+  usecase "Attempt Aptitude Test" as UC7
+  usecase "View Progress Dashboard" as UC8
+  usecase "Post / Edit / Close Listing" as UC9
+  usecase "Review Applicants" as UC10
+  usecase "Update Application Status" as UC11
+  usecase "Approve Recruiter Accounts" as UC12
+  usecase "Author Tests & Questions" as UC13
+  usecase "View Placement Statistics" as UC14
+  usecase "Send Notification" as UC15
+  usecase "Auto-save Answers" as UC16
+  usecase "Register / Login" as UC1
+}
+Student --> UC2
+Student --> UC3
+Student --> UC4
+Student --> UC5
+Student --> UC6
+Student --> UC7
+Student --> UC8
+Recruiter --> UC9
+Recruiter --> UC10
+Recruiter --> UC11
+Admin --> UC12
+Admin --> UC13
+Admin --> UC14
+UC7 ..> UC16 : <<include>>
+UC11 ..> UC15 : <<include>>
+UC15 --> Mail
+User --> UC1
+Student -up-|> User
+Recruiter -up-|> User
+Admin -up-|> User
+@enduml
