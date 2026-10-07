@@ -22,8 +22,8 @@ Fill this in before the proposal is submitted — the guidelines require Name + 
 |:-:|:-----|:----|:--------------|:-------------|
 | 1 | `Deekshith Gowda G` | `PES1UG24CS142` | `Member 1` | Identity, Profiles & Admin |
 | 2 | SHARATH HG  | PES1UG25CS844 | MEMBER 2 | Internship Listings & Discovery |
-| 3 | `<name>` | `<SRN>` | `@<handle>` | Applications & Recruiter Workflow |
-| 4 | `<name>` | `<SRN>` | `@<handle>` | Aptitude Tests, Progress & Analytics |
+| 3 | Guru R Bharadwaj | PES1UG24CS177 | MEMBER 3 | Applications & Recruiter Workflow |
+| 4 | E S Sukruth | PES1UG25CS160 | MEMBER 4 | Aptitude Tests, Progress & Analytics |
 
 ---
 
@@ -70,7 +70,7 @@ shared deliverables. The load is intentionally balanced across the four areas.
 | 2.7 | Unit + integration tests for owned features | Supporting | ❌ |
 | 2.8 | SRS sections: 2.2 Product Functions, 5.2 Listings feature, 6.1 Performance | Documentation | ❌ |
 
-### Member 3 — Applications & Recruiter Workflow
+### Member 3 (Guru R Bharadwaj) — Applications & Recruiter Workflow
 
 | # | Task | Type | Status |
 |:-:|:-----|:-----|:------:|
@@ -83,7 +83,7 @@ shared deliverables. The load is intentionally balanced across the four areas.
 | 3.7 | Unit + integration tests for owned features | Supporting | ❌ |
 | 3.8 | SRS sections: 5.3 Applications feature, 6.5 Business Rules, Appendix C traceability | Documentation | ❌ |
 
-### Member 4 — Aptitude Tests, Progress & Analytics
+### Member 4 (E S Sukruth) — Aptitude Tests, Progress & Analytics
 
 | # | Task | Type | Status |
 |:-:|:-----|:-----|:------:|

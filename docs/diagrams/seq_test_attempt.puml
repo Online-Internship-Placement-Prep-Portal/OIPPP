@@ -1,0 +1,36 @@
+@startuml seq_test_attempt
+actor Student
+participant "React Client\n(Test Screen)" as C
+participant "TestController" as TC
+participant "AttemptService" as AS
+database MongoDB as DB
+participant "Analytics Service" as PY
+Student -> C : start test
+C -> TC : POST /api/tests/{id}/attempts
+TC -> AS : startAttempt(studentId, testId)
+AS -> DB : find attempt (studentId, testId)
+alt attempt already SUBMITTED
+  TC --> C : 409 ATTEMPT_EXISTS
+else IN_PROGRESS exists
+  AS --> TC : existing attempt (resume)
+  TC --> C : 200 {attemptId, answers, endsAt}
+else none
+  AS -> DB : create attempt, endsAt = now + duration
+  TC --> C : 201 {attemptId, questions, endsAt}
+end
+loop every answer change (debounced 1 s)
+  C -> TC : PATCH /api/attempts/{id}/answers
+  TC -> AS : saveAnswer()
+  AS -> DB : $set answers.q, lastSavedAt
+  TC --> C : 204
+end
+Student -> C : submit (or timer hits endsAt)
+C -> TC : POST /api/attempts/{id}/submit
+TC -> AS : submit(attemptId)
+AS -> AS : reject if now > endsAt + 30 s grace
+AS -> AS : score answers per topic
+AS -> DB : status = SUBMITTED, score, topicBreakdown
+AS -> PY : POST /readiness/recompute {studentId}
+PY -->> DB : update readiness snapshot
+TC --> C : 200 {score, topicBreakdown}
+@enduml

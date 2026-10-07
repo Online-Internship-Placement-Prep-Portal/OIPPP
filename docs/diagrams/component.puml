@@ -1,0 +1,44 @@
+@startuml component
+!pragma layout smetana
+skinparam componentStyle uml2
+package "Client (React SPA)" {
+  [UI Pages] as UI
+  [API Client (axios)] as AX
+}
+package "API Server (Node.js + Express)" {
+  [Auth Middleware\n(JWT verify + RBAC)] as MW
+  [Auth & User Module] as AUTH
+  [Listing Module] as LIST
+  [Application Module] as APP
+  [Notification Module] as NOTIF
+  [Aptitude Test Module] as TEST
+  [Analytics Gateway] as AGW
+  [Audit Logger] as AUD
+}
+package "Analytics Service (Python / Flask)" {
+  [Readiness & Stats Engine] as PY
+}
+database "MongoDB" as DB
+cloud "SMTP Provider" as SMTP
+folder "Resume File Store\n(GridFS)" as FS
+
+UI --> AX
+AX --> MW : HTTPS / REST + JSON
+MW --> AUTH
+MW --> LIST
+MW --> APP
+MW --> TEST
+MW --> AGW
+APP --> NOTIF
+APP --> AUD
+NOTIF --> SMTP : SMTP/TLS
+AUTH --> FS
+AUTH --> DB
+LIST --> DB
+APP --> DB
+TEST --> DB
+NOTIF --> DB
+AUD --> DB
+AGW --> PY : HTTP (internal)
+PY --> DB : read-only
+@enduml
