@@ -64,7 +64,7 @@ have them.
 
 ## Getting started
 
-Nothing is scaffolded yet. Before writing code:
+Nothing is scaffolded yet. Before writing code :
 
 1. Read [CONTRIBUTING.md](CONTRIBUTING.md) and fill in your name, SRN and GitHub handle.
 2. Fill the `<...>` placeholders in [docs/PROPOSAL.md](docs/PROPOSAL.md) — the proposal is returned
