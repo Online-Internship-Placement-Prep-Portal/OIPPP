@@ -1,0 +1,59 @@
+@startuml aptitude-er
+!pragma layout smetana
+hide circle
+skinparam linetype ortho
+skinparam shadowing false
+skinparam backgroundColor white
+title Aptitude schema proposal — task 4.6 (review required)
+entity "User (external / Member 1)" as User {
+  *_id : ObjectId
+  role : STUDENT | ADMIN
+}
+entity Question {
+  *_id : ObjectId
+  --
+  createdBy : User ref
+  text, topic, difficulty
+  options[2..6], answerIdx <<private>>
+  archived : boolean
+}
+entity Test {
+  *_id : ObjectId
+  --
+  createdBy : User ref
+  title, durationMin : 10..120
+  questionIds[5..60] <<distinct>>
+  status : DRAFT | PUBLISHED | ARCHIVED
+}
+entity Attempt {
+  *_id : ObjectId
+  --
+  studentId, testId <<unique pair>>
+  durationMin, startedAt, endsAt <<fixed>>
+  questions[5..60] <<embedded snapshot>>
+  answers : Map<questionId, optionIdx>
+  lastSavedAt, submittedAt, submissionReason
+  status : IN_PROGRESS | SUBMITTED
+}
+entity Result {
+  *_id : ObjectId
+  --
+  attemptId <<unique>>
+  studentId, testId <<unique pair>>
+  totalQuestions, correctAnswers, score
+  topicBreakdown[] <<embedded>>
+  submittedAt
+}
+User ||--o{ Question : authors
+User ||--o{ Test : authors
+Test }o--o{ Question : questionIds
+User ||--o{ Attempt : studentId
+Test ||--o{ Attempt : testId
+Attempt ||--o| Result : attemptId
+User ||--o{ Result : studentId
+Test ||--o{ Result : testId
+note bottom of Attempt
+  Snapshot includes server-only answerIdx.
+  No TTL: preserve saved answers and history.
+end note
+@enduml
