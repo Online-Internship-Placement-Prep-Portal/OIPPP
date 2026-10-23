@@ -1,0 +1,164 @@
+const request = require('supertest');
+
+jest.mock('../../src/middleware/auth', () => require('../helpers/fakeAuth'));
+
+const db = require('../helpers/db');
+const { as } = require('../helpers/fakeAuth');
+const { seed } = require('../helpers/seed');
+const app = require('../../src/app');
+const Listing = require('../../src/modules/listings/listing.model');
+const listingService = require('../../src/modules/listings/listing.service');
+
+let s;
+
+beforeAll(async () => {
+  await db.connect();
+});
+
+afterAll(async () => {
+  await db.disconnect();
+});
+
+beforeEach(async () => {
+  await db.clear();
+  s = await seed();
+});
+
+const validListing = () => ({
+  company: 'Example Technologies',
+  title: 'Backend Intern',
+  location: 'Bengaluru',
+  mode: 'HYBRID',
+  stipend: 15000,
+  skills: ['Node.js', 'MongoDB'],
+  minCgpa: 7,
+  deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+});
+
+describe('Issue #9: recruiter listing management', () => {
+  test('approved recruiter can create a listing', async () => {
+    const res = await request(app)
+      .post('/api/listings')
+      .set(as(s.recruiter))
+      .send(validListing());
+
+    expect(res.status).toBe(201);
+    expect(res.body.listing).toMatchObject({
+      company: 'Example Technologies',
+      title: 'Backend Intern',
+      status: 'OPEN',
+      minCgpa: 7,
+    });
+    expect(String(res.body.listing.recruiterId)).toBe(String(s.recruiter._id));
+  });
+
+  test('rejects a past deadline', async () => {
+    const res = await request(app)
+      .post('/api/listings')
+      .set(as(s.recruiter))
+      .send({ ...validListing(), deadline: new Date(Date.now() - 60000).toISOString() });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION');
+  });
+
+  test('rejects a negative stipend', async () => {
+    const res = await request(app)
+      .post('/api/listings')
+      .set(as(s.recruiter))
+      .send({ ...validListing(), stipend: -100 });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION');
+  });
+
+  test('rejects a pending recruiter', async () => {
+    const pendingRecruiter = { ...s.recruiter.toObject(), status: 'PENDING' };
+    const res = await request(app)
+      .post('/api/listings')
+      .set(as(pendingRecruiter))
+      .send(validListing());
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('NOT_APPROVED');
+  });
+
+  test('only the owner can close a listing', async () => {
+    const listing = await Listing.create({
+      ...validListing(),
+      recruiterId: s.recruiter._id,
+    });
+
+    const res = await request(app)
+      .patch(`/api/listings/${listing.id}`)
+      .set(as(s.recruiter2))
+      .send({ status: 'CLOSED' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('NOT_OWNER');
+  });
+
+  test('owner can close a listing', async () => {
+    const listing = await Listing.create({
+      ...validListing(),
+      recruiterId: s.recruiter._id,
+    });
+
+    const res = await request(app)
+      .patch(`/api/listings/${listing.id}`)
+      .set(as(s.recruiter))
+      .send({ status: 'CLOSED' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.listing.status).toBe('CLOSED');
+  });
+
+  test('automatically closes expired listings', async () => {
+    const listing = await Listing.create({
+      ...validListing(),
+      recruiterId: s.recruiter._id,
+      deadline: new Date(Date.now() - 60000),
+    });
+
+    await listingService.closeExpiredListings();
+    const updated = await Listing.findById(listing.id);
+
+    expect(updated.status).toBe('CLOSED');
+  });
+
+  test('owner can edit a listing', async () => {
+    const listing = await Listing.create({
+      ...validListing(),
+      recruiterId: s.recruiter._id,
+    });
+
+    const res = await request(app)
+      .patch(`/api/listings/${listing.id}`)
+      .set(as(s.recruiter))
+      .send({ title: 'Updated Backend Intern', stipend: 20000 });
+
+    expect(res.status).toBe(200);
+    expect(res.body.listing.title).toBe('Updated Backend Intern');
+    expect(res.body.listing.stipend).toBe(20000);
+    expect(String(res.body.listing.recruiterId)).toBe(String(s.recruiter._id));
+  });
+
+  test('another recruiter cannot edit a listing', async () => {
+    const listing = await Listing.create({
+      ...validListing(),
+      recruiterId: s.recruiter._id,
+    });
+
+    const res = await request(app)
+      .patch(`/api/listings/${listing.id}`)
+      .set(as(s.recruiter2))
+      .send({ title: 'Unauthorized Update' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error.code).toBe('NOT_OWNER');
+
+    const unchanged = await Listing.findById(listing.id);
+    expect(unchanged.title).toBe('Backend Intern');
+    expect(String(unchanged.recruiterId)).toBe(String(s.recruiter._id));
+  });
+});
