@@ -92,7 +92,7 @@ shared deliverables. The load is intentionally balanced across the four areas.
 | 4.3 | Auto-evaluation, scoring and per-topic result breakdown | Functional | ❌ |
 | 4.4 | Progress tracking + analytics dashboards (student readiness, admin placement stats) | Functional | ❌ |
 | 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state | Non-functional | ❌ |
-| 4.6 | Question / Attempt / Result schema design in MongoDB | Supporting | ❌ |
+| 4.6 | Question / Attempt / Result schema design in MongoDB — [design + models](docs/database/aptitude-schema.md), pending team review | Supporting | 🟠 |
 | 4.7 | Unit + integration tests for owned features | Supporting | ❌ |
 | 4.8 | SRS sections: 5.4 Aptitude feature, 5.5 Analytics feature, 6.3 Quality Attributes | Documentation | ❌ |
 
