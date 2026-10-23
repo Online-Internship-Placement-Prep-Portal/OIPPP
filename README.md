@@ -59,7 +59,8 @@ have them.
 | Document | Purpose |
 |:---------|:--------|
 | [docs/PROPOSAL.md](docs/PROPOSAL.md) | Project proposal — title, team profile, description, functional features, plan of work, product ownership. Export to PDF for submission. |
-| [docs/SRS.md](docs/SRS.md) | Software Requirements Specification scaffold, section-by-section, with an owner marked on each. |
+| [docs/SRS.md](docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
+| [Architecture and diagrams](docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
 | [Aptitude database schema](docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Who owns which functional features, task status tables, branching and PR rules. |
 | [docs/applications-api.md](docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |

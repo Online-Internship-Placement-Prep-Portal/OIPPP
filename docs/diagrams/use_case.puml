@@ -1,52 +1,60 @@
 @startuml use_case
-!pragma layout smetana
+!include diagram-style.puml
 left to right direction
-skinparam actorStyle awesome
-
-
-
-skinparam packageStyle rectangle
+title OIPPP — actors and use cases
+caption Intended release-1.0 behavior from submitted SRS; not an implementation checklist.
 actor Student
 actor Recruiter
 actor "Placement Admin" as Admin
-actor "Registered User" as User
-actor "Mail Service" as Mail <<system>>
-rectangle "OIPPP System" {
-  usecase "Manage Profile & Resume" as UC2
-  usecase "Search & Filter Listings" as UC3
-  usecase "Bookmark Listing" as UC4
-  usecase "Apply to Internship" as UC5
-  usecase "Track Application Status" as UC6
-  usecase "Attempt Aptitude Test" as UC7
-  usecase "View Progress Dashboard" as UC8
-  usecase "Post / Edit / Close Listing" as UC9
-  usecase "Review Applicants" as UC10
-  usecase "Update Application Status" as UC11
-  usecase "Approve Recruiter Accounts" as UC12
-  usecase "Author Tests & Questions" as UC13
-  usecase "View Placement Statistics" as UC14
-  usecase "Send Notification" as UC15
-  usecase "Auto-save Answers" as UC16
-  usecase "Register / Login" as UC1
+rectangle "OIPPP" {
+  package "Shared access" {
+    usecase "Sign in" as Login
+    usecase "Register Student / Recruiter" as Register
+  }
+  package "Student experience" {
+    usecase "Manage profile / resume" as Profile
+    usecase "Search / filter / bookmark listings" as Search
+    usecase "Apply / track applications" as Apply
+    usecase "Start / resume / submit aptitude test" as Attempt
+    usecase "Persist selected answers" as Save
+    usecase "Evaluate and show result" as Result
+    usecase "View own progress / weak topics" as Progress
+  }
+  package "Recruiter experience" {
+    usecase "Post / edit / close own listings" as Listing
+    usecase "Review own listing's applicants" as Review
+    usecase "Update application status" as Status
+    usecase "Notify student" as Notify
+  }
+  package "Placement administration" {
+    usecase "Approve recruiters / disable accounts" as Accounts
+    usecase "Author questions / tests" as Author
+    usecase "View placement statistics" as Stats
+    usecase "Export placement report CSV" as CSV
+  }
 }
-Student --> UC2
-Student --> UC3
-Student --> UC4
-Student --> UC5
-Student --> UC6
-Student --> UC7
-Student --> UC8
-Recruiter --> UC9
-Recruiter --> UC10
-Recruiter --> UC11
-Admin --> UC12
-Admin --> UC13
-Admin --> UC14
-UC7 ..> UC16 : <<include>>
-UC11 ..> UC15 : <<include>>
-UC15 --> Mail
-User --> UC1
-Student -up-|> User
-Recruiter -up-|> User
-Admin -up-|> User
+Student --> Register
+Recruiter --> Register
+Student --> Login
+Recruiter --> Login
+Admin --> Login
+Student --> Profile
+Student --> Search
+Student --> Apply
+Student --> Attempt
+Student --> Progress
+Recruiter --> Listing
+Recruiter --> Review
+Recruiter --> Status
+Admin --> Accounts
+Admin --> Author
+Admin --> Stats
+Admin --> CSV
+Attempt ..> Save : <<include>>
+Attempt ..> Result : <<include>>
+Status ..> Notify : <<include>>
+legend bottom left
+  Admin accounts are seeded, not publicly registered.
+  Recruiters cannot author tests or read batch statistics.
+endlegend
 @enduml

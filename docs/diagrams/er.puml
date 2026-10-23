@@ -1,62 +1,101 @@
 @startuml er
-!pragma layout smetana
+!include diagram-style.puml
 hide circle
-skinparam linetype ortho
-entity User {
+left to right direction
+title OIPPP — logical entity relationships
+caption Core fields only. MongoDB references are not enforced foreign keys.
+entity "User\n[Member 1 contract]" as User {
   *_id : ObjectId
   --
-  email : string <<unique>>
-  passwordHash : string
-  role : STUDENT | RECRUITER | ADMIN
-  status : ACTIVE | PENDING | DISABLED
+  email <<unique>>
+  name, role, status
 }
-entity StudentProfile {
-  *userId : ObjectId
+entity "Profile\n[Member 1 contract]" as Profile {
+  *userId : User reference
   --
-  srn, branch, cgpa, gradYear
-  skills : string[]
-  resumeFileId : ObjectId
+  branch, gradYear, cgpa, skills
+  resumeFileId : GridFS reference
 }
-entity Listing {
-  *_id
+entity "Listing\n[Member 2 contract]" as Listing {
+  *_id : ObjectId
   --
-  recruiterId, company, role, location
-  stipend, skills[], deadline
-  status : OPEN | CLOSED
+  recruiterId : User reference
+  title, company, status, deadline
+  minCgpa
 }
 entity Application {
-  *_id
+  *_id : ObjectId
   --
   studentId, listingId <<unique pair>>
-  status, coverNote, history[]
-}
-entity Test {
-  *_id
-  --
-  title, durationMin, questionIds[]
-}
-entity Question {
-  *_id
-  --
-  topic, text, options[], answerIdx
-}
-entity Attempt {
-  *_id
-  --
-  studentId, testId <<unique pair>>
-  answers, endsAt, status, score
+  resumeFileId, coverNote, status
+  rejectReason, history[]
 }
 entity Notification {
-  *_id
+  *_id : ObjectId
   --
-  userId, type, message, read
+  userId : User reference
+  applicationId : optional reference
+  type, title, message, read
+  email : status / attempts / nextAttemptAt
 }
-User ||--o| StudentProfile
-User ||--o{ Listing : posts
-User ||--o{ Application : submits
-Listing ||--o{ Application
-Test }o--o{ Question
-User ||--o{ Attempt
-Test ||--o{ Attempt
-User ||--o{ Notification
+entity AuditLog {
+  *_id : ObjectId
+  --
+  actorId : User reference
+  entity, entityId : polymorphic target
+  action, before, after, at
+}
+entity Question {
+  *_id : ObjectId
+  --
+  createdBy : User reference
+  text, topic, difficulty
+  options[2..6], answerIdx <<private>>
+  archived
+}
+entity Test {
+  *_id : ObjectId
+  --
+  createdBy : User reference
+  title, durationMin : 10..120
+  questionIds[5..60] <<distinct>>
+  status : DRAFT / PUBLISHED / ARCHIVED
+}
+entity Attempt {
+  *_id : ObjectId
+  --
+  studentId, testId <<unique pair>>
+  durationMin, startedAt, endsAt <<fixed>>
+  questions[] <<embedded snapshot>>
+  answers : Map<questionId, optionIdx>
+  status, lastSavedAt, submittedAt
+  submissionReason
+}
+entity Result {
+  *_id : ObjectId
+  --
+  attemptId <<unique>>
+  studentId, testId <<unique pair>>
+  totalQuestions, correctAnswers, score
+  topicBreakdown[] <<embedded>>
+  submittedAt
+}
+User ||--o| Profile : userId
+User ||--o{ Listing : recruiterId
+User ||--o{ Application : studentId
+Listing ||--o{ Application : listingId
+User ||--o{ Notification : userId
+Application |o--o{ Notification : optional applicationId
+User ||--o{ AuditLog : actorId
+User ||--o{ Attempt : studentId
+Test }o--o{ Question : questionIds
+Test ||--o{ Attempt : testId
+Attempt ||--o| Result : attemptId
+legend bottom left
+  User / Profile / Listing are planned cross-member contracts, not new implementations.
+  Question, Test, Attempt, Result: current Member 4 models (schema task #30).
+  Question/Test.createdBy also reference User; Result.studentId/testId repeat its owner/test links.
+  Snapshot question data and topic breakdowns are embedded, not separate collections.
+  No TTL/cascade deletion of attempts/results; disabled accounts retain history.
+endlegend
 @enduml

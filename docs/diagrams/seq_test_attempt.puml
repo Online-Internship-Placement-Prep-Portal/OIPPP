@@ -1,36 +1,66 @@
 @startuml seq_test_attempt
+!include diagram-style.puml
+hide footbox
+title Aptitude attempt — intended lifecycle and recovery
+caption Service/worker design; current repository implements models, not these endpoints.
 actor Student
-participant "React Client\n(Test Screen)" as C
-participant "TestController" as TC
-participant "AttemptService" as AS
-database MongoDB as DB
-participant "Analytics Service" as PY
-Student -> C : start test
-C -> TC : POST /api/tests/{id}/attempts
-TC -> AS : startAttempt(studentId, testId)
-AS -> DB : find attempt (studentId, testId)
-alt attempt already SUBMITTED
-  TC --> C : 409 ATTEMPT_EXISTS
-else IN_PROGRESS exists
-  AS --> TC : existing attempt (resume)
-  TC --> C : 200 {attemptId, answers, endsAt}
-else none
-  AS -> DB : create attempt, endsAt = now + duration
-  TC --> C : 201 {attemptId, questions, endsAt}
+boundary "React test screen" as C
+control "Authorized API / AttemptService" as AS
+database "MongoDB" as DB
+control "Server timeout coordinator\n(planned)" as TIMER
+
+== Start or resume (TST-3 / SAFE-1) ==
+Student -> C : open test
+C -> AS : POST /api/tests/{id}/attempts
+AS -> AS : authenticate student + verify test availability
+AS -> DB : find by studentId + testId
+alt existing SUBMITTED attempt
+  AS --> C : 409 ATTEMPT_EXISTS
+else existing IN_PROGRESS attempt
+  AS -> AS : check original deadline; finalize if due
+  AS --> C : existing attempt or closed/result response
+else no attempt
+  AS -> DB : load test + private question keys
+  AS -> DB : create unique Attempt with snapshots\nstartedAt = server now; endsAt = start + duration
+  note right of DB
+    Concurrent duplicate-key creation:
+    reload/resume the existing attempt.
+  end note
+  AS --> C : 201 public questions + answers + endsAt
 end
-loop every answer change (debounced 1 s)
-  C -> TC : PATCH /api/attempts/{id}/answers
-  TC -> AS : saveAnswer()
-  AS -> DB : $set answers.q, lastSavedAt
-  TC --> C : 204
+
+== Select / acknowledge / recover (TST-4 / SAFE-1) ==
+loop each answer selection while permitted
+  C -> AS : PATCH /api/attempts/{id}/answers\n{questionId, optionIdx}
+  AS -> AS : verify owner, status, snapshot option\nand agreed deadline/grace policy
+  AS -> DB : persist validated answer + lastSavedAt\nconflict-safe write, not stale whole-map replacement
+  DB --> AS : acknowledged
+  AS --> C : 204; UI may now show Saved
 end
-Student -> C : submit (or timer hits endsAt)
-C -> TC : POST /api/attempts/{id}/submit
-TC -> AS : submit(attemptId)
-AS -> AS : reject if now > endsAt + 30 s grace
-AS -> AS : score answers per topic
-AS -> DB : status = SUBMITTED, score, topicBreakdown
-AS -> PY : POST /readiness/recompute {studentId}
-PY -->> DB : update readiness snapshot
-TC --> C : 200 {score, topicBreakdown}
+opt browser refresh / reconnect
+  C -> AS : start/resume same test
+  AS -> DB : load existing state
+  AS --> C : saved answers + original endsAt\n(or closed state if already finalized)
+end
+
+== Finalize once (TST-5 / TST-6) ==
+alt manual submit
+  C -> AS : POST /api/attempts/{id}/submit
+else deadline reached without client
+  TIMER -> AS : finalize overdue active attempt
+end
+AS -> AS : score saved answers using snapshot keys
+AS -> DB : atomically close attempt + create canonical Result\nusing agreed transaction/recovery strategy
+DB --> AS : durable state / existing result on retry
+AS --> C : manual request returns score + topicBreakdown
+note over AS, TIMER
+  No dependency on a browser remaining open.
+  TST-5 rejects answers after endsAt +30 seconds;
+  handling of the intermediate grace window needs team agreement.
+  A submitted attempt is never silently reopened.
+end note
+note over AS, DB
+  Result holds score and topicBreakdown, not duplicated Attempt.score.
+  Analytics reads Results; a read-only Python engine does not write snapshots.
+end note
 @enduml
