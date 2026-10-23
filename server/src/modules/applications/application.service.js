@@ -1,13 +1,25 @@
 const Application = require('./application.model');
+const { canTransition } = require('./application.constants');
 const deps = require('./application.deps');
 const audit = require('../audit/audit.service');
 const notifications = require('../notifications/notification.service');
 const AppError = require('../../utils/AppError');
 
+const STATUS_LABEL = {
+  APPLIED: 'Applied', SHORTLISTED: 'Shortlisted', INTERVIEW: 'Interview', OFFER: 'Offer', REJECTED: 'Rejected',
+};
+
 async function loadListing(listingId) {
   const listing = await deps.Listing().findById(listingId).lean();
   if (!listing) throw new AppError(404, 'NOT_FOUND', 'Listing not found');
   return listing;
+}
+
+// BR-2: only the recruiter who owns the listing
+function assertOwner(listing, recruiterId) {
+  if (String(listing.recruiterId) !== String(recruiterId)) {
+    throw new AppError(403, 'NOT_LISTING_OWNER', 'You can only manage applications for your own listings');
+  }
 }
 
 // APP-1 .. APP-3
@@ -69,4 +81,38 @@ async function listMine(studentId) {
   }));
 }
 
-module.exports = { apply, listMine };
+// REV-2, REV-4, APP-4
+async function updateStatus(recruiterId, applicationId, { status }) {
+  const application = await Application.findById(applicationId).lean();
+  if (!application) throw new AppError(404, 'NOT_FOUND', 'Application not found');
+  const listing = await loadListing(application.listingId);
+  assertOwner(listing, recruiterId);
+
+  const from = application.status;
+  if (!canTransition(from, status)) {
+    throw new AppError(422, 'INVALID_TRANSITION', `Cannot move an application from ${from} to ${status}`);
+  }
+  const entry = { from, to: status, by: recruiterId, at: new Date() };
+  const set = { status };
+  // conditional on the old status so two recruiters clicking at once cannot both win
+  const updated = await Application.findOneAndUpdate(
+    { _id: applicationId, status: from },
+    { $set: set, $push: { history: entry } },
+    { new: true },
+  );
+  if (!updated) throw new AppError(409, 'STALE_STATUS', 'The application changed meanwhile, please reload');
+
+  await audit.record(recruiterId, 'APPLICATION_STATUS_CHANGED', 'Application', updated._id,
+    { status: from }, { status });
+
+  await notifications.notify(updated.studentId, {
+    type: 'APPLICATION_STATUS',
+    title: `${listing.title}: ${STATUS_LABEL[status]}`,
+    message: `Your application for ${listing.title} at ${listing.company} is now ${STATUS_LABEL[status]}.`,
+    applicationId: updated._id,
+  }, { email: true });
+
+  return updated;
+}
+
+module.exports = { apply, listMine, updateStatus };
