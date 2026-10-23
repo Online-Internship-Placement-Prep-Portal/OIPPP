@@ -19,7 +19,7 @@ The existing `seq_apply.puml/.png` and `seq_status_update.puml/.png` belong to t
 - **Modular monolith:** one Node/Express API process, with each feature separated into routes/controller, service and Mongoose model layers. Controllers do not bypass service rules. This follows SAD 3.5; it does not introduce per-feature microservices.
 - **Trust boundaries:** the browser holds only its user session, not database credentials. API middleware/services authenticate, check the active account, authorize role/ownership and validate bodies. Only the API may mutate operational records. SMTP uses STARTTLS; analytics calls stay on the private network.
 - **Analytics:** the intended Python/Flask engine reads MongoDB with read-only credentials. The API controls authorized requests and cache ownership. The old test-attempt sequence's Python-to-database write was inconsistent with that design and is removed; no new readiness persistence contract is imposed here.
-- **Timer:** the UI countdown is a display, not the authority. A future server coordinator must finalize overdue attempts and recover after restart/sleep without extending deadlines. The middle 30-second grace-window rule remains the baseline ambiguity documented in the [owned SRS decision register](../srs/aptitude-analytics-quality.md#decision-register-for-implementation-hand-off).
+- **Timer:** the UI countdown is a display, not the authority. A future server coordinator must finalize overdue attempts and recover after restart/sleep without extending deadlines. The middle 30-second grace-window rule remains the baseline ambiguity documented in the [owned SRS decision register](../aptitude-analytics-quality.md#decision-register-for-implementation-hand-off).
 - **Results:** the current Member 4 model is a separate canonical Result linked one-to-zero-or-one from Attempt, not a second unsynchronized score field on Attempt. Snapshot answer keys stay private.
 - **Other members:** Profile/User and Listing in the ER are intended integration contracts, not new models added by this change. `Profile` matches the model name expected by Member 3's dependency adapter; the older drawing's display name `StudentProfile` is reconciled to that contract. AuditLog.entityId is polymorphic, so the drawing does not pretend it is a fixed Application foreign key.
 
@@ -44,7 +44,7 @@ Implementation status can evolve; diagrams label the inspected boundary so revie
 | Use case | SRS 2.2–2.3, feature groups 4.1–4.8, BR-4 and ANL-3; admins are seeded, not publicly registered. |
 | Attempt sequence | SRS TST-3–TST-6/SAFE-1; replaces the older SAD-derived sequence's missing server trigger and duplicated Attempt.score. |
 
-Read the full [Member 4 SRS sections](../srs/aptitude-analytics-quality.md) for acceptance criteria and the [SRS source map](../SRS.md) for old/new numbering. Submitted [SRS](../../Deliverables_Part-1/SRS.pdf), [SAD](../../Deliverables_Part-1/SAD.pdf), and [Test Plan](../../Deliverables_Part-1/Test%20Plan.pdf) remain unchanged. The [deviations register](../DEVIATIONS.md) distinguishes numbering/design reconciliation from implemented behavior.
+Read the full [Member 4 SRS sections](../aptitude-analytics-quality.md) for acceptance criteria and the [SRS source map](../SRS.md) for old/new numbering. Submitted [SRS](../../Part-1_Deliverables/SRS.pdf), [SAD](../../Part-1_Deliverables/SAD.pdf), and [Test Plan](../../Part-1_Deliverables/Test%20Plan.pdf) remain unchanged. The [deviations register](../DEVIATIONS.md) distinguishes numbering/design reconciliation from implemented behavior.
 
 ## Reproduce and validate
 
@@ -55,8 +55,8 @@ From the repository root:
 ```sh
 # Set this to the local PlantUML 1.2025.2 JAR.
 export PLANTUML_JAR=/absolute/path/to/plantuml-1.2025.2.jar
-bash docs/diagrams/render.sh
-python3 scripts/check-member4-docs.py
+bash docs/other-docs/diagrams/render.sh
+python3 server/scripts/check-member4-docs.py
 ```
 
 The render script compiles only the four owned/updated views, fails on syntax errors and checks each PNG exists. The Python check uses only the standard library and verifies local documentation links/anchors, all owned requirement IDs, paired diagram sources/PNGs and local style includes. It is a focused documentation check, not an application test or a claim that global CI has been configured. Open every generated PNG and inspect labels, arrows, overlap and readability before committing; a successful renderer is not visual QA.

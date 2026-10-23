@@ -2,7 +2,7 @@
 
 **Owner:** E S Sukruth — Member 4. **Deliverable:** task 4.8 / issue #32.  
 **Review state:** complete documentation proposal; teammate approval required before merge.  
-**Baseline:** submitted [SRS v1.0](../../Deliverables_Part-1/SRS.pdf), [SAD v1.0](../../Deliverables_Part-1/SAD.pdf), and [Test Plan](../../Deliverables_Part-1/Test%20Plan.pdf).
+**Baseline:** submitted [SRS v1.0](../Part-1_Deliverables/SRS.pdf), [SAD v1.0](../Part-1_Deliverables/SAD.pdf), and [Test Plan](../Part-1_Deliverables/Test%20Plan.pdf).
 
 ## Reading and numbering rules
 
@@ -38,7 +38,7 @@ Steps 3–6 describe intended service behavior. The existing schema implementati
 
 ### Data, API and error boundaries
 
-The implemented schema proposal is documented in [aptitude-schema.md](../database/aptitude-schema.md). It uses `Question`, `Test`, `Attempt`, and `Result`; one point per correct answer, no negative marking, Easy/Medium/Hard difficulty and percentage score are **current design conventions requiring team agreement**, not additional statements from the submitted SRS. Retain historical attempt snapshots when a bank question changes. The Result collection is the canonical score source; do not also keep an unsynchronized Attempt.score.
+The implemented schema proposal is documented in [aptitude-schema.md](database/aptitude-schema.md). It uses `Question`, `Test`, `Attempt`, and `Result`; one point per correct answer, no negative marking, Easy/Medium/Hard difficulty and percentage score are **current design conventions requiring team agreement**, not additional statements from the submitted SRS. Retain historical attempt snapshots when a bank question changes. The Result collection is the canonical score source; do not also keep an unsynchronized Attempt.score.
 
 SAD 4.3.4 specifies the following intended `/api` routes; this table is traceability, not a new API implementation or unilateral contract revision:
 
@@ -115,12 +115,12 @@ Security dependencies remain SRS SO-1–SO-3, SEC-2/SEC-4 and BR-3/BR-4: role/ow
 
 | IDs | Design / data responsibility | Verification target; current evidence |
 | --- | --- | --- |
-| TST-1–TST-2 | Question/Test models; [ER](../diagrams/er.png); admin test authoring | Existing model boundary tests; future endpoint/RBAC/existence tests. |
-| TST-3 | Attempt unique student/test index; [attempt sequence](../diagrams/seq_test_attempt.png) | Existing real-MongoDB duplicate-start test; resume/service behavior not implemented. |
+| TST-1–TST-2 | Question/Test models; [ER](diagrams/er.png); admin test authoring | Existing model boundary tests; future endpoint/RBAC/existence tests. |
+| TST-3 | Attempt unique student/test index; [attempt sequence](diagrams/seq_test_attempt.png) | Existing real-MongoDB duplicate-start test; resume/service behavior not implemented. |
 | TST-4, SAFE-1 | Answer map, immutable deadline/snapshot, save/recovery flow | Existing persistence/stale-save tests; future network, timing and browser-recovery tests. |
 | TST-5 | Server-side timeout coordinator, deadline/status guards | Planned worker/service tests around endsAt and 30-second boundary; policy decision still required. |
 | TST-6 | Canonical Result, snapshotted answer key, consistent per-topic counts | Existing result-validation tests; future score/submit/idempotency integration tests. |
-| ANL-1–ANL-3, PERF-3 | [Component diagram](../diagrams/component.png), Result/Application/Profile aggregation, admin export | Analytics/CSV/authorization/cohort/load tests are planned; no implementation claim. |
+| ANL-1–ANL-3, PERF-3 | [Component diagram](diagrams/component.png), Result/Application/Profile aggregation, admin export | Analytics/CSV/authorization/cohort/load tests are planned; no implementation claim. |
 | SAFE-2, QA-1–QA-5, PERF-1–PERF-2 | Shared modules and the quality verification matrix above | Record results with fixtures, environment, timing/coverage and reviewer, rather than infer success from a diagram. |
 
 ## Decision register for implementation hand-off
