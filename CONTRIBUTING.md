@@ -77,7 +77,7 @@ shared deliverables. The load is intentionally balanced across the four areas.
 | 3.1 | Student applies to an internship (resume + cover note, duplicate-safe) | Functional | ❌ |
 | 3.2 | Application status lifecycle — Applied → Shortlisted → Interview → Offer / Rejected | Functional | ❌ |
 | 3.3 | Recruiter application review — view applicants, shortlist, reject with reason | Functional | ❌ |
-| 3.4 | Notifications on every status change (in-app + email) | Functional | ❌ |
+| 3.4 | Notifications on every status change (in-app + email) | Functional | ✅ |
 | 3.5 | **Qualitative:** reliability — no lost or duplicated applications; every status transition is validated and audit-logged | Non-functional | ✅ |
 | 3.6 | Application / Notification schema design in MongoDB | Supporting | ✅ |
 | 3.7 | Unit + integration tests for owned features | Supporting | ❌ |
