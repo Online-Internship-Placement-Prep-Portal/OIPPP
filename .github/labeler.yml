@@ -1,0 +1,18 @@
+area:identity:
+  - changed-files:
+      - any-glob-to-any-file: ['server/src/modules/users/**', 'server/src/modules/auth/**']
+area:listings:
+  - changed-files:
+      - any-glob-to-any-file: 'server/src/modules/listings/**'
+area:applications:
+  - changed-files:
+      - any-glob-to-any-file: ['server/src/modules/applications/**', 'server/src/modules/notifications/**', 'server/src/modules/audit/**']
+area:aptitude:
+  - changed-files:
+      - any-glob-to-any-file: 'server/src/modules/tests/**'
+area:shared:
+  - changed-files:
+      - any-glob-to-any-file: ['.github/**', 'server/src/app.js', 'server/src/index.js', 'server/src/middleware/**', 'server/src/config/**']
+type:documentation:
+  - changed-files:
+      - any-glob-to-any-file: ['docs/**', '*.md']

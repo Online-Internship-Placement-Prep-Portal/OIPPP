@@ -106,7 +106,7 @@ One owner each, so nothing is left ownerless. Everyone reviews all of them.
 |:-:|:------------|:------|:------:|
 | S1 | Project proposal — `docs/PROPOSAL.md` → PDF for submission | Member 1 | 🟠 |
 | S2 | SRS document — `docs/SRS.md` → PDF for submission | Member 2 | 🟠 |
-| S3 | Repo setup, branching rules, CI, `.env.example` | Member 3 | ❌ |
+| S3 | Repo setup, branching rules, CI, `.env.example` | Member 3 | ✅ |
 | S4 | Architecture & ER / use-case diagrams (`docs/diagrams/`) | Member 4 | ❌ |
 | S5 | API contract — shared route + payload spec agreed by all four | All | ❌ |
 | S6 | Final demo & presentation | All | ❌ |
