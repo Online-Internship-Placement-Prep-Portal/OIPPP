@@ -12,5 +12,5 @@ Closes #
 
 - [ ] Branched off `dev`, PR targets `dev`
 - [ ] `npm run lint` and `npm test` pass (CI green)
-- [ ] Any deviation from SRS / SAD / Test Plan recorded in `docs/DEVIATIONS.md`
+- [ ] Any deviation from SRS / SAD / Test Plan recorded in `docs/other-docs/DEVIATIONS.md`
 - [ ] One teammate review requested

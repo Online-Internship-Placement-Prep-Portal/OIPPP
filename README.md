@@ -40,17 +40,17 @@ The full itemized feature list (F1–F16) is in [docs/PROPOSAL.md](docs/PROPOSAL
 
 ```
 OIPPP/
-├── README.md              you are here
-├── .gitignore
+├── README.md                  you are here
+├── .github/                   CI, PR automation and the PR template
+├── server/                    Node.js + Express API — src/, tests/, scripts/
 └── docs/
-    ├── PROPOSAL.md        project proposal (per Project Guidelines.pdf)
-    ├── SRS.md             SRS scaffold (per SRS-Document.pdf template)
-    ├── Project Guidelines.pdf   reference — git-ignored, kept locally
-    └── SRS-Document.pdf         reference — git-ignored, kept locally
+    ├── Part-1_Deliverables/   submitted SRS, SAD and Test Plan (PDF)
+    ├── other-docs/            SRS map, API references, schemas, diagrams, deviations log
+    └── sprints/               sprint completion and workload charts
 ```
 
-The two reference PDFs are course-supplied templates. They live in `docs/` for convenience but are
-listed in `.gitignore`, so they are **not** committed — pull them from the course page if you don't
+Only the submitted deliverables in `docs/Part-*_Deliverables/` are committed as PDFs. Course-supplied
+templates and guidelines are listed in `.gitignore` — pull them from the course page if you don't
 have them.
 
 ## Documentation
@@ -58,12 +58,12 @@ have them.
 | Document | Purpose |
 |:---------|:--------|
 | [docs/PROPOSAL.md](docs/PROPOSAL.md) | Project proposal — title, team profile, description, functional features, plan of work, product ownership. Export to PDF for submission. |
-| [docs/SRS.md](docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
-| [Architecture and diagrams](docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
-| [Aptitude authoring and attempts](docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, save/recovery behavior and pending client integration (tasks 4.1/4.2). |
-| [Aptitude database schema](docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
-| [docs/applications-api.md](docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
-| [docs/DEVIATIONS.md](docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
+| [docs/other-docs/SRS.md](docs/other-docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
+| [Architecture and diagrams](docs/other-docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
+| [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, save/recovery behavior and pending client integration (tasks 4.1/4.2). |
+| [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
+| [docs/other-docs/applications-api.md](docs/other-docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
+| [docs/other-docs/DEVIATIONS.md](docs/other-docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
 
 ## Getting started
 
@@ -74,7 +74,7 @@ The backend lives in `server/`; there is not yet a `client/` application. Before
    without review if any required section is missing.
 3. Agree the **API contract** and the **MongoDB schemas** as a team (shared deliverable S5). Feature
    work in parallel only works if the boundaries are settled first.
-4. For backend setup run `npm ci`, `npm run lint` and `npm test` inside `server/`. See [aptitude setup](docs/aptitude-api.md#run-and-verify) for the replica-set requirement. Production login uses the shared User module and JWT middleware; verify end-to-end integration and do not bypass authentication.
+4. For backend setup run `npm ci`, `npm run lint` and `npm test` inside `server/`. See [aptitude setup](docs/other-docs/aptitude-api.md#run-and-verify) for the replica-set requirement. Production login uses the shared User module and JWT middleware; verify end-to-end integration and do not bypass authentication.
 5. Build the shared `client/` and connect it to the approved APIs with the team.
 
 
@@ -94,7 +94,7 @@ and on the [project board](https://github.com/orgs/Online-Internship-Placement-P
 
 ### Work division
 
-Task numbers (e.g. 3.8) match the issue titles and are cited in [docs/DEVIATIONS.md](docs/DEVIATIONS.md).
+Task numbers (e.g. 3.8) match the issue titles and are cited in [docs/other-docs/DEVIATIONS.md](docs/other-docs/DEVIATIONS.md).
 
 **Member 1 — [Deekshith Gowda G](https://github.com/deekshithgowdag): Identity, Profiles & Admin**
 
@@ -139,14 +139,14 @@ Task numbers (e.g. 3.8) match the issue titles and are cited in [docs/DEVIATIONS
 
 | # | Task | Type |
 |:-:|:-----|:-----|
-| 4.1 | Question bank + admin-authored aptitude / technical test creation — [backend APIs](docs/aptitude-api.md) | Functional |
-| 4.2 | Timed test attempt with auto-save and single-attempt enforcement — [backend APIs + recovery](docs/aptitude-api.md) | Functional |
+| 4.1 | Question bank + admin-authored aptitude / technical test creation — [backend APIs](docs/other-docs/aptitude-api.md) | Functional |
+| 4.2 | Timed test attempt with auto-save and single-attempt enforcement — [backend APIs + recovery](docs/other-docs/aptitude-api.md) | Functional |
 | 4.3 | Auto-evaluation, scoring and per-topic result breakdown | Functional |
 | 4.4 | Progress tracking + analytics dashboards (student readiness, admin placement stats) | Functional |
 | 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state | Non-functional |
-| 4.6 | Question / Attempt / Result schema design in MongoDB — [design + models](docs/database/aptitude-schema.md) | Supporting |
+| 4.6 | Question / Attempt / Result schema design in MongoDB — [design + models](docs/other-docs/database/aptitude-schema.md) | Supporting |
 | 4.7 | Unit + integration tests for owned features | Supporting |
-| 4.8 | SRS sections: 5.4 Aptitude, 5.5 Analytics, 6.3 Quality — [sections + traceability](docs/srs/aptitude-analytics-quality.md) | Documentation |
+| 4.8 | SRS sections: 5.4 Aptitude, 5.5 Analytics, 6.3 Quality — [sections + traceability](docs/other-docs/aptitude-analytics-quality.md) | Documentation |
 
 ### Shared deliverables
 
@@ -155,9 +155,9 @@ One owner each; everyone reviews all of them.
 | # | Deliverable | Owner |
 |:-:|:------------|:------|
 | S1 | Project proposal — `docs/PROPOSAL.md` → PDF | [@deekshithgowdag](https://github.com/deekshithgowdag) |
-| S2 | SRS document — `docs/SRS.md` → PDF | [@Sharathhg123](https://github.com/Sharathhg123) |
+| S2 | SRS document — `docs/other-docs/SRS.md` → PDF | [@Sharathhg123](https://github.com/Sharathhg123) |
 | S3 | Repo setup, branching rules, CI, `.env.example` | [@guru-bharadwaj20](https://github.com/guru-bharadwaj20) |
-| S4 | Architecture & ER / use-case diagrams — [sources and guide](docs/diagrams/README.md) | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) |
+| S4 | Architecture & ER / use-case diagrams — [sources and guide](docs/other-docs/diagrams/README.md) | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) |
 | S5 | API contract — shared route + payload spec agreed by all four | All |
 | S6 | Final demo & presentation | All |
 

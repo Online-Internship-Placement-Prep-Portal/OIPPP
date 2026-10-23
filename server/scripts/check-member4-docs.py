@@ -6,11 +6,11 @@ import re
 import struct
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DOCS = [
-    ROOT / 'docs/SRS.md',
-    ROOT / 'docs/srs/aptitude-analytics-quality.md',
-    ROOT / 'docs/diagrams/README.md',
+    ROOT / 'docs/other-docs/SRS.md',
+    ROOT / 'docs/other-docs/aptitude-analytics-quality.md',
+    ROOT / 'docs/other-docs/diagrams/README.md',
 ]
 DIAGRAMS = ['component', 'er', 'use_case', 'seq_test_attempt']
 errors = []
@@ -40,7 +40,7 @@ for doc in DOCS:
         elif url.fragment and target.suffix == '.md' and unquote(url.fragment) not in anchors(target):
             errors.append(f'{doc.relative_to(ROOT)} -> missing anchor {raw}')
 
-srs = (ROOT / 'docs/srs/aptitude-analytics-quality.md').read_text(encoding='utf-8')
+srs = (ROOT / 'docs/other-docs/aptitude-analytics-quality.md').read_text(encoding='utf-8')
 required = [f'TST-{i}' for i in range(1, 7)] + [f'ANL-{i}' for i in range(1, 4)]
 required += [f'SAFE-{i}' for i in range(1, 3)] + [f'QA-{i}' for i in range(1, 6)]
 required += [f'PERF-{i}' for i in range(1, 4)]
@@ -53,7 +53,7 @@ for heading in ['## 5.4 Aptitude Test Engine', '## 5.5 Progress Tracking and Ana
         errors.append(f'Missing owned section: {heading}')
 
 for name in DIAGRAMS:
-    source = ROOT / f'docs/diagrams/{name}.puml'
+    source = ROOT / f'docs/other-docs/diagrams/{name}.puml'
     image = source.with_suffix('.png')
     if not source.is_file() or not image.is_file():
         errors.append(f'Missing source/PNG pair: {name}')

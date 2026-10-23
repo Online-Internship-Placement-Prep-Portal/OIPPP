@@ -6,7 +6,7 @@
 
 ## Sources and scope
 
-The delivered [SRS](../../Deliverables_Part-1/SRS.pdf), section 4.7 (TST-1–TST-6), section 4.8 (ANL-1–ANL-2), and SAFE-1/SAFE-2 are authoritative. The delivered [SAD](../../Deliverables_Part-1/SAD.pdf), sections 4.1 and 4.3.4, places this module under `server/src/modules/tests/` and defines `text`, `options`, `answerIdx`, `durationMin`, and `questionIds`. The README's `docs/SRS.md` link does not currently resolve; do not mistake it for the submitted SRS.
+The delivered [SRS](../../Part-1_Deliverables/SRS.pdf), section 4.7 (TST-1–TST-6), section 4.8 (ANL-1–ANL-2), and SAFE-1/SAFE-2 are authoritative. The delivered [SAD](../../Part-1_Deliverables/SAD.pdf), sections 4.1 and 4.3.4, places this module under `server/src/modules/tests/` and defines `text`, `options`, `answerIdx`, `durationMin`, and `questionIds`. The README's `docs/SRS.md` link does not currently resolve; do not mistake it for the submitted SRS.
 
 This change adds Question, Attempt and Result models plus the supporting Test model needed to identify a test and enforce TST-2. It does **not** implement question/test endpoints, attempt services, scoring, dashboards, a timer worker, or the other members' User/Profile models. No existing database is migrated and no connection is opened on model import.
 

@@ -1,11 +1,11 @@
 # ---------------------------------------------------------------
 # PDFs
-# Only submitted deliverables (Deliverables_Part-1/, Part-2/, ...)
-# are committed. Course templates, guidelines and local copies
-# anywhere else stay untracked.
+# Only submitted deliverables (docs/Part-1_Deliverables/,
+# docs/Part-2_Deliverables/, ...) are committed. Course templates,
+# guidelines and local copies anywhere else stay untracked.
 # ---------------------------------------------------------------
 *.pdf
-!Deliverables_*/*.pdf
+!docs/Part-*_Deliverables/*.pdf
 
 # course templates and superseded drafts, kept locally only
 docs/new/
