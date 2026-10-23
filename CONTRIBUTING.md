@@ -74,7 +74,7 @@ shared deliverables. The load is intentionally balanced across the four areas.
 
 | # | Task | Type | Status |
 |:-:|:-----|:-----|:------:|
-| 3.1 | Student applies to an internship (resume + cover note, duplicate-safe) | Functional | ❌ |
+| 3.1 | Student applies to an internship (resume + cover note, duplicate-safe) | Functional | ✅ |
 | 3.2 | Application status lifecycle — Applied → Shortlisted → Interview → Offer / Rejected | Functional | ❌ |
 | 3.3 | Recruiter application review — view applicants, shortlist, reject with reason | Functional | ❌ |
 | 3.4 | Notifications on every status change (in-app + email) | Functional | ✅ |
