@@ -14,6 +14,10 @@ Each member adds rows for their own area.
 | 7 | Process | Test Plan 6 | Three sprints | Two sprints: 19–23 Oct and 26–30 Oct 2026 | Part-2 instructions fix two sprints |
 | 8 | Aptitude / Analytics documentation | CONTRIBUTING 4.8 | Backlog sections 5.4 Aptitude, 5.5 Analytics, 6.3 Quality | Delivered as editable Member 4 sections with mapping to submitted SRS 4.7, 4.8 and 5.4 (related 5.1/5.2) | Reconciles numbering without changing the approved PDF or requirement IDs; follows the same approach as row 5 |
 
+| 9 | Aptitude | SAD 4.3 / tasks 4.1–4.2 | Core question/test/attempt endpoints | Adds bank list/edit/archive, draft publication/archive, owner GET attempt/result, pagination and version conflicts | Required authoring lifecycle and safe refresh/reconnect; backend-only, pending client integration and review |
+| 10 | Aptitude | SRS TST-5 | Expire at endsAt; reject answers more than 30 seconds late | Proposed hard cutoff: reject all answers at/after endsAt, including the ambiguous first 30 seconds | Deterministic fairness; explicitly requires team approval in PR review, not an approved change to the submitted requirement |
+| 11 | Aptitude | SAD persistence / TST-5–6 | Server submission and immediate result | Replica-set transaction closes Attempt and creates canonical Result; startup requires Atlas/replica set; in-process one-second batch timeout sweep plus request-time checks | Prevent partial close/result writes, catch up after restart; sweep can lag under outages/backlog, no exact-deadline materialization claim |
+
 ## Member 4 design reconciliation — review notes, not new runtime behavior
 
 - The updated ER uses the current separate `Result` model rather than the old diagram's `Attempt.score`; `Profile` names the existing cross-member dependency contract instead of the older display name `StudentProfile`. No shared schema code is changed here.

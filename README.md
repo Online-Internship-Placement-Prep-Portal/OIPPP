@@ -1,7 +1,7 @@
 # OIPPP — Online Internship & Placement Preparation Portal
 
 > Software Engineering project — PES University, Dept. of Computer Science and Engineering
-> **Status:** planning. No application code yet — start from the direction set out in the docs below.
+> **Status:** backend modules are under development. Identity/profile/admin, listings, applications/notifications and aptitude models exist; aptitude authoring/timed-attempt APIs are pending review. Frontend and end-to-end integration remain incomplete.
 
 Campus placement is currently split across two disconnected halves: students hunt for internships on
 scattered notice boards and mail threads, and practise for aptitude rounds on unrelated third-party
@@ -61,6 +61,7 @@ have them.
 | [docs/PROPOSAL.md](docs/PROPOSAL.md) | Project proposal — title, team profile, description, functional features, plan of work, product ownership. Export to PDF for submission. |
 | [docs/SRS.md](docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
 | [Architecture and diagrams](docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
+| [Aptitude authoring and attempts](docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, save/recovery behavior and pending client integration (tasks 4.1/4.2). |
 | [Aptitude database schema](docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Who owns which functional features, task status tables, branching and PR rules. |
 | [docs/applications-api.md](docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
@@ -68,14 +69,15 @@ have them.
 
 ## Getting started
 
-Nothing is scaffolded yet. Before writing code :
+The backend lives in `server/`; there is not yet a `client/` application. Before integrating features:
 
 1. Read [CONTRIBUTING.md](CONTRIBUTING.md) and fill in your name, SRN and GitHub handle.
 2. Fill the `<...>` placeholders in [docs/PROPOSAL.md](docs/PROPOSAL.md) — the proposal is returned
    without review if any required section is missing.
 3. Agree the **API contract** and the **MongoDB schemas** as a team (shared deliverable S5). Feature
    work in parallel only works if the boundaries are settled first.
-4. Then scaffold `client/` and `server/`, and start on the features you own.
+4. For backend setup run `npm ci`, `npm run lint` and `npm test` inside `server/`. See [aptitude setup](docs/aptitude-api.md#run-and-verify) for the replica-set requirement. Production login uses the shared User module and JWT middleware; verify end-to-end integration and do not bypass authentication.
+5. Build the shared `client/` and connect it to the approved APIs with the team.
 
 ## Team
 

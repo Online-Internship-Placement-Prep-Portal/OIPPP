@@ -7,6 +7,8 @@ const listingService = require('./modules/listings/listing.service');
 
 async function main() {
   await mongoose.connect(mongoUri);
+  await require('./modules/tests/aptitude.service').initialize();
+  require('./modules/tests/attempt-timeout.job').startAttemptTimeoutJob();
   logger.info('connected to MongoDB');
   startEmailRetryJob();
   listingService.closeExpiredListings().catch(err => logger.error({ err: err.message }, 'failed initial listing cleanup'));
