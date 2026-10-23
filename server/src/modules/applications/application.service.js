@@ -1,5 +1,5 @@
 const Application = require('./application.model');
-const { canTransition } = require('./application.constants');
+const { canTransition, REJECT_REASONS } = require('./application.constants');
 const deps = require('./application.deps');
 const audit = require('../audit/audit.service');
 const notifications = require('../notifications/notification.service');
@@ -81,8 +81,49 @@ async function listMine(studentId) {
   }));
 }
 
-// REV-2, REV-4, APP-4
-async function updateStatus(recruiterId, applicationId, { status }) {
+// REV-1
+async function listForListing(recruiterId, listingId, { status, page = 1, limit = 20 }) {
+  const listing = await loadListing(listingId);
+  assertOwner(listing, recruiterId);
+
+  const filter = { listingId };
+  if (status) filter.status = status;
+  const [items, total] = await Promise.all([
+    Application.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).lean(),
+    Application.countDocuments(filter),
+  ]);
+
+  const studentIds = items.map((a) => a.studentId);
+  const [profiles, users] = await Promise.all([
+    deps.Profile().find({ userId: { $in: studentIds } }).select('userId branch gradYear cgpa skills').lean(),
+    deps.User().find({ _id: { $in: studentIds } }).select('name').lean(),
+  ]);
+  const profileOf = new Map(profiles.map((p) => [String(p.userId), p]));
+  const nameOf = new Map(users.map((u) => [String(u._id), u.name]));
+
+  return {
+    items: items.map((a) => {
+      const p = profileOf.get(String(a.studentId)) || {};
+      return {
+        _id: a._id,
+        status: a.status,
+        rejectReason: a.rejectReason,
+        coverNote: a.coverNote,
+        appliedAt: a.createdAt,
+        student: {
+          id: a.studentId, name: nameOf.get(String(a.studentId)),
+          branch: p.branch, gradYear: p.gradYear, cgpa: p.cgpa, skills: p.skills,
+        },
+        resumeUrl: `/api/users/${a.studentId}/resume`,
+      };
+    }),
+    total,
+    page,
+  };
+}
+
+// REV-2 .. REV-4, APP-4
+async function updateStatus(recruiterId, applicationId, { status, reasonCode }) {
   const application = await Application.findById(applicationId).lean();
   if (!application) throw new AppError(404, 'NOT_FOUND', 'Application not found');
   const listing = await loadListing(application.listingId);
@@ -92,8 +133,17 @@ async function updateStatus(recruiterId, applicationId, { status }) {
   if (!canTransition(from, status)) {
     throw new AppError(422, 'INVALID_TRANSITION', `Cannot move an application from ${from} to ${status}`);
   }
+  if (status === 'REJECTED' && !REJECT_REASONS[reasonCode]) {
+    throw new AppError(400, 'REASON_REQUIRED', 'Choose a rejection reason',
+      [{ field: 'reasonCode', message: `one of ${Object.keys(REJECT_REASONS).join(', ')}` }]);
+  }
+
   const entry = { from, to: status, by: recruiterId, at: new Date() };
   const set = { status };
+  if (status === 'REJECTED') {
+    entry.reasonCode = reasonCode;
+    set.rejectReason = reasonCode;
+  }
   // conditional on the old status so two recruiters clicking at once cannot both win
   const updated = await Application.findOneAndUpdate(
     { _id: applicationId, status: from },
@@ -103,16 +153,17 @@ async function updateStatus(recruiterId, applicationId, { status }) {
   if (!updated) throw new AppError(409, 'STALE_STATUS', 'The application changed meanwhile, please reload');
 
   await audit.record(recruiterId, 'APPLICATION_STATUS_CHANGED', 'Application', updated._id,
-    { status: from }, { status });
+    { status: from }, { status, reasonCode: set.rejectReason });
 
+  const reasonText = status === 'REJECTED' ? ` Reason: ${REJECT_REASONS[reasonCode]}.` : '';
   await notifications.notify(updated.studentId, {
     type: 'APPLICATION_STATUS',
     title: `${listing.title}: ${STATUS_LABEL[status]}`,
-    message: `Your application for ${listing.title} at ${listing.company} is now ${STATUS_LABEL[status]}.`,
+    message: `Your application for ${listing.title} at ${listing.company} is now ${STATUS_LABEL[status]}.${reasonText}`,
     applicationId: updated._id,
   }, { email: true });
 
   return updated;
 }
 
-module.exports = { apply, listMine, updateStatus };
+module.exports = { apply, listMine, listForListing, updateStatus };
