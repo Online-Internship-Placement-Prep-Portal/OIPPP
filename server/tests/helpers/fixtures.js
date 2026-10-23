@@ -12,8 +12,16 @@ const Profile = define('Profile', {
   skills: [String], resumeFileId: mongoose.Schema.Types.ObjectId,
 });
 const Listing = define('Listing', {
-  recruiterId: mongoose.Schema.Types.ObjectId, title: String, company: String,
-  status: { type: String, default: 'OPEN' }, deadline: Date, minCgpa: Number,
+  recruiterId: mongoose.Schema.Types.ObjectId,
+  title: String,
+  company: String,
+  location: String,
+  mode: String,
+  stipend: Number,
+  skills: [String],
+  status: { type: String, default: 'OPEN' },
+  deadline: Date,
+  minCgpa: Number,
 });
 
 module.exports = { User, Profile, Listing };
