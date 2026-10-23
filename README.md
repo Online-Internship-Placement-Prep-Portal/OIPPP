@@ -62,6 +62,8 @@ have them.
 | [docs/SRS.md](docs/SRS.md) | Software Requirements Specification scaffold, section-by-section, with an owner marked on each. |
 | [Aptitude database schema](docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [CONTRIBUTING.md](CONTRIBUTING.md) | Who owns which functional features, task status tables, branching and PR rules. |
+| [docs/applications-api.md](docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
+| [docs/DEVIATIONS.md](docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
 
 ## Getting started
 

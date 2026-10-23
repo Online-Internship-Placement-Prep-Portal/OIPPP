@@ -81,7 +81,7 @@ shared deliverables. The load is intentionally balanced across the four areas.
 | 3.5 | **Qualitative:** reliability — no lost or duplicated applications; every status transition is validated and audit-logged | Non-functional | ✅ |
 | 3.6 | Application / Notification schema design in MongoDB | Supporting | ✅ |
 | 3.7 | Unit + integration tests for owned features | Supporting | ✅ |
-| 3.8 | SRS sections: 5.3 Applications feature, 6.5 Business Rules, Appendix C traceability | Documentation | ❌ |
+| 3.8 | SRS sections: 5.3 Applications feature, 6.5 Business Rules, Appendix C traceability | Documentation | ✅ |
 
 ### Member 4 (E S Sukruth) — Aptitude Tests, Progress & Analytics
 
