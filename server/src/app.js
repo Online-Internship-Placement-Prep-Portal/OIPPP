@@ -4,6 +4,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const { clientOrigin } = require('./config/env');
 const { notFound, errorHandler } = require('./middleware/error');
+const applicationRoutes = require('./modules/applications/application.routes');
 const notificationRoutes = require('./modules/notifications/notification.routes');
 
 const app = express();
@@ -16,6 +17,7 @@ app.use('/api', rateLimit({ windowMs: 60 * 1000, limit: 300, standardHeaders: tr
 // SAD 4.4: health check for UptimeRobot during the demo
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
+app.use('/api', applicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 app.use(notFound);
