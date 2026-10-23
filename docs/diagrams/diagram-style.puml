@@ -1,0 +1,40 @@
+' Shared local style; no network includes or external assets.
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam titleFontSize 20
+skinparam titleFontColor #2C2C2B
+skinparam ArrowColor #7D7A75
+skinparam ArrowFontColor #2C2C2B
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam Padding 8
+skinparam nodesep 35
+skinparam ranksep 45
+skinparam packageStyle rectangle
+skinparam componentStyle rectangle
+skinparam rectangle {
+  BackgroundColor #F9F8F7
+  BorderColor #7D7A75
+  FontColor #2C2C2B
+}
+skinparam component {
+  BackgroundColor #E5F2FC
+  BorderColor #2783DE
+  FontColor #2C2C2B
+}
+skinparam entity {
+  BackgroundColor #F9F8F7
+  BorderColor #7D7A75
+  FontColor #2C2C2B
+}
+skinparam usecase {
+  BackgroundColor #F9F8F7
+  BorderColor #7D7A75
+  FontColor #2C2C2B
+}
+skinparam note {
+  BackgroundColor #FBEBDE
+  BorderColor #D5803B
+  FontColor #2C2C2B
+}

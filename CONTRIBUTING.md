@@ -94,7 +94,7 @@ shared deliverables. The load is intentionally balanced across the four areas.
 | 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state | Non-functional | ❌ |
 | 4.6 | Question / Attempt / Result schema design in MongoDB — [design + models](docs/database/aptitude-schema.md), pending team review | Supporting | 🟠 |
 | 4.7 | Unit + integration tests for owned features | Supporting | ❌ |
-| 4.8 | SRS sections: 5.4 Aptitude feature, 5.5 Analytics feature, 6.3 Quality Attributes | Documentation | ❌ |
+| 4.8 | SRS sections: 5.4 Aptitude, 5.5 Analytics, 6.3 Quality — [complete sections + traceability](docs/srs/aptitude-analytics-quality.md), pending review | Documentation | 🟠 |
 
 ---
 
@@ -107,7 +107,7 @@ One owner each, so nothing is left ownerless. Everyone reviews all of them.
 | S1 | Project proposal — `docs/PROPOSAL.md` → PDF for submission | Member 1 | 🟠 |
 | S2 | SRS document — `docs/SRS.md` → PDF for submission | Member 2 | 🟠 |
 | S3 | Repo setup, branching rules, CI, `.env.example` | Member 3 | ✅ |
-| S4 | Architecture & ER / use-case diagrams (`docs/diagrams/`) | Member 4 | ❌ |
+| S4 | Architecture & ER / use-case diagrams — [sources, PNGs and guide](docs/diagrams/README.md), pending review | Member 4 | 🟠 |
 | S5 | API contract — shared route + payload spec agreed by all four | All | ❌ |
 | S6 | Final demo & presentation | All | ❌ |
 

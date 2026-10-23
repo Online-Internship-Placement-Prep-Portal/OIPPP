@@ -1,44 +1,53 @@
 @startuml component
-!pragma layout smetana
-skinparam componentStyle uml2
-package "Client (React SPA)" {
-  [UI Pages] as UI
-  [API Client (axios)] as AX
+!include diagram-style.puml
+top to bottom direction
+title OIPPP — component architecture
+caption Design target with implementation boundaries; not a deployment-completeness claim.
+rectangle "Public browser boundary" as BROWSER {
+  component "React SPA\nStudent / Recruiter / Admin pages\n[planned]" as UI
 }
-package "API Server (Node.js + Express)" {
-  [Auth Middleware\n(JWT verify + RBAC)] as MW
-  [Auth & User Module] as AUTH
-  [Listing Module] as LIST
-  [Application Module] as APP
-  [Notification Module] as NOTIF
-  [Aptitude Test Module] as TEST
-  [Analytics Gateway] as AGW
-  [Audit Logger] as AUD
+rectangle "API process — Node.js / Express" as API {
+  component "HTTP middleware\nHelmet / CORS / validated bodies\nJWT + role + ownership checks" as MW
+  package "Feature modules — routes/controller → service → model" as MODULES {
+    component "Identity / Profile\n[planned; Member 1]" as AUTH
+    component "Listing / Discovery\n[planned; Member 2]" as LIST
+    component "Applications\n[integrated; Member 3]" as APP
+    component "Notifications + retry job\n[integrated; Member 3]" as NOTIF
+    component "Audit logger\n[integrated; Member 3]" as AUD
+    component "Aptitude tests\n[models only; Member 4]" as TEST
+  }
+  component "Timeout coordinator\n[planned; server deadline]" as TIMER
+  component "Analytics gateway + cache\n[planned; Member 4]" as AGW
+  component "Persistence layer\nMongoose models + GridFS access" as STORE
 }
-package "Analytics Service (Python / Flask)" {
-  [Readiness & Stats Engine] as PY
+rectangle "Private analytics boundary" as ANALYTICS {
+  component "Python / Flask engine\nReadiness + placement statistics\n[planned; read-only]" as PY
 }
-database "MongoDB" as DB
-cloud "SMTP Provider" as SMTP
-folder "Resume File Store\n(GridFS)" as FS
+database "MongoDB / GridFS\nApplication data + resume files" as DB
+cloud "SMTP provider\nExternal service" as SMTP
 
-UI --> AX
-AX --> MW : HTTPS / REST + JSON
-MW --> AUTH
-MW --> LIST
-MW --> APP
-MW --> TEST
-MW --> AGW
-APP --> NOTIF
-APP --> AUD
-NOTIF --> SMTP : SMTP/TLS
-AUTH --> FS
-AUTH --> DB
-LIST --> DB
-APP --> DB
-TEST --> DB
-NOTIF --> DB
-AUD --> DB
-AGW --> PY : HTTP (internal)
-PY --> DB : read-only
+UI --> MW : HTTPS / REST JSON\nBearer session; never DB credentials
+MW --> MODULES : authenticate / authorize / dispatch
+MW --> AGW : authorized analytics requests
+APP --> NOTIF : delivery event
+APP --> AUD : audit event
+MODULES --> STORE : validated service operations
+STORE --> DB : API-held DB credentials
+TIMER --> TEST : finalize overdue attempts
+AGW --> PY : private HTTP\nscoped student / cohort request
+PY --> DB : read-only queries
+NOTIF --> SMTP : SMTP + STARTTLS
+note bottom of TIMER
+  Timer runs on the server, not in the browser.
+  Recovery after process sleep/restart is required.
+end note
+note bottom of PY
+  Python does not write Result/readiness records.
+  API controls authorization and cache ownership.
+end note
+legend bottom left
+  [planned] / [models only] / [integrated] describe inspected dev code.
+  Middleware scaffolding exists; User/Listings and analytics integration remain dependencies.
+  One API modular monolith; Python is the separate analytics component.
+endlegend
 @enduml
