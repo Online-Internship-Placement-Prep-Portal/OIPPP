@@ -5,10 +5,12 @@
 Backend implementation for issues #25 and #26. Feature branch changes require team review.
 There is no `client/` application in the inspected `dev` baseline: this delivers REST APIs,
 not an admin form, test-taking screen, or browser auto-save wiring. The real JWT middleware
-is reused unchanged. It still depends on Member 1's missing
-`server/src/modules/users/user.model.js`; do not replace it with a permissive development
-login. Integration tests use the repository's existing fake-auth pattern; separate unit
-checks exercise real JWT verification and disabled-account denial with a virtual identity model.
+is reused unchanged. The current integrated `dev` now provides Member 1's User, auth, profile
+and admin modules; the conflict resolution retains those routes alongside aptitude, listings,
+applications and notifications. Verify real login and client integration end-to-end; do not add
+a permissive development login. Aptitude integration tests use the repository's existing fake-auth
+pattern with fixtures satisfying the real User schema. Separate unit checks exercise real JWT
+verification and disabled-account denial with a mocked identity-module boundary.
 
 ## Run and verify
 
@@ -149,10 +151,10 @@ complete and does not add readiness dashboards, cohort analytics or a Python ser
 
 ## Validation evidence
 
-`npm run lint`: passed. `npm test`: 13 suites / 143 tests passed at implementation handoff.
+`npm run lint`: passed. `npm test`: 17 suites / 181 tests passed after integrating the latest dev and resolving PR #53 conflicts.
 49 new cases cover authoring permissions/validation, filtering/archive/publication, key redaction,
 concurrent starts, acknowledged saves/reload, stale versions, owner isolation, immutable snapshots,
 expiry (including 0–30 seconds), background catch-up, simultaneous finalization, submission/save
 races, transactional rollback and retry, worker lifecycle, and real JWT/disabled-account checks.
-The remaining 94 cases are the existing module/schema regression suite. No load-test or browser
-acceptance/coverage threshold claim is made. Team review and Member 1/frontend integration remain.
+The remaining 132 cases are the integrated module/schema regression suite. No load-test or browser
+acceptance/coverage threshold claim is made. Team review and end-to-end frontend/authentication integration remain.

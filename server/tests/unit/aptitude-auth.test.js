@@ -1,6 +1,6 @@
-// Exercise the real JWT middleware with a virtual identity-module boundary;
+// Exercise the real JWT middleware with a mocked identity-module boundary;
 // no test-header authentication is enabled in the production router.
-jest.mock('../../src/modules/users/user.model', () => ({ findById: jest.fn() }), { virtual: true });
+jest.mock('../../src/modules/users/user.model', () => ({ findById: jest.fn() }));
 const jwt = require('jsonwebtoken');
 const { authenticate, allow } = require('../../src/middleware/auth');
 const User = require('../../src/modules/users/user.model');

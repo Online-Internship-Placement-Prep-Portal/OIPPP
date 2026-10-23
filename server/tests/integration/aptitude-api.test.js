@@ -32,7 +32,10 @@ beforeAll(async () => {
 afterAll(async () => { await mongoose.disconnect(); if (mongo) await mongo.stop(); });
 beforeEach(async () => {
   await Promise.all(Object.values(mongoose.connection.collections).map((c) => c.collection.deleteMany({})));
-  [admin, student, other, recruiter] = await User.create(['ADMIN', 'STUDENT', 'STUDENT', 'RECRUITER'].map((role) => ({ role })));
+  [admin, student, other, recruiter] = await User.create(['ADMIN', 'STUDENT', 'STUDENT', 'RECRUITER'].map((role, i) => ({
+    role, name: `Aptitude fixture ${i}`, email: `aptitude-${i}@example.test`,
+    passwordHash: 'unused-fake-auth-test-hash',
+  })));
   questions = await Question.create(Array.from({ length: 5 }, (_, i) => ({ ...questionBody(i), createdBy: admin._id })));
   publishedTest = await Test.create({ title: 'Practice', durationMin: 10, questionIds: questions.map((q) => q._id),
     createdBy: admin._id, status: 'PUBLISHED' });
