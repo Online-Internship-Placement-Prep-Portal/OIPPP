@@ -1,5 +1,13 @@
 # OIPPP — Online Internship & Placement Preparation Portal
 
+<p align="center">
+  <a href="Sprint%201%20Demo.mp4">
+    <img src="docs/sprints/Sprint%201%20Demo%20thumbnail.png" alt="Watch the Sprint 1 demo video" width="720">
+  </a>
+  <br>
+  <sub>▶ <b><a href="Sprint%201%20Demo.mp4">Watch the Sprint 1 demo</a></b> (74 s): board, issues, PRs, CI and the live API</sub>
+</p>
+
 > Software Engineering project — PES University, Dept. of Computer Science and Engineering
 > **Status:** backend modules are under development. Identity/profile/admin, listings, applications/notifications and aptitude models exist; aptitude authoring/timed-attempt APIs are pending review. Frontend and end-to-end integration remain incomplete.
 
