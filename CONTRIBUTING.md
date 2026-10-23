@@ -87,8 +87,8 @@ shared deliverables. The load is intentionally balanced across the four areas.
 
 | # | Task | Type | Status |
 |:-:|:-----|:-----|:------:|
-| 4.1 | Question bank + admin-authored aptitude / technical test creation | Functional | ❌ |
-| 4.2 | Timed test attempt with auto-save and single-attempt enforcement | Functional | ❌ |
+| 4.1 | Question bank + admin-authored aptitude / technical test creation — [backend APIs](docs/aptitude-api.md), pending review and client integration | Functional | 🟠 |
+| 4.2 | Timed test attempt with auto-save and single-attempt enforcement — [backend APIs + recovery](docs/aptitude-api.md), pending review and client integration | Functional | 🟠 |
 | 4.3 | Auto-evaluation, scoring and per-topic result breakdown | Functional | ❌ |
 | 4.4 | Progress tracking + analytics dashboards (student readiness, admin placement stats) | Functional | ❌ |
 | 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state | Non-functional | ❌ |

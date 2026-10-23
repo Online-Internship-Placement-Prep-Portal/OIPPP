@@ -6,6 +6,8 @@ const { startEmailRetryJob } = require('./modules/notifications/notification.ser
 
 async function main() {
   await mongoose.connect(mongoUri);
+  await require('./modules/tests/aptitude.service').initialize();
+  require('./modules/tests/attempt-timeout.job').startAttemptTimeoutJob();
   logger.info('connected to MongoDB');
   startEmailRetryJob();
   app.listen(port, () => logger.info({ port }, 'OIPPP API listening'));

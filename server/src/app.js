@@ -17,6 +17,7 @@ app.use('/api', rateLimit({ windowMs: 60 * 1000, limit: 300, standardHeaders: tr
 // SAD 4.4: health check for UptimeRobot during the demo
 app.get('/api/health', (req, res) => res.json({ status: 'ok' }));
 
+app.use('/api', require('./modules/tests/aptitude.routes'));
 app.use('/api', applicationRoutes);
 app.use('/api/notifications', notificationRoutes);
 
