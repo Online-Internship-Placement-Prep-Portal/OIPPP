@@ -41,7 +41,6 @@ The full itemized feature list (F1–F16) is in [docs/PROPOSAL.md](docs/PROPOSAL
 ```
 OIPPP/
 ├── README.md              you are here
-├── CONTRIBUTING.md        work division, ownership, status tables, working agreement
 ├── .gitignore
 └── docs/
     ├── PROPOSAL.md        project proposal (per Project Guidelines.pdf)
@@ -63,7 +62,6 @@ have them.
 | [Architecture and diagrams](docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
 | [Aptitude authoring and attempts](docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, save/recovery behavior and pending client integration (tasks 4.1/4.2). |
 | [Aptitude database schema](docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
-| [CONTRIBUTING.md](CONTRIBUTING.md) | Who owns which functional features, task status tables, branching and PR rules. |
 | [docs/applications-api.md](docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
 | [docs/DEVIATIONS.md](docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
 
@@ -71,7 +69,7 @@ have them.
 
 The backend lives in `server/`; there is not yet a `client/` application. Before integrating features:
 
-1. Read [CONTRIBUTING.md](CONTRIBUTING.md) and fill in your name, SRN and GitHub handle.
+1. Read the [Team](#team) and [Working agreement](#working-agreement) sections below.
 2. Fill the `<...>` placeholders in [docs/PROPOSAL.md](docs/PROPOSAL.md) — the proposal is returned
    without review if any required section is missing.
 3. Agree the **API contract** and the **MongoDB schemas** as a team (shared deliverable S5). Feature
@@ -79,13 +77,114 @@ The backend lives in `server/`; there is not yet a `client/` application. Before
 4. For backend setup run `npm ci`, `npm run lint` and `npm test` inside `server/`. See [aptitude setup](docs/aptitude-api.md#run-and-verify) for the replica-set requirement. Production login uses the shared User module and JWT middleware; verify end-to-end integration and do not bypass authentication.
 5. Build the shared `client/` and connect it to the approved APIs with the team.
 
+
 ## Team
 
-Four members, each owning four functional features plus one qualitative property — see the
-[work division](CONTRIBUTING.md#3-work-division).
+Work is split by **functional feature**, not by layer, as the *Project Guidelines* require. Each
+member owns their features end to end (UI, database, tests, docs) and reviews everyone else's.
+Live task status is tracked in the [GitHub issues](https://github.com/Online-Internship-Placement-Prep-Portal/OIPPP/issues)
+and on the [project board](https://github.com/orgs/Online-Internship-Placement-Prep-Portal/projects/2).
 
-| Symbol | Meaning |
-|:------:|:--------|
-| ❌ | Not started |
-| 🟠 | In progress |
-| ✅ | Completed |
+| # | Name | SRN | GitHub | Feature area |
+|:-:|:-----|:----|:-------|:-------------|
+| 1 | Deekshith Gowda G | PES1UG24CS142 | [@deekshithgowdag](https://github.com/deekshithgowdag) | Identity, Profiles & Admin |
+| 2 | Sharath HG | PES1UG25CS844 | [@Sharathhg123](https://github.com/Sharathhg123) | Internship Listings & Discovery |
+| 3 | Guru R Bharadwaj | PES1UG24CS177 | [@guru-bharadwaj20](https://github.com/guru-bharadwaj20) | Applications & Recruiter Workflow |
+| 4 | E S Sukruth | PES1UG25CS160 | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) | Aptitude Tests, Progress & Analytics |
+
+### Work division
+
+Task numbers (e.g. 3.8) match the issue titles and are cited in [docs/DEVIATIONS.md](docs/DEVIATIONS.md).
+
+**Member 1 — [Deekshith Gowda G](https://github.com/deekshithgowdag): Identity, Profiles & Admin**
+
+| # | Task | Type |
+|:-:|:-----|:-----|
+| 1.1 | Student / Recruiter / Admin registration & login (JWT sessions) | Functional |
+| 1.2 | Role-based access control across every protected route | Functional |
+| 1.3 | Student profile management — education, skills, resume upload | Functional |
+| 1.4 | Admin user management — approve recruiters, deactivate accounts | Functional |
+| 1.5 | **Qualitative:** confidentiality — hashed passwords, no cross-role data leakage, resume files reachable only by owner + applied recruiter | Non-functional |
+| 1.6 | User / Profile / Role schema design in MongoDB | Supporting |
+| 1.7 | Unit + integration tests for owned features | Supporting |
+| 1.8 | SRS sections: 2.3 User Classes, 5.1 Auth feature, 6.4 Security | Documentation |
+
+**Member 2 — [Sharath HG](https://github.com/Sharathhg123): Internship Listings & Discovery**
+
+| # | Task | Type |
+|:-:|:-----|:-----|
+| 2.1 | Recruiter posts / edits / closes an internship listing | Functional |
+| 2.2 | Search, filter & sort listings (role, location, stipend, skills, deadline) | Functional |
+| 2.3 | Bookmarks / saved internships + automatic deadline expiry | Functional |
+| 2.4 | Skill-match recommendation of listings on the student home feed | Functional |
+| 2.5 | **Qualitative:** performance — filtered search returns in < 2 s over a seeded set of 5,000+ listings (indexing + pagination) | Non-functional |
+| 2.6 | Internship / Company schema design in MongoDB | Supporting |
+| 2.7 | Unit + integration tests for owned features | Supporting |
+| 2.8 | SRS sections: 2.2 Product Functions, 5.2 Listings feature, 6.1 Performance | Documentation |
+
+**Member 3 — [Guru R Bharadwaj](https://github.com/guru-bharadwaj20): Applications & Recruiter Workflow**
+
+| # | Task | Type |
+|:-:|:-----|:-----|
+| 3.1 | Student applies to an internship (resume + cover note, duplicate-safe) | Functional |
+| 3.2 | Application status lifecycle — Applied → Shortlisted → Interview → Offer / Rejected | Functional |
+| 3.3 | Recruiter application review — view applicants, shortlist, reject with reason | Functional |
+| 3.4 | Notifications on every status change (in-app + email) | Functional |
+| 3.5 | **Qualitative:** reliability — no lost or duplicated applications; every status transition is validated and audit-logged | Non-functional |
+| 3.6 | Application / Notification schema design in MongoDB | Supporting |
+| 3.7 | Unit + integration tests for owned features | Supporting |
+| 3.8 | SRS sections: 5.3 Applications feature, 6.5 Business Rules, Appendix C traceability | Documentation |
+
+**Member 4 — [E S Sukruth](https://github.com/SUKRUTH-ES): Aptitude Tests, Progress & Analytics**
+
+| # | Task | Type |
+|:-:|:-----|:-----|
+| 4.1 | Question bank + admin-authored aptitude / technical test creation — [backend APIs](docs/aptitude-api.md) | Functional |
+| 4.2 | Timed test attempt with auto-save and single-attempt enforcement — [backend APIs + recovery](docs/aptitude-api.md) | Functional |
+| 4.3 | Auto-evaluation, scoring and per-topic result breakdown | Functional |
+| 4.4 | Progress tracking + analytics dashboards (student readiness, admin placement stats) | Functional |
+| 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state | Non-functional |
+| 4.6 | Question / Attempt / Result schema design in MongoDB — [design + models](docs/database/aptitude-schema.md) | Supporting |
+| 4.7 | Unit + integration tests for owned features | Supporting |
+| 4.8 | SRS sections: 5.4 Aptitude, 5.5 Analytics, 6.3 Quality — [sections + traceability](docs/srs/aptitude-analytics-quality.md) | Documentation |
+
+### Shared deliverables
+
+One owner each; everyone reviews all of them.
+
+| # | Deliverable | Owner |
+|:-:|:------------|:------|
+| S1 | Project proposal — `docs/PROPOSAL.md` → PDF | [@deekshithgowdag](https://github.com/deekshithgowdag) |
+| S2 | SRS document — `docs/SRS.md` → PDF | [@Sharathhg123](https://github.com/Sharathhg123) |
+| S3 | Repo setup, branching rules, CI, `.env.example` | [@guru-bharadwaj20](https://github.com/guru-bharadwaj20) |
+| S4 | Architecture & ER / use-case diagrams — [sources and guide](docs/diagrams/README.md) | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) |
+| S5 | API contract — shared route + payload spec agreed by all four | All |
+| S6 | Final demo & presentation | All |
+
+## Working agreement
+
+**Branches**
+
+```
+main                    merge only via reviewed PR from dev
+dev                     integration branch — every feature PR targets this
+feat/<area>-<summary>   e.g. feat/listings-search-filter
+fix/<area>-<summary>
+docs/<summary>
+```
+
+**Commits** — `<type>(<scope>): <summary>`, e.g. `feat(applications): add shortlist endpoint`.
+Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
+
+**Pull requests**
+
+1. Branch off `dev`; never commit directly to `main` or `dev`.
+2. Target `dev` — never another feature branch.
+3. One issue per PR, with `Closes #<issue>` in the description.
+4. A teammate approves and **merges**; never merge your own PR.
+
+**Ground rules**
+
+- Never commit `.env`, credentials, `node_modules/`, or the reference PDFs (see `.gitignore`).
+- Anything touching a shared schema or the API contract gets discussed with all four members first.
+- If you are blocked for more than a day, say so — reassignment is cheaper than a stalled milestone.

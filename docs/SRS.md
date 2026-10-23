@@ -12,7 +12,7 @@ The complete editable [Aptitude, Analytics and Quality sections](srs/aptitude-an
 | 5.5 Analytics | 4.8 Progress Tracking and Analytics | [5.5 Analytics](srs/aptitude-analytics-quality.md#55-progress-tracking-and-analytics) |
 | 6.3 Quality Attributes | 5.4 Software Quality Attributes; related 5.1 Performance and 5.2 Safety | [6.3 Quality](srs/aptitude-analytics-quality.md#63-quality-attributes-and-related-constraints) |
 
-Existing IDs TST-1–TST-6, ANL-1–ANL-3, PERF-1–PERF-3, SAFE-1–SAFE-2 and QA-1–QA-5 are preserved. Acceptance elaborations are labeled; they are not evidence of implementation or passed release tests. Work outside Member 4 remains owned by the members listed in [CONTRIBUTING](../CONTRIBUTING.md).
+Existing IDs TST-1–TST-6, ANL-1–ANL-3, PERF-1–PERF-3, SAFE-1–SAFE-2 and QA-1–QA-5 are preserved. Acceptance elaborations are labeled; they are not evidence of implementation or passed release tests. Work outside Member 4 remains owned by the members listed in [README](../README.md#team).
 
 ## Related deliverables
 
