@@ -4,6 +4,7 @@ const { authenticate, allow } = require('../../middleware/auth');
 const { validate } = require('../../middleware/validate');
 const AppError = require('../../utils/AppError');
 const service = require('./listing.service');
+const searchService = require('./listing.search.service');
 
 const router = express.Router();
 const wrap = fn => (req, res, next) => fn(req, res).catch(next);
@@ -38,12 +39,43 @@ const updateSchema = Joi.object({
   status: Joi.string().valid('CLOSED'),
 }).min(1);
 
+const searchSchema = Joi.object({
+  search: Joi.string().trim().max(80),
+  location: Joi.string().trim().max(60),
+  minStipend: Joi.number().min(0).max(9999999),
+  maxStipend: Joi.number().min(0).max(9999999),
+  skill: Joi.string().trim().min(1).max(30),
+  deadlineBefore: Joi.date().iso(),
+  deadlineAfter: Joi.date().iso(),
+  sortBy: Joi.string().valid('deadline', 'stipend', 'postedAt', 'title').default('deadline'),
+  order: Joi.string().valid('asc', 'desc').default('asc'),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(100).default(20),
+}).unknown(false);
+
 function requireApprovedRecruiter(req, res, next) {
   if (req.user.status !== 'ACTIVE') {
     return next(new AppError(403, 'NOT_APPROVED', 'Only approved recruiters can publish listings'));
   }
   return next();
 }
+
+router.get(
+  '/listings',
+  validate(searchSchema, 'query'),
+  wrap(async (req, res) => {
+    if (
+      req.query.minStipend !== undefined
+      && req.query.maxStipend !== undefined
+      && req.query.minStipend > req.query.maxStipend
+    ) {
+      throw new AppError(400, 'VALIDATION', 'minStipend cannot exceed maxStipend');
+    }
+
+    const result = await searchService.searchListings(req.query);
+    res.json(result);
+  })
+);
 
 router.post(
   '/listings',
