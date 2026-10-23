@@ -1,7 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { jwtSecret } = require('../config/env');
 const AppError = require('../utils/AppError');
-const User = require('../modules/users/user.model');
 
 async function authenticate(req, res, next) {
   try {
@@ -17,6 +16,8 @@ async function authenticate(req, res, next) {
     }
 
     // read the account each time so a disabled user is cut off at once (PROF-4)
+    // required lazily: the User model belongs to the identity module (#6)
+    const User = require('../modules/users/user.model');
     const user = await User.findById(payload.sub).select('role status');
     if (!user || user.status === 'DISABLED') throw new AppError(401, 'UNAUTHENTICATED', 'Account is not active');
 
