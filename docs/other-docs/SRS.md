@@ -2,6 +2,10 @@
 
 The submitted release-1.0 [Software Requirements Specification](../Part-1_Deliverables/SRS.pdf) is the complete approved baseline. This page is a navigation and change-integration entry point, **not a replacement SRS or a claim that every section has editable Markdown**. Do not rewrite or renumber the submitted PDF in place.
 
+## Member 1 sections — task 1.8 / issue #8
+
+[Identity, user classes and security](identity-security.md) maps backlog 2.3, 5.1 and 6.4 to submitted SRS 2.3, 4.1–4.2 and 5.3, and records the implementation status of AUTH-1–6, PROF-1–4 and SEC-1–6 with acceptance criteria for the open items. Requirement IDs and text are unchanged.
+
 ## Member 4 — task 4.8 / issue #32
 
 The complete editable [Aptitude, Analytics and Quality sections](aptitude-analytics-quality.md) contain the owned requirements, acceptance criteria, actor/data boundaries and requirement traceability. The backlog names use an earlier outline:
