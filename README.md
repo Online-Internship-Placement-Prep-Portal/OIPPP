@@ -78,8 +78,7 @@ have them.
 The backend lives in `server/`; there is not yet a `client/` application. Before integrating features:
 
 1. Read the [Team](#team) and [Working agreement](#working-agreement) sections below.
-2. Fill the `<...>` placeholders in [docs/PROPOSAL.md](docs/PROPOSAL.md) — the proposal is returned
-   without review if any required section is missing.
+2. Read the [project proposal](docs/PROPOSAL.md) ([PDF](docs/Part-1_Deliverables/Proposal.pdf)) for scope and feature ownership.
 3. Agree the **API contract** and the **MongoDB schemas** as a team (shared deliverable S5). Feature
    work in parallel only works if the boundaries are settled first.
 4. For backend setup run `npm ci`, `npm run lint` and `npm test` inside `server/`. See [aptitude setup](docs/other-docs/aptitude-api.md#run-and-verify) for the replica-set requirement. Production login uses the shared User module and JWT middleware; verify end-to-end integration and do not bypass authentication.
