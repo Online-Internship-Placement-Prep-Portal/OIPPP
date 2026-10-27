@@ -114,7 +114,7 @@ async function listForListing(recruiterId, listingId, { status, page = 1, limit 
           id: a.studentId, name: nameOf.get(String(a.studentId)),
           branch: p.branch, gradYear: p.gradYear, cgpa: p.cgpa, skills: p.skills,
         },
-        resumeUrl: `/api/users/${a.studentId}/resume`,
+        resumeUrl: `/api/applications/${a._id}/resume`,
       };
     }),
     total,
@@ -166,4 +166,36 @@ async function updateStatus(recruiterId, applicationId, { status, reasonCode }) 
   return updated;
 }
 
-module.exports = { apply, listMine, listForListing, updateStatus };
+module.exports = {
+  apply,
+  listMine,
+  listForListing,
+  updateStatus,
+  getResumeForApplication,
+};
+
+
+async function getResumeForApplication(userId, role, applicationId) {
+  const application = await Application.findById(applicationId).lean();
+
+  if (!application) {
+    throw new AppError(404, 'NOT_FOUND', 'Application not found');
+  }
+
+  if (role === 'STUDENT') {
+    if (String(application.studentId) !== String(userId)) {
+      throw new AppError(403, 'FORBIDDEN', 'You cannot access this application');
+    }
+  } else if (role === 'RECRUITER') {
+    const listing = await loadListing(application.listingId);
+    assertOwner(listing, userId);
+  } else if (role !== 'ADMIN') {
+    throw new AppError(403, 'FORBIDDEN', 'You cannot access this resume');
+  }
+
+  if (!application.resumeFileId) {
+    throw new AppError(404, 'RESUME_NOT_FOUND', 'No resume was submitted with this application');
+  }
+
+  return application.resumeFileId;
+}

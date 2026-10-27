@@ -37,7 +37,7 @@ describe('REV-1: recruiter applicant list', () => {
     expect(res.body.total).toBe(2);
     const asha = res.body.items.find((i) => i.student.name === 'Asha');
     expect(asha.student).toMatchObject({ branch: 'CSE', cgpa: 7.4 });
-    expect(asha.resumeUrl).toBe(`/api/users/${s.student._id}/resume`);
+    expect(asha.resumeUrl).toBe(`/api/applications/${asha._id}/resume`);
 
     const filtered = await request(app).get(`/api/listings/${s.L1._id}/applications?status=OFFER`).set(as(s.recruiter));
     expect(filtered.body.items).toHaveLength(0);

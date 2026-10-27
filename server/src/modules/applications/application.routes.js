@@ -46,3 +46,39 @@ router.get('/applications/reject-reasons', authenticate, allow('RECRUITER'),
   (req, res) => res.json({ items: Object.entries(REJECT_REASONS).map(([code, label]) => ({ code, label })) }));
 
 module.exports = router;
+
+router.get(
+  '/applications/:id/resume',
+  authenticate,
+  allow('STUDENT', 'RECRUITER', 'ADMIN'),
+  validate(idParam, 'params'),
+  wrap(async (req, res) => {
+    const fileId = await service.getResumeForApplication(
+      req.user.id,
+      req.user.role,
+      req.params.id,
+    );
+
+    const { getResumeStream } = require('../users/resume.storage');
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename="resume.pdf"');
+
+    const stream = getResumeStream(fileId);
+
+    stream.on('error', (err) => {
+      if (!res.headersSent) {
+        res.status(404).json({
+          error: {
+            code: 'RESUME_NOT_FOUND',
+            message: 'Resume file not found',
+          },
+        });
+      } else {
+        res.destroy(err);
+      }
+    });
+
+    stream.pipe(res);
+  }),
+);
