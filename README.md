@@ -66,6 +66,7 @@ have them.
 | Document | Purpose |
 |:---------|:--------|
 | [docs/PROPOSAL.md](docs/PROPOSAL.md) | Project proposal — title, team profile, description, functional features, plan of work, product ownership. Export to PDF for submission. |
+| [Identity and security SRS sections](docs/other-docs/identity-security.md) | Member 1 sections 2.3, 5.1 and 6.4 (task 1.8): requirement-by-requirement status and acceptance criteria. |
 | [docs/other-docs/SRS.md](docs/other-docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
 | [Architecture and diagrams](docs/other-docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
 | [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, save/recovery behavior and pending client integration (tasks 4.1/4.2). |
