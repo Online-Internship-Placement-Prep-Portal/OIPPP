@@ -92,3 +92,26 @@ describe('TC-APP-02: closed listing or not eligible (APP-2, APP-3)', () => {
     expect((await applyTo(s.L3, s.other)).status).toBe(201);
   });
 });
+describe('Confidentiality: cross-user application isolation', () => {
+  test('a student can see only their own applications', async () => {
+    await applyTo(s.L1, s.student);
+    await applyTo(s.L3, s.other);
+
+    const response = await request(app)
+      .get('/api/applications/mine')
+      .set(as(s.student));
+
+    expect(response.status).toBe(200);
+    expect(response.body.items).toHaveLength(1);
+    expect(String(response.body.items[0].studentId))
+      .toBe(String(s.student._id));
+  });
+
+  test('a recruiter cannot view applications for another recruiter listing', async () => {
+    const response = await request(app)
+      .get(`/api/listings/${s.L2._id}/applications`)
+      .set(as(s.recruiter2));
+
+    expect(response.status).toBe(403);
+  });
+});

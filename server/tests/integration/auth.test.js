@@ -1,4 +1,5 @@
-﻿const request = require('supertest');
+﻿
+const request = require('supertest');
 const mongoose = require('mongoose');
 const app = require('../../src/app');
 const { connect, clear, disconnect } = require('../helpers/db');
@@ -22,7 +23,7 @@ describe('Authentication API', () => {
     password: 'StrongPass123',
   };
 
-  test('registers a student and creates a profile', async () => {
+  test('registers a student and creates a profile without exposing password data', async () => {
     const response = await request(app)
       .post('/api/auth/register')
       .send(student);
@@ -31,17 +32,31 @@ describe('Authentication API', () => {
     expect(response.body.user.email).toBe(student.email);
     expect(response.body.user.role).toBe('STUDENT');
 
+    // Password and password hash must never appear in the API response.
+    expect(response.body.user).not.toHaveProperty('password');
+    expect(response.body.user).not.toHaveProperty('passwordHash');
+    expect(JSON.stringify(response.body)).not.toContain(student.password);
+
     const User = mongoose.model('User');
     const Profile = mongoose.model('Profile');
 
-    const savedUser = await User.findOne({ email: student.email }).select('+passwordHash');
+    // Verify the password is stored as a hash, not plaintext.
+    const savedUser = await User.findOne({ email: student.email })
+      .select('+passwordHash');
+
     expect(savedUser).not.toBeNull();
     expect(savedUser.passwordHash).not.toBe(student.password);
-    expect(await Profile.findOne({ userId: savedUser._id })).not.toBeNull();
+
+    // Verify a student profile was created.
+    expect(
+      await Profile.findOne({ userId: savedUser._id }),
+    ).not.toBeNull();
   });
 
   test('rejects registering the same email twice', async () => {
-    await request(app).post('/api/auth/register').send(student);
+    await request(app)
+      .post('/api/auth/register')
+      .send(student);
 
     const response = await request(app)
       .post('/api/auth/register')
@@ -50,24 +65,39 @@ describe('Authentication API', () => {
     expect(response.status).toBe(409);
   });
 
-  test('logs in with correct credentials and returns a JWT', async () => {
-    await request(app).post('/api/auth/register').send(student);
+  test('logs in with correct credentials without exposing password data', async () => {
+    await request(app)
+      .post('/api/auth/register')
+      .send(student);
 
     const response = await request(app)
       .post('/api/auth/login')
-      .send({ email: student.email, password: student.password });
+      .send({
+        email: student.email,
+        password: student.password,
+      });
 
     expect(response.status).toBe(200);
     expect(typeof response.body.token).toBe('string');
     expect(response.body.user.role).toBe('STUDENT');
+
+    // Verify neither plaintext password nor password hash is exposed.
+    expect(response.body.user).not.toHaveProperty('password');
+    expect(response.body.user).not.toHaveProperty('passwordHash');
+    expect(JSON.stringify(response.body)).not.toContain(student.password);
   });
 
   test('rejects incorrect login credentials', async () => {
-    await request(app).post('/api/auth/register').send(student);
+    await request(app)
+      .post('/api/auth/register')
+      .send(student);
 
     const response = await request(app)
       .post('/api/auth/login')
-      .send({ email: student.email, password: 'WrongPassword123' });
+      .send({
+        email: student.email,
+        password: 'WrongPassword123',
+      });
 
     expect(response.status).toBe(401);
   });
@@ -75,7 +105,10 @@ describe('Authentication API', () => {
   test('does not allow public registration as ADMIN', async () => {
     const response = await request(app)
       .post('/api/auth/register')
-      .send({ ...student, role: 'ADMIN' });
+      .send({
+        ...student,
+        role: 'ADMIN',
+      });
 
     expect(response.status).toBe(400);
   });
