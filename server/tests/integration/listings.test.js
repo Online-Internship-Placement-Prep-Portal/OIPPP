@@ -162,3 +162,39 @@ describe('Issue #9: recruiter listing management', () => {
     expect(String(unchanged.recruiterId)).toBe(String(s.recruiter._id));
   });
 });
+
+describe('Additional listing integration coverage - Issue #15', () => {
+  test('rejects listing creation without authentication', async () => {
+    const res = await request(app)
+      .post('/api/listings')
+      .send(validListing());
+
+    expect(res.status).toBe(401);
+    expect(res.body.error.code).toBe('UNAUTHENTICATED');
+  });
+
+  test('rejects updates with an invalid listing ID', async () => {
+    const res = await request(app)
+      .patch('/api/listings/not-a-valid-id')
+      .set(as(s.recruiter))
+      .send({ title: 'Updated Backend Intern' });
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION');
+  });
+
+  test('rejects an empty listing update', async () => {
+    const listing = await Listing.create({
+      ...validListing(),
+      recruiterId: s.recruiter._id,
+    });
+
+    const res = await request(app)
+      .patch(`/api/listings/${listing.id}`)
+      .set(as(s.recruiter))
+      .send({});
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION');
+  });
+});
