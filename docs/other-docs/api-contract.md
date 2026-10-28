@@ -53,6 +53,7 @@ Auth column: **public**, or the roles allowed. Every non-public route also requi
 | GET | `/profile/me` | STUDENT | | `200 { profile }` |
 | PUT | `/profile/me` | STUDENT | at least one of `cgpa` (0–10), `branch`, `gradYear`, `skills[]` (≤ 100) | `200 { profile }` |
 | PATCH | `/admin/recruiters/:id/approve` | ADMIN | | `200 { user }` |
+| PATCH | `/admin/recruiters/:id/reject` | ADMIN | `reasonCode` (required): `INCOMPLETE_PROFILE` \| `INVALID_COMPANY` \| `OTHER` | `200 { user }`, status becomes `REJECTED` |
 | PATCH | `/admin/users/:id/deactivate` | ADMIN | | `200 { user }` |
 
 ### Listings (Member 2)

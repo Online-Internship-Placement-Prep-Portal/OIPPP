@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const app = require('../../src/app');
 const User = require('../../src/modules/users/user.model');
+const AuditLog = require('../../src/modules/audit/auditLog.model');
 const { jwtSecret } = require('../../src/config/env');
 const db = require('../helpers/db');
 
@@ -163,6 +164,110 @@ describe('Admin user management API', () => {
 
     expect(savedAdmin.status).toBe('ACTIVE');
   });
+
+
+  test('allows an admin to reject a pending recruiter with a reason', async () => {
+    const admin = await createUser({
+      role: 'ADMIN',
+      email: 'reject-admin@example.com',
+    });
+
+    const recruiter = await createUser({
+      role: 'RECRUITER',
+      status: 'PENDING',
+      email: 'reject-recruiter@example.com',
+    });
+
+    const response = await request(app)
+      .patch('/api/admin/recruiters/' + recruiter.id + '/reject')
+      .set('Authorization', 'Bearer ' + tokenFor(admin))
+      .send({ reasonCode: 'INVALID_COMPANY' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.user.status).toBe('REJECTED');
+
+    const savedRecruiter = await User.findById(recruiter.id);
+    expect(savedRecruiter.status).toBe('REJECTED');
+
+    const auditEntry = await AuditLog.findOne({
+      action: 'RECRUITER_REJECTED',
+      entityId: recruiter._id,
+    });
+
+    expect(auditEntry).not.toBeNull();
+    expect(auditEntry.after.reasonCode).toBe('INVALID_COMPANY');
+  });
+
+  test('returns 400 when recruiter rejection reason is missing', async () => {
+    const admin = await createUser({
+      role: 'ADMIN',
+      email: 'missing-reason-admin@example.com',
+    });
+
+    const recruiter = await createUser({
+      role: 'RECRUITER',
+      status: 'PENDING',
+      email: 'missing-reason-recruiter@example.com',
+    });
+
+    const response = await request(app)
+      .patch('/api/admin/recruiters/' + recruiter.id + '/reject')
+      .set('Authorization', 'Bearer ' + tokenFor(admin))
+      .send({});
+
+    expect(response.status).toBe(400);
+
+    const savedRecruiter = await User.findById(recruiter.id);
+    expect(savedRecruiter.status).toBe('PENDING');
+  });
+
+  test('rejects recruiter rejection requests from a student', async () => {
+    const student = await createUser({
+      role: 'STUDENT',
+      email: 'reject-student@example.com',
+    });
+
+    const recruiter = await createUser({
+      role: 'RECRUITER',
+      status: 'PENDING',
+      email: 'student-reject-target@example.com',
+    });
+
+    const response = await request(app)
+      .patch('/api/admin/recruiters/' + recruiter.id + '/reject')
+      .set('Authorization', 'Bearer ' + tokenFor(student))
+      .send({ reasonCode: 'INVALID_COMPANY' });
+
+    expect(response.status).toBe(403);
+
+    const savedRecruiter = await User.findById(recruiter.id);
+    expect(savedRecruiter.status).toBe('PENDING');
+  });
+
+  test('does not reject a recruiter who is no longer pending', async () => {
+    const admin = await createUser({
+      role: 'ADMIN',
+      email: 'approved-recruiter-admin@example.com',
+    });
+
+    const recruiter = await createUser({
+      role: 'RECRUITER',
+      status: 'ACTIVE',
+      email: 'already-approved@example.com',
+    });
+
+    const response = await request(app)
+      .patch('/api/admin/recruiters/' + recruiter.id + '/reject')
+      .set('Authorization', 'Bearer ' + tokenFor(admin))
+      .send({ reasonCode: 'INVALID_COMPANY' });
+
+    expect(response.status).toBe(409);
+
+    const savedRecruiter = await User.findById(recruiter.id);
+    expect(savedRecruiter.status).toBe('ACTIVE');
+  });
+
+
 });
 
 
