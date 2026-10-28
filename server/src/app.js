@@ -6,6 +6,7 @@ const { clientOrigin } = require('./config/env');
 const { notFound, errorHandler } = require('./middleware/error');
 const applicationRoutes = require('./modules/applications/application.routes');
 const listingRoutes = require('./modules/listings/listing.routes');
+const bookmarkRoutes = require('./modules/listings/bookmark.routes');
 const notificationRoutes = require('./modules/notifications/notification.routes');
 const authRoutes = require('./modules/users/auth.routes');
 const profileRoutes = require('./modules/users/profile.routes');
@@ -27,6 +28,7 @@ app.use('/api', profileRoutes);
 app.use('/api', adminRoutes);
 app.use('/api', applicationRoutes);
 app.use('/api', listingRoutes);
+app.use('/api', bookmarkRoutes);
 app.use('/api/notifications', notificationRoutes);
 
 app.use(notFound);
