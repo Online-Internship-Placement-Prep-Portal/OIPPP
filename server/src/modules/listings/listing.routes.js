@@ -5,6 +5,7 @@ const { validate } = require('../../middleware/validate');
 const AppError = require('../../utils/AppError');
 const service = require('./listing.service');
 const searchService = require('./listing.search.service');
+const recommendationService = require('./recommendation.service');
 
 const router = express.Router();
 const wrap = fn => (req, res, next) => fn(req, res).catch(next);
@@ -102,4 +103,13 @@ router.patch(
   })
 );
 
+router.get(
+  '/listings/recommendations',
+  authenticate,
+  allow('STUDENT'),
+  wrap(async (req, res) => {
+    const listings = await recommendationService.getRecommendations(req.user.id);
+    res.json({ listings });
+  })
+);
 module.exports = router;
