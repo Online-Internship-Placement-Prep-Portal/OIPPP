@@ -30,6 +30,31 @@ router.patch(
   }),
 );
 
+// Reject a recruiter with a required reason code.
+router.patch(
+  '/admin/recruiters/:id/reject',
+  authenticate,
+  allow('ADMIN'),
+  validate(idParam, 'params'),
+  validate(
+    Joi.object({
+      reasonCode: Joi.string()
+        .valid('INCOMPLETE_PROFILE', 'INVALID_COMPANY', 'OTHER')
+        .required(),
+    }),
+    'body',
+  ),
+  wrap(async (req, res) => {
+    const recruiter = await service.rejectRecruiter(
+      req.user.id,
+      req.params.id,
+      req.body.reasonCode,
+    );
+
+    res.json({ user: recruiter });
+  }),
+);
+
 // Deactivate a user.
 router.patch(
   '/admin/users/:id/deactivate',

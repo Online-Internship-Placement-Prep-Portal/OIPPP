@@ -6,10 +6,15 @@ const Profile = require('../../src/modules/users/profile.model');
 
 let mongo;
 
+
 beforeAll(async () => {
   mongo = await MongoMemoryServer.create();
   await mongoose.connect(mongo.getUri());
+
+  await User.init();
+  await Profile.init();
 });
+
 
 beforeEach(async () => {
   await Promise.all(
