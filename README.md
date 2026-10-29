@@ -69,7 +69,7 @@ have them.
 | [Identity and security SRS sections](docs/other-docs/identity-security.md) | Member 1 sections 2.3, 5.1 and 6.4 (task 1.8): requirement-by-requirement status and acceptance criteria. |
 | [docs/other-docs/SRS.md](docs/other-docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
 | [Architecture and diagrams](docs/other-docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
-| [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, save/recovery behavior and pending client integration (tasks 4.1/4.2). |
+| [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, scoring, save/recovery verification and pending client integration (tasks 4.1/4.2/4.3/4.5). |
 | [Progress and analytics](docs/other-docs/analytics-api.md) | Student readiness, admin placement statistics and CSV export endpoints, plus the proposed weak-topic and cohort rules (task 4.4). |
 | [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [API contract (S5)](docs/other-docs/api-contract.md) | Every route, role, payload and error code across all four modules; the client builds against this. |
@@ -151,9 +151,9 @@ Task numbers (e.g. 3.8) match the issue titles and are cited in [docs/other-docs
 |:-:|:-----|:-----|
 | 4.1 | Question bank + admin-authored aptitude / technical test creation — [backend APIs](docs/other-docs/aptitude-api.md) | Functional |
 | 4.2 | Timed test attempt with auto-save and single-attempt enforcement — [backend APIs + recovery](docs/other-docs/aptitude-api.md) | Functional |
-| 4.3 | Auto-evaluation, scoring and per-topic result breakdown | Functional |
+| 4.3 | Auto-evaluation, scoring and per-topic result breakdown — [scoring](docs/other-docs/aptitude-api.md#auto-evaluation-and-per-topic-breakdown--task-43-tst-6) | Functional |
 | 4.4 | Progress tracking + analytics dashboards (student readiness, admin placement stats) — [backend APIs](docs/other-docs/analytics-api.md) | Functional |
-| 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state | Non-functional |
+| 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state — [verification](docs/other-docs/aptitude-api.md#refresh-and-dropped-connection-verification--task-45-safe-1) | Non-functional |
 | 4.6 | Question / Attempt / Result schema design in MongoDB — [design + models](docs/other-docs/database/aptitude-schema.md) | Supporting |
 | 4.7 | Unit + integration tests for owned features | Supporting |
 | 4.8 | SRS sections: 5.4 Aptitude, 5.5 Analytics, 6.3 Quality — [sections + traceability](docs/other-docs/aptitude-analytics-quality.md) | Documentation |

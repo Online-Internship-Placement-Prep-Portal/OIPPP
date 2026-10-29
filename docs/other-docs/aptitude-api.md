@@ -1,8 +1,8 @@
-# Aptitude authoring and timed attempts — tasks 4.1 / 4.2
+# Aptitude authoring, timed attempts and scoring — tasks 4.1 / 4.2 / 4.3 / 4.5
 
 ## Delivery boundary
 
-Backend implementation for issues #25 and #26. Feature branch changes require team review.
+Backend implementation for issues #25, #26, #27 (scoring) and #29 (refresh/reconnect). Feature branch changes require team review.
 There is no `client/` application in the inspected `dev` baseline: this delivers REST APIs,
 not an admin form, test-taking screen, or browser auto-save wiring. The real JWT middleware
 is reused unchanged. The current integrated `dev` now provides Member 1's User, auth, profile
@@ -88,11 +88,13 @@ Admin edits require the current DTO `version`; stale writes return `409 STALE_VE
 | POST | `/tests/:id/attempts` | Empty body; 201 new or 200 existing in-progress attempt; 409 ATTEMPT_EXISTS after submission |
 | GET | `/attempts/:id` | Owner-only persisted attempt view, including after refresh/reconnect |
 | PATCH | `/attempts/:id/answers` | `{questionId,optionIdx,version?}`; 204 only after database acknowledgement |
-| POST | `/attempts/:id/submit` | Empty body; 200 canonical Result; safe to repeat |
-| GET | `/attempts/:id/result` | Owner-only canonical Result; 409 ATTEMPT_OPEN before submission |
+| POST | `/attempts/:id/submit` | Empty body; 200 result view; safe to repeat |
+| GET | `/attempts/:id/result` | Owner-only result view; 409 ATTEMPT_OPEN before submission |
 
-The public attempt contains `attemptId,testId,status,startedAt,endsAt,questions,answers,version`
-and available save/submission timestamps. Each public question contains only
+The public attempt contains `attemptId,testId,status,startedAt,endsAt,questions,answers,version`,
+`serverTime`, available save/submission timestamps and `submissionReason` (`MANUAL` or `TIMEOUT`)
+once closed. Clients compute remaining time as `endsAt − serverTime`, so a skewed device clock
+neither shortens nor extends the test. Each public question contains only
 `questionId,text,topic,difficulty,options` — never `answerIdx`. An attempt snapshots its keys
 server-side and its original duration/deadline. A unique `(studentId,testId)` index handles
 concurrent starts; the losing request resumes the existing attempt rather than creating another.
@@ -101,6 +103,8 @@ Submitted attempts are never reopened or deleted by a TTL job.
 Saves update only the selected answer-map key, not a stale whole map. They condition on owner,
 IN_PROGRESS, current document version, and the database server's current time being before endsAt.
 Concurrent changes return 409 ATTEMPT_CHANGED; supplied stale versions return 409 STALE_VERSION.
+A save whose answer is already stored is acknowledged with 204 without another write, even with
+the old version: this is the retry after a lost response, so it must not look like a conflict.
 Sequential saves without a client version are last-accepted-write-wins for the same question.
 Unknown snapshot questions and out-of-range options return 400 INVALID_ANSWER. Another student's
 attempt or result returns 404, without disclosing its contents. Missing records return 404;
@@ -144,14 +148,47 @@ write conflicts and produce one canonical Result. Closing and result insertion r
 A legacy submitted attempt missing its result returns 503 RESULT_UNAVAILABLE for explicit recovery,
 not a fabricated score or silent reopening.
 
-Minimal synchronous evaluation is included because submit/expiry must produce a durable Result:
-one point per correct answer, unanswered = zero, no negative marking, percentage score and topic
-breakdown from snapshot keys. This does not mark the separate scoring/analytics/backlog tasks
-complete and does not add readiness dashboards, cohort analytics or a Python service.
+## Auto-evaluation and per-topic breakdown — task 4.3 (TST-6)
+
+Scoring runs on the server inside the same transaction that closes the attempt, for manual
+submits and timeouts alike. It reads only the attempt's snapshotted keys, never today's bank or
+client totals. One point per correct answer, unanswered = zero, no negative marking; `score` and
+each topic `percentage` are `100 × correct / total` (unrounded). Only assessed topics appear,
+always in the order Quantitative, Logical, Verbal, Technical. Topic counts sum to the totals, and
+the Result model rejects any record where they do not.
+
+```json
+{ "resultId": "…", "attemptId": "…", "testId": "…", "totalQuestions": 6, "correctAnswers": 3,
+  "score": 50, "submittedAt": "2026-10-29T10:05:00.000Z",
+  "topicBreakdown": [
+    { "topic": "Quantitative", "totalQuestions": 2, "correctAnswers": 1, "percentage": 50 },
+    { "topic": "Technical", "totalQuestions": 4, "correctAnswers": 2, "percentage": 50 } ] }
+```
+
+The result view omits the owner ID and internal fields. Per-question review (revealing keys after
+submission) is deliberately not offered: bank questions are reused across tests.
+
+## Refresh and dropped-connection verification — task 4.5 (SAFE-1)
+
+| Scenario | Server behavior | Test |
+| --- | --- | --- |
+| Browser refresh | `GET /attempts/:id` returns every acknowledged answer, the original `endsAt` and `serverTime`. | `aptitude-recovery` › refresh |
+| Tab closed and test reopened | `POST /tests/:id/attempts` returns 200 with the same attempt; the clock is not restarted. | › reopening |
+| Response lost after a save | Retrying the same answer returns 204 with no new version; a different stale answer is 409. | › dropped connection |
+| Deadline passes while offline | On reconnect the attempt is `SUBMITTED` / `TIMEOUT`, scored from saved answers; later saves are 409. | › deadline passes while offline |
+| API or database restart | Answers and deadline are persisted; the startup sweep finalizes attempts that expired meanwhile. | › API restart |
+
+An answer that never got its 204 is not promised durable; the client must show it as unsaved.
+Browser-level checks (save indicator, reconnect banner, countdown) wait for the client.
 
 ## Validation evidence
 
-`npm run lint`: passed. `npm test`: 17 suites / 181 tests passed after integrating the latest dev and resolving PR #53 conflicts.
+Tasks 4.3/4.5/4.7 add `tests/unit/aptitude-scoring.test.js` (all-correct, all-wrong, unanswered,
+option 0, mixed-topic sums, canonical ordering, DTO) and `tests/integration/aptitude-recovery.test.js`
+(the table above), plus sweep-failure retry and version-error mapping. `aptitude.service.js` and
+`aptitude.routes.js` reach 100% line coverage.
+
+Earlier (PR #53): `npm run lint`: passed. `npm test`: 17 suites / 181 tests passed after integrating the latest dev and resolving PR #53 conflicts.
 49 new cases cover authoring permissions/validation, filtering/archive/publication, key redaction,
 concurrent starts, acknowledged saves/reload, stale versions, owner isolation, immutable snapshots,
 expiry (including 0–30 seconds), background catch-up, simultaneous finalization, submission/save

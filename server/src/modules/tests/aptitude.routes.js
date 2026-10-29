@@ -51,7 +51,7 @@ router.patch('/attempts/:id/answers', allow('STUDENT'), validate(idParam, 'param
   validate(Joi.object({ questionId: objectId.required(), optionIdx: Joi.number().integer().min(0).max(5).required(), version })),
   wrap(async (req, res) => { await service.saveAnswer(req.user.id, req.params.id, req.body); res.sendStatus(204); }));
 router.post('/attempts/:id/submit', allow('STUDENT'), validate(idParam, 'params'), validate(Joi.object({})),
-  wrap(async (req, res) => res.json(await service.finalize(req.user.id, req.params.id))));
+  wrap(async (req, res) => res.json(service.publicResult(await service.finalize(req.user.id, req.params.id)))));
 router.get('/attempts/:id/result', allow('STUDENT'), validate(idParam, 'params'),
-  wrap(async (req, res) => res.json(await service.getResult(req.user.id, req.params.id))));
+  wrap(async (req, res) => res.json(service.publicResult(await service.getResult(req.user.id, req.params.id)))));
 module.exports = router;

@@ -10,6 +10,7 @@ const Test = require('../../src/modules/tests/test.model');
 const Attempt = require('../../src/modules/tests/attempt.model');
 const Result = require('../../src/modules/tests/result.model');
 const service = require('../../src/modules/tests/aptitude.service');
+const logger = require('../../src/utils/logger');
 let mongo, admin, student, other, recruiter, questions, publishedTest;
 const questionBody = (n = 0) => ({ text: `Question ${n}`, topic: n % 2 ? 'Technical' : 'Quantitative',
   difficulty: 'Easy', options: ['right', 'wrong'], answerIdx: 0 });
@@ -100,6 +101,13 @@ describe('question bank and test authoring (#25)', () => {
     await Question.updateOne({ _id: ids[0] }, { archived: true });
     expect((await api('patch', `/tests/${draft.id}`, admin, { version: 0, status: 'PUBLISHED' })).status).toBe(400);
   });
+  test('a concurrent document version error is reported as a stale edit', async () => {
+    const versionError = Object.assign(new Error('No matching document'), { name: 'VersionError' });
+    const mock = jest.spyOn(Question.prototype, 'save').mockRejectedValueOnce(versionError);
+    const res = await api('patch', `/questions/${questions[0].id}`, admin, { version: 0, text: 'racing edit' });
+    mock.mockRestore();
+    expect(res.status).toBe(409); expect(res.body.error.code).toBe('STALE_VERSION');
+  });
   test('invalid id and unauthorized test creation are rejected', async () => {
     expect((await api('get', '/tests/nope', student)).status).toBe(400);
     expect((await api('post', '/tests', recruiter, {})).status).toBe(403);
@@ -173,8 +181,9 @@ describe('timed attempts and recovery (#26)', () => {
     for (const q of questions) await api('patch', `/attempts/${id}/answers`, student, { questionId: q.id, optionIdx: 0 });
     const res = await api('post', `/attempts/${id}/submit`, student, {});
     expect(res.status).toBe(200); expect(res.body.score).toBe(100); expect(res.body.topicBreakdown).toHaveLength(2);
-    expect((await api('post', `/attempts/${id}/submit`, student, {})).body._id).toBe(res.body._id);
-    expect((await api('get', `/attempts/${id}/result`, student)).body._id).toBe(res.body._id);
+    expect(res.body.resultId).toBeDefined(); expect(res.body).not.toHaveProperty('studentId');
+    expect((await api('post', `/attempts/${id}/submit`, student, {})).body.resultId).toBe(res.body.resultId);
+    expect((await api('get', `/attempts/${id}/result`, student)).body.resultId).toBe(res.body.resultId);
     expect((await start()).body.error.code).toBe('ATTEMPT_EXISTS');
     expect((await api('patch', `/attempts/${id}/answers`, student, { questionId: questions[0].id, optionIdx: 1 })).body.error.code).toBe('ATTEMPT_CLOSED');
     expect(await Result.countDocuments()).toBe(1);
@@ -220,6 +229,16 @@ describe('timed attempts and recovery (#26)', () => {
     expect([204, 409]).toContain(save.status); expect(submit.status).toBe(200);
     const stored = await Attempt.findById(id); const result = await Result.findOne({ attemptId: id });
     expect(result.correctAnswers).toBe(stored.answers.size); expect(stored.status).toBe('SUBMITTED');
+  });
+  test('a failed overdue finalization is logged and retried by the next sweep', async () => {
+    const { body: { attemptId: id } } = await start(); await expire(id);
+    const log = jest.spyOn(logger, 'error').mockImplementation(() => {});
+    const mock = jest.spyOn(Result, 'create').mockRejectedValueOnce(new Error('simulated outage'));
+    expect(await service.expireOverdue()).toBe(1); mock.mockRestore();
+    expect(log).toHaveBeenCalledWith(expect.objectContaining({ attemptId: id }), expect.any(String)); log.mockRestore();
+    expect((await Attempt.findById(id)).status).toBe('IN_PROGRESS');
+    expect(await service.expireOverdue()).toBe(1);
+    expect(await Result.countDocuments({ attemptId: id })).toBe(1);
   });
   test('an open attempt has no result yet', async () => {
     const { body: { attemptId: id } } = await start();
