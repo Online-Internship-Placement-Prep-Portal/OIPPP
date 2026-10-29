@@ -29,6 +29,7 @@ app.use('/api', adminRoutes);
 app.use('/api', applicationRoutes);
 app.use('/api', listingRoutes);
 app.use('/api', bookmarkRoutes);
+app.use('/api', require('./modules/analytics/analytics.routes'));
 app.use('/api/notifications', notificationRoutes);
 
 app.use(notFound);

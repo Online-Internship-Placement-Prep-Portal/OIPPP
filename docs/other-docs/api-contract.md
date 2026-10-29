@@ -1,7 +1,7 @@
 # API contract (S5)
 
 The shared route and payload spec for every module, taken from the routes in `server/src` on `dev`. The client is built against this page. Each module's own page goes into more detail:
-[applications](applications-api.md) and [aptitude](aptitude-api.md).
+[applications](applications-api.md), [aptitude](aptitude-api.md) and [analytics](analytics-api.md).
 
 Any change to a route, field or error code here must be agreed by all four members in a reviewed PR before code changes, per the README [ground rules](../../README.md#working-agreement).
 
@@ -97,10 +97,17 @@ Reject reasons: `SKILLS_MISMATCH`, `POSITION_FILLED`, `INTERVIEW_NOT_CLEARED`, `
 | POST | `/attempts/:id/submit` | STUDENT, owner | empty body | `200` result |
 | GET | `/attempts/:id/result` | STUDENT, owner | | `200` score and per-topic breakdown |
 
+### Progress and analytics (Member 4)
+
+| Method | Path | Auth | Request | Success |
+|:--|:--|:--|:--|:--|
+| GET | `/analytics/me` | STUDENT | | `200 { testsTaken, averageScore, trend, topics, weakestTopics, applications: { total, byStatus } }` for the caller only |
+| GET | `/analytics/placements` | ADMIN | query: `branch?`, `gradYear?` (2000–2100) | `200 { filters, students, placedStudents, offersPerCompany, applicationsPerListing, averageScoreByBranch }` |
+| GET | `/analytics/placements/export` | ADMIN | same query | `200 text/csv` attachment `placement-report.csv`, same figures as the dashboard |
+
 ## Not yet in the contract
 
 These features are in the backlog but have no route yet. Their owners add them here in the same PR that adds the route:
 
 - Resume upload (1.3, #3) and the extra fields on the student profile
 - Bookmarks and deadline expiry (2.3, #11), and skill-match recommendations (2.4, #12)
-- Progress and analytics dashboards (4.4, #28)
