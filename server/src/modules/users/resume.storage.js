@@ -31,7 +31,8 @@ async function deleteResume(fileId) {
   try {
     await bucket.delete(id);
   } catch (error) {
-    if (error.codeName !== 'FileNotFound') throw error;
+    // Driver 6 reports a missing file as MongoRuntimeError without a codeName.
+    if (!/^File not found/.test(error.message)) throw error;
   }
 }
 

@@ -85,7 +85,9 @@ router.get(
 
     stream.on('error', (err) => {
       if (!res.headersSent) {
-        res.status(404).json({
+        // Undo the PDF headers so clients can read the JSON error.
+        res.removeHeader('Content-Disposition');
+        res.status(404).type('json').json({
           error: {
             code: 'RESUME_NOT_FOUND',
             message: 'Resume file not found',
