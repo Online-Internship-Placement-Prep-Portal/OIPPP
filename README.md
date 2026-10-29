@@ -9,7 +9,7 @@
 </p>
 
 > Software Engineering project — PES University, Dept. of Computer Science and Engineering
-> **Status:** backend modules are under development. Identity/profile/admin, listings, applications/notifications and aptitude models exist; aptitude authoring/timed-attempt APIs are pending review. Frontend and end-to-end integration remain incomplete.
+> **Status:** backend modules are under development. Identity/profile/admin, listings, applications/notifications and aptitude models exist; aptitude authoring/timed-attempt and progress/analytics APIs are pending review. Frontend and end-to-end integration remain incomplete.
 
 Campus placement is currently split across two disconnected halves: students hunt for internships on
 scattered notice boards and mail threads, and practise for aptitude rounds on unrelated third-party
@@ -70,6 +70,7 @@ have them.
 | [docs/other-docs/SRS.md](docs/other-docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
 | [Architecture and diagrams](docs/other-docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
 | [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, save/recovery behavior and pending client integration (tasks 4.1/4.2). |
+| [Progress and analytics](docs/other-docs/analytics-api.md) | Student readiness, admin placement statistics and CSV export endpoints, plus the proposed weak-topic and cohort rules (task 4.4). |
 | [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [API contract (S5)](docs/other-docs/api-contract.md) | Every route, role, payload and error code across all four modules; the client builds against this. |
 | [docs/other-docs/applications-api.md](docs/other-docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
@@ -151,7 +152,7 @@ Task numbers (e.g. 3.8) match the issue titles and are cited in [docs/other-docs
 | 4.1 | Question bank + admin-authored aptitude / technical test creation — [backend APIs](docs/other-docs/aptitude-api.md) | Functional |
 | 4.2 | Timed test attempt with auto-save and single-attempt enforcement — [backend APIs + recovery](docs/other-docs/aptitude-api.md) | Functional |
 | 4.3 | Auto-evaluation, scoring and per-topic result breakdown | Functional |
-| 4.4 | Progress tracking + analytics dashboards (student readiness, admin placement stats) | Functional |
+| 4.4 | Progress tracking + analytics dashboards (student readiness, admin placement stats) — [backend APIs](docs/other-docs/analytics-api.md) | Functional |
 | 4.5 | **Qualitative:** usability & fairness — an in-progress test survives a refresh or a dropped connection without losing answers or clock state | Non-functional |
 | 4.6 | Question / Attempt / Result schema design in MongoDB — [design + models](docs/other-docs/database/aptitude-schema.md) | Supporting |
 | 4.7 | Unit + integration tests for owned features | Supporting |
