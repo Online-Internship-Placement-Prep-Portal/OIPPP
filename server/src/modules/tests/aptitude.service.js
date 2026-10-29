@@ -5,12 +5,18 @@ const Question = require('./question.model');
 const Test = require('./test.model');
 const Attempt = require('./attempt.model');
 const Result = require('./result.model');
-const { percentage } = require('./schema.helpers');
+const { TOPICS, percentage } = require('./schema.helpers');
 
 const fail = (status, code, message) => { throw new AppError(status, code, message); };
 const missing = () => fail(404, 'NOT_FOUND', 'Record not found');
+// serverTime lets a client derive remaining time from endsAt without trusting its own clock.
 const publicAttempt = (attempt) => ({ ...attempt.toStudentView(), version: attempt.__v,
-  lastSavedAt: attempt.lastSavedAt, submittedAt: attempt.submittedAt });
+  lastSavedAt: attempt.lastSavedAt, submittedAt: attempt.submittedAt,
+  submissionReason: attempt.submissionReason, serverTime: new Date() });
+const publicResult = (r) => ({ resultId: r.id, attemptId: r.attemptId, testId: r.testId,
+  totalQuestions: r.totalQuestions, correctAnswers: r.correctAnswers, score: r.score, submittedAt: r.submittedAt,
+  topicBreakdown: r.topicBreakdown.map(({ topic, totalQuestions, correctAnswers, percentage: pct }) =>
+    ({ topic, totalQuestions, correctAnswers, percentage: pct })) });
 const adminQuestion = (q) => ({ questionId: q.id, text: q.text, topic: q.topic,
   difficulty: q.difficulty, options: q.options, answerIdx: q.answerIdx, archived: q.archived,
   version: q.__v });
@@ -96,7 +102,8 @@ function scoreAttempt(attempt, submittedAt) {
   return { attemptId: attempt._id, studentId: attempt.studentId, testId: attempt.testId,
     totalQuestions: attempt.questions.length, correctAnswers,
     score: percentage(correctAnswers, attempt.questions.length), submittedAt,
-    topicBreakdown: [...topics.values()].map((t) => ({ ...t, percentage: percentage(t.correctAnswers, t.totalQuestions) })) };
+    topicBreakdown: TOPICS.filter((t) => topics.has(t)).map((t) => topics.get(t))
+      .map((t) => ({ ...t, percentage: percentage(t.correctAnswers, t.totalQuestions) })) };
 }
 // Replica set transactions keep closing and the canonical result all-or-nothing.
 async function finalize(studentId, id, timeoutOnly = false) {
@@ -162,6 +169,8 @@ async function saveAnswer(studentId, id, body) {
   const questionId = String(new mongoose.Types.ObjectId(body.questionId));
   const q = attempt.questions.find((item) => String(item.questionId) === questionId);
   if (!q || body.optionIdx >= q.options.length) fail(400, 'INVALID_ANSWER', 'Choose an option from this attempt');
+  // A retry after a lost 204 finds its answer already stored; acknowledge it instead of a version conflict.
+  if (attempt.answers.get(questionId) === body.optionIdx) return;
   if (body.version != null && body.version !== attempt.__v) fail(409, 'STALE_VERSION', 'Reload the attempt before retrying');
   // Per-key atomic write + version guard prevents stale map replacement and finalization races.
   const saved = await Attempt.updateOne({ _id: id, studentId, status: 'IN_PROGRESS', __v: attempt.__v,
@@ -192,5 +201,5 @@ async function initialize() {
   if (!hello.setName && hello.msg !== 'isdbgrid') throw new Error('Aptitude attempts require a MongoDB replica set or sharded cluster for transactions');
   await Promise.all([Question.init(), Test.init(), Attempt.init(), Result.init()]);
 }
-module.exports = { createQuestion, listQuestions, updateQuestion, createTest, listTests, getTest, updateTest,
+module.exports = { publicResult, scoreAttempt, createQuestion, listQuestions, updateQuestion, createTest, listTests, getTest, updateTest,
   startAttempt, getAttempt, saveAnswer, finalize, getResult, expireOverdue, initialize };

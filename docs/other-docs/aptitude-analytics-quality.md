@@ -117,9 +117,9 @@ Security dependencies remain SRS SO-1–SO-3, SEC-2/SEC-4 and BR-3/BR-4: role/ow
 | --- | --- | --- |
 | TST-1–TST-2 | Question/Test models; [ER](diagrams/er.png); admin test authoring | Existing model boundary tests; future endpoint/RBAC/existence tests. |
 | TST-3 | Attempt unique student/test index; [attempt sequence](diagrams/seq_test_attempt.png) | Existing real-MongoDB duplicate-start test; resume/service behavior not implemented. |
-| TST-4, SAFE-1 | Answer map, immutable deadline/snapshot, save/recovery flow | Existing persistence/stale-save tests; future network, timing and browser-recovery tests. |
+| TST-4, SAFE-1 | Answer map, immutable deadline/snapshot, save/recovery flow | `aptitude-recovery.test.js`: refresh, reopen, lost-response retry, offline deadline, restart. Browser and timing tests await the client. |
 | TST-5 | Server-side timeout coordinator, deadline/status guards | Planned worker/service tests around endsAt and 30-second boundary; policy decision still required. |
-| TST-6 | Canonical Result, snapshotted answer key, consistent per-topic counts | Existing result-validation tests; future score/submit/idempotency integration tests. |
+| TST-6 | Canonical Result, snapshotted answer key, consistent per-topic counts | `aptitude-scoring.test.js` (all-correct/wrong, unanswered, mixed topics) and submit/idempotency cases in `aptitude-api.test.js`. |
 | ANL-1–ANL-3, PERF-3 | [Component diagram](diagrams/component.png), Result/Application/Profile aggregation, admin export — [analytics API](analytics-api.md) | `analytics.test.js` covers owner scoping, RBAC, cohort filters and CSV escaping. `analytics-performance.test.js` checks the API share of PERF-3 with 2,000 students. Dashboard rendering awaits the client. |
 | SAFE-2, QA-1–QA-5, PERF-1–PERF-2 | Shared modules and the quality verification matrix above | Record results with fixtures, environment, timing/coverage and reviewer, rather than infer success from a diagram. |
 
