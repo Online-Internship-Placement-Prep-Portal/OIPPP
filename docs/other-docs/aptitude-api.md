@@ -106,7 +106,7 @@ Unknown snapshot questions and out-of-range options return 400 INVALID_ANSWER. A
 attempt or result returns 404, without disclosing its contents. Missing records return 404;
 invalid IDs/bodies return 400; unauthenticated/unauthorized roles return 401/403.
 
-## Required client integration (not implemented in this backend-only repository)
+## Client integration
 
 1. Start/resume, render public questions and restore saved selections from the returned answers.
 2. Send a PATCH immediately on selection (the requirement is within one second). Serialize
@@ -120,8 +120,8 @@ invalid IDs/bodies return 400; unauthenticated/unauthorized roles return 401/403
    recover an uncertain submit response with the same endpoint or GET result.
 6. On terminal/expired responses stop editing. Browser timers are presentation only.
 
-There is no claim that end-to-end UI auto-save, selection-to-save timing, or p95 performance has
-been verified. Only server acknowledgement and persistence are implemented and tested here.
+The attempt screen in `client/src/pages/student/Attempt.jsx` implements this flow. Test results are
+in the [test report](../testing/test-report.md).
 
 ## Deadline policy (TST-5)
 

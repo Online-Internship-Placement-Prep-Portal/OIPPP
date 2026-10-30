@@ -8,8 +8,16 @@
   <sub>▶ <b><a href="Sprint%201%20Demo.mp4">Watch the Sprint 1 demo</a></b> (74 s): board, issues, PRs, CI and the live API</sub>
 </p>
 
+<p align="center">
+  <a href="Sprint%202%20Demo.mp4">
+    <img src="docs/sprints/Sprint%202%20Demo%20thumbnail.png" alt="Watch the Sprint 2 demo video" width="720">
+  </a>
+  <br>
+  <sub>▶ <b><a href="Sprint%202%20Demo.mp4">Watch the Sprint 2 demo</a></b> (4:22): the working product for all three roles, then tests, CI and results</sub>
+</p>
+
 > Software Engineering project — PES University, Dept. of Computer Science and Engineering
-> **Status:** release 1.0 is complete. The React client and the Express API cover all four feature areas: identity, profiles and admin; listings; applications and notifications; aptitude tests and analytics.
+> **Status:** release 1.0 is complete and development is frozen at tag `v1.0.0` (30 Oct 2026). The React client and the Express API cover all four feature areas: identity, profiles and admin; listings; applications and notifications; aptitude tests and analytics.
 
 Campus placement is currently split across two disconnected halves: students hunt for internships on
 scattered notice boards and mail threads, and practise for aptitude rounds on unrelated third-party
@@ -59,7 +67,7 @@ OIPPP/
     ├── adr/                   architecture decision records
     ├── other-docs/            SRS map, API references, schemas, diagrams, deviations log, deployment
     ├── testing/               Postman collection and test reports
-    └── sprints/               sprint completion and workload charts
+    └── sprints/               sprint charts, video thumbnails and the final presentation
 ```
 
 Only the submitted deliverables in `docs/Part-*_Deliverables/` are committed as PDFs. Course-supplied
@@ -124,12 +132,13 @@ environment variables and checks are in the [deployment guide](docs/other-docs/d
 | [docs/other-docs/SRS.md](docs/other-docs/SRS.md) | Map from the submitted SRS to the editable sections, with acceptance criteria and traceability. |
 | [Identity and security SRS sections](docs/other-docs/identity-security.md) | Member 1 sections 2.3, 5.1 and 6.4 (task 1.8): requirement-by-requirement status and acceptance criteria. |
 | [Applications and notifications](docs/other-docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
-| [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Endpoints, replica-set MongoDB setup, scoring, save/recovery verification and what the client must do (tasks 4.1/4.2/4.3/4.5). |
+| [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Endpoints, replica-set MongoDB setup, scoring, save/recovery verification and the client flow (tasks 4.1/4.2/4.3/4.5). |
 | [Progress and analytics](docs/other-docs/analytics-api.md) | Student readiness, admin placement statistics and CSV export endpoints, plus the weak-topic and cohort rules (task 4.4). |
 | [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [Deployment guide](docs/other-docs/deployment.md) | Hosting setup, environment variables and post-deploy checks. |
 | [Test summary report](docs/testing/test-report.md) | Results for every test case and SRS ID, defects found, and the Postman collection and load test in [docs/testing](docs/testing/). |
 | [docs/other-docs/DEVIATIONS.md](docs/other-docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
+| [Final presentation](docs/sprints/Final%20Presentation.pptx) | Slides and speaker notes for the final demo (S6). |
 
 Before changing a shared schema or route, read the [Working agreement](#working-agreement) and the
 [API contract](docs/other-docs/api-contract.md).
@@ -216,6 +225,10 @@ One owner each; everyone reviews all of them.
 | S4 | Architecture & ER / use-case diagrams — [sources and guide](docs/other-docs/diagrams/README.md), [ADRs](docs/adr/README.md) | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) |
 | S5 | API contract — shared route + payload spec agreed by all four | All |
 | S6 | Final demo & presentation | All |
+
+## Development freeze
+
+Development froze on 30 Oct 2026 at tag `v1.0.0`, as Part-2 rule 3d requires. `main` and `dev` are protected. After the freeze, change the code only to fix a defect, through a reviewed PR. Open checks are listed in the [test report](docs/testing/test-report.md#6-pending-items-and-how-to-close-them).
 
 ## Working agreement
 

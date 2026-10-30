@@ -22,7 +22,7 @@ The roles are enforced by `allow(...roles)` in [`middleware/auth.js`](../../serv
 
 ## 5.1 Authentication, profile and user administration
 
-Status key: **Met**: the code on `dev` satisfies the requirement. **Partial**: part of it is built. **Open**: not built yet.
+Status key: **Met**: the code on `dev` satisfies the requirement. **Partial**: part of it is built. **Open**: not built yet. **Pending deployment**: built, and can only be checked on the live URL.
 
 | ID | Requirement (short form) | Status | Evidence or gap |
 |:--|:--|:--|:--|
@@ -46,7 +46,7 @@ Registering a student with SRN `PES1UG24CS177` succeeds; `PES3UG24CS177` returns
 | ID | Requirement (short form) | Status | Evidence or gap |
 |:--|:--|:--|:--|
 | SEC-1 | Passwords stored only as bcrypt hashes, cost ≥ 10; never logged | Met | `bcrypt.hash(password, 12)`; `passwordHash` is excluded from queries by default |
-| SEC-2 | HTTPS with TLS 1.2 or higher | Met at deploy | Handled by the hosting platform's TLS. The API itself doesn't terminate TLS |
+| SEC-2 | HTTPS with TLS 1.2 or higher | Pending deployment | Handled by the hosting platform's TLS. The API itself doesn't terminate TLS. The check is in [deployment.md section 5](deployment.md#5-post-deploy-checks) |
 | SEC-3 | Resume served only to the owner, recruiters of listings applied to, and admins | Met | `/profile/me/resume` (owner), `/applications/:id/resume` (applicant, listing owner, admin), `/admin/users/:id/resume` (admin) |
 | SEC-4 | Validate every body against a schema; reject `$` operator keys | Met | `middleware/validate.js` (`hasOperatorKey`) on every route that takes input |
 | SEC-5 | Login and registration limited to 10 requests per minute per IP | Met | `authLimiter` in `middleware/rate-limit.js`; set `TRUST_PROXY` behind a proxy so the real client IP is used |
@@ -56,4 +56,4 @@ Security objectives SO-1 to SO-3 and the note on the Digital Personal Data Prote
 
 ## Open items
 
-None. Every requirement in 5.1 and 6.4 is met on `dev`; SEC-2 depends on the deployment's TLS.
+SEC-2 stays pending until the deployed URL can be checked. Every other requirement in 5.1 and 6.4 is met.
