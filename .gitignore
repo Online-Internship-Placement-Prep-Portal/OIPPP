@@ -37,7 +37,7 @@ pnpm-debug.log*
 !.env.example
 
 # ---------------------------------------------------------------
-# Python (analytics / aptitude-scoring service)
+# Python (docs check script)
 # ---------------------------------------------------------------
 __pycache__/
 *.py[cod]

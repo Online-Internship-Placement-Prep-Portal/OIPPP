@@ -31,16 +31,36 @@ async function deleteResume(fileId) {
   try {
     await bucket.delete(id);
   } catch (error) {
-    // Driver 6 reports a missing file as MongoRuntimeError without a codeName.
+    // Driver 6 reports a missing file as a MongoRuntimeError without a codeName.
     if (!/^File not found/.test(error.message)) throw error;
   }
 }
 
 function getResumeStream(fileId) {
-  const bucket = getBucket();
-  const id = parseFileId(fileId);
+  return getBucket().openDownloadStream(parseFileId(fileId));
+}
 
-  return bucket.openDownloadStream(id);
+function sendResume(res, fileId, disposition = 'attachment') {
+  const stream = getResumeStream(fileId);
+
+  res.set({
+    'Content-Type': 'application/pdf',
+    'Content-Disposition': `${disposition}; filename="resume.pdf"`,
+  });
+
+  stream.on('error', (err) => {
+    if (res.headersSent) {
+      res.destroy(err);
+      return;
+    }
+    // Drop the PDF headers so the client can read the JSON error.
+    res.removeHeader('Content-Disposition');
+    res.status(404).type('json').json({
+      error: { code: 'RESUME_NOT_FOUND', message: 'Resume file not found' },
+    });
+  });
+
+  stream.pipe(res);
 }
 
 module.exports = {
@@ -48,4 +68,5 @@ module.exports = {
   parseFileId,
   deleteResume,
   getResumeStream,
+  sendResume,
 };

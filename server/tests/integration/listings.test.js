@@ -198,3 +198,29 @@ describe('Additional listing integration coverage - Issue #15', () => {
     expect(res.body.error.code).toBe('VALIDATION');
   });
 });
+
+describe('listing reads for the client', () => {
+  test('anyone can open a listing by id', async () => {
+    const res = await request(app).get(`/api/listings/${s.L1.id}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.listing.title).toBe('Backend Intern');
+  });
+
+  test('an unknown listing is 404 and a bad id is 400', async () => {
+    expect((await request(app).get('/api/listings/000000000000000000000000')).status).toBe(404);
+    expect((await request(app).get('/api/listings/not-an-id')).status).toBe(400);
+  });
+
+  test('a recruiter sees all of their own listings, open and closed, newest first', async () => {
+    const res = await request(app).get('/api/listings/mine').set(as(s.recruiter));
+
+    expect(res.status).toBe(200);
+    expect(res.body.listings.map((l) => l.title).sort()).toEqual(['Backend Intern', 'Closed Intern', 'ML Intern']);
+    expect((await request(app).get('/api/listings/mine').set(as(s.recruiter2))).body.listings).toEqual([]);
+  });
+
+  test('only recruiters have a "mine" list', async () => {
+    expect((await request(app).get('/api/listings/mine').set(as(s.student))).status).toBe(403);
+  });
+});

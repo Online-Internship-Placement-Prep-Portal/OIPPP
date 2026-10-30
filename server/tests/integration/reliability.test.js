@@ -41,7 +41,7 @@ describe('reliability and tampering (SAFE-1, SO-2, SEC-4)', () => {
     const move = () => request(app).patch(`/api/applications/${a1}/status`).set(as(s.recruiter)).send({ status: 'SHORTLISTED' });
     const codes = (await Promise.all([move(), move()])).map((r) => r.status).sort();
     expect(codes[0]).toBe(200);
-    // the loser either lost the conditional write (409) or saw SHORTLISTED already (422)
+    // The loser either lost the conditional write (409) or already saw SHORTLISTED (422).
     expect([409, 422]).toContain(codes[1]);
     expect((await Application.findById(a1)).history).toHaveLength(2);
   });

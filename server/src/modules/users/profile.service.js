@@ -1,8 +1,8 @@
-
 const Profile = require('./profile.model');
+const Application = require('../applications/application.model');
 const AppError = require('../../utils/AppError');
-const { Readable } = require('stream');
-const { getBucket, parseFileId, getResumeStream } = require('./resume.storage');
+const logger = require('../../utils/logger');
+const { getBucket, deleteResume } = require('./resume.storage');
 
 async function getMyProfile(userId) {
   const profile = await Profile.findOne({ userId }).lean();
@@ -18,10 +18,7 @@ async function updateMyProfile(userId, updates) {
   const profile = await Profile.findOneAndUpdate(
     { userId },
     { $set: updates },
-    {
-      new: true,
-      runValidators: true,
-    },
+    { new: true, runValidators: true },
   ).lean();
 
   if (!profile) {
@@ -51,21 +48,24 @@ async function uploadMyResume(userId, file) {
   const fileId = await new Promise((resolve, reject) => {
     uploadStream.once('finish', () => resolve(uploadStream.id));
     uploadStream.once('error', reject);
-
-    Readable.from(file.buffer).pipe(uploadStream);
+    uploadStream.end(file.buffer);
   });
+
+  const previousFileId = profile.resumeFileId;
 
   try {
     profile.resumeFileId = fileId;
     await profile.save();
   } catch (error) {
-    try {
-      await bucket.delete(fileId);
-    } catch {
-      // Preserve the original profile-saving error.
-    }
-
+    await bucket.delete(fileId).catch(() => {});
     throw error;
+  }
+
+  // Applications keep the resume they were sent with, so only an unreferenced one is removed.
+  if (previousFileId && !(await Application.exists({ resumeFileId: previousFileId }))) {
+    await deleteResume(previousFileId).catch((err) => {
+      logger.warn({ fileId: String(previousFileId), err: err.message }, 'failed to delete replaced resume');
+    });
   }
 
   return {
@@ -74,14 +74,8 @@ async function uploadMyResume(userId, file) {
   };
 }
 
-function getMyResumeStream(fileId) {
-  const id = parseFileId(fileId);
-  return getResumeStream(id);
-}
-
 module.exports = {
   getMyProfile,
   updateMyProfile,
   uploadMyResume,
-  getMyResumeStream,
 };

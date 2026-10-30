@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const multer = require('multer');
 const AppError = require('../../src/utils/AppError');
 const logger = require('../../src/utils/logger');
 const { errorHandler, notFound } = require('../../src/middleware/error');
@@ -48,6 +49,22 @@ describe('error middleware', () => {
     expect(log).toHaveBeenCalledWith(expect.objectContaining({ requestId: body.error.requestId, route: req.originalUrl }),
       'unhandled error');
     log.mockRestore();
+  });
+
+  test.each([
+    ['invalid JSON', Object.assign(new SyntaxError('Unexpected end'), { type: 'entity.parse.failed' }), 400, 'VALIDATION'],
+    ['an oversized body', Object.assign(new Error('too large'), { type: 'entity.too.large' }), 413, 'PAYLOAD_TOO_LARGE'],
+    ['a multer error', new multer.MulterError('LIMIT_UNEXPECTED_FILE', 'photo'), 400, 'VALIDATION'],
+    ['a mongoose validation error', new mongoose.Error.ValidationError(), 400, 'VALIDATION'],
+    ['a cast error', new mongoose.Error.CastError('ObjectId', 'abc', '_id'), 400, 'VALIDATION'],
+    ['a version error', Object.assign(new Error('No matching document'), { name: 'VersionError' }), 409, 'STALE_VERSION'],
+  ])('maps %s to a client error', (_label, err, status, code) => {
+    const res = mockResponse();
+
+    errorHandler(err, req, res, jest.fn());
+
+    expect(res.status).toHaveBeenCalledWith(status);
+    expect(res.json.mock.calls[0][0].error.code).toBe(code);
   });
 
   test('unknown routes become a 404 AppError', () => {

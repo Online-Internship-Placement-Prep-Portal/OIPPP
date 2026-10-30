@@ -9,9 +9,7 @@ const { TOPICS, percentage } = require('../tests/schema.helpers');
 const round = (value) => Math.round(value * 100) / 100;
 const toId = (id) => new mongoose.Types.ObjectId(String(id));
 
-// D2 proposal: pool every submitted Result's topic counts, so a topic tested with more
-// questions carries more weight. Weakest = lowest pooled percentage; ties go to the topic
-// with more evidence, then topic order. Unassessed topics are never reported as weak.
+// D2: pool topic counts across all results; weakest first, ties go to more questions, then topic order.
 function rankTopics(results) {
   const pooled = new Map();
   for (const result of results) {
@@ -28,7 +26,7 @@ function rankTopics(results) {
       || TOPICS.indexOf(a.topic) - TOPICS.indexOf(b.topic));
 }
 
-// ANL-1: owner-scoped; no combined readiness score until the team agrees a formula (D2).
+// ANL-1. No combined readiness score: the SRS defines no formula (D2).
 async function studentReadiness(studentId) {
   const id = toId(studentId);
   const [results, counts] = await Promise.all([
@@ -51,8 +49,7 @@ async function studentReadiness(studentId) {
   };
 }
 
-// D4 proposal: the cohort is the student's current Profile branch/gradYear. Students with no
-// profile or branch appear under branch null, and only when no cohort filter is applied.
+// D4: cohort is the current Profile branch/gradYear. Students without one appear as branch null, unfiltered only.
 async function cohort({ branch, gradYear }) {
   const students = await deps.User().find({ role: 'STUDENT' }).select('_id').lean();
   const filter = { userId: { $in: students.map((s) => s._id) } };
@@ -66,7 +63,7 @@ async function cohort({ branch, gradYear }) {
   return new Map(profiles.map((p) => [String(p.userId), p.branch || null]));
 }
 
-// ANL-2: every metric is computed over the same cohort so filters apply consistently.
+// ANL-2: every metric uses the same cohort.
 async function placementStats(filters) {
   const branchOf = await cohort(filters);
   const ids = [...branchOf.keys()].map(toId);
@@ -112,7 +109,25 @@ async function placementStats(filters) {
   };
 }
 
-// ANL-3: quote commas/quotes/newlines and neutralize spreadsheet formulas in text cells.
+// SAD 3.4: the dashboard and CSV reuse a cohort's figures for 5 minutes.
+const CACHE_MS = 5 * 60 * 1000;
+const placementCache = new Map();
+
+async function cachedPlacementStats(filters) {
+  const key = JSON.stringify([filters.branch || null, filters.gradYear || null]);
+  const hit = placementCache.get(key);
+  if (hit && hit.expires > Date.now()) return hit.stats;
+
+  const stats = await placementStats(filters);
+  placementCache.set(key, { stats, expires: Date.now() + CACHE_MS });
+  return stats;
+}
+
+function clearPlacementCache() {
+  placementCache.clear();
+}
+
+// ANL-3: RFC 4180 quoting, and a leading ' so spreadsheets don't run text as a formula.
 function csvCell(value) {
   if (value == null) return '';
   let text = String(value);
@@ -137,4 +152,6 @@ function placementCsv(stats) {
   return `${rows.map((r) => r.map(csvCell).join(',')).join('\r\n')}\r\n`;
 }
 
-module.exports = { studentReadiness, placementStats, placementCsv, csvCell, rankTopics };
+module.exports = {
+  studentReadiness, placementStats, cachedPlacementStats, clearPlacementCache, placementCsv, csvCell, rankTopics, CACHE_MS,
+};

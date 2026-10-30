@@ -1,4 +1,4 @@
-﻿# SRS Sections for Backlog Item 2.8 / Issue #16
+# SRS Sections for Backlog Item 2.8 / Issue #16
 
 ## Purpose and source
 

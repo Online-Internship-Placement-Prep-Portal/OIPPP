@@ -3,15 +3,22 @@
   "version": "0.1.0",
   "private": true,
   "main": "src/index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "nodemon src/index.js",
     "start": "node src/index.js",
+    "seed": "node scripts/seed-admin.js",
+    "seed:demo": "node scripts/seed-demo.js",
+    "lint": "eslint src tests scripts",
     "test": "jest --runInBand",
-    "lint": "eslint src tests",
-    "seed": "node src/seed.js"
+    "test:coverage": "jest --runInBand --coverage",
+    "test:api": "npx --yes newman@6.2.3 run ../docs/testing/OIPPP.postman_collection.json -e ../docs/testing/OIPPP.local.postman_environment.json --working-dir ../docs/testing",
+    "test:load": "node scripts/load-test.js"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.21.0",
@@ -20,8 +27,8 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.7.0",
-    "multer": "^1.4.5-lts.1",
-    "nodemailer": "^6.9.15",
+    "multer": "^2.5.0",
+    "nodemailer": "^10.3.1",
     "pino": "^9.4.0"
   },
   "devDependencies": {
@@ -31,5 +38,20 @@
     "nodemon": "^3.1.7",
     "supertest": "^7.0.0"
   },
-  "jest": { "testEnvironment": "node", "testTimeout": 30000 }
+  "jest": {
+    "testEnvironment": "node",
+    "testTimeout": 30000,
+    "collectCoverageFrom": [
+      "src/**/*.js"
+    ],
+    "coverageReporters": [
+      "text-summary",
+      "lcov"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 70
+      }
+    }
+  }
 }

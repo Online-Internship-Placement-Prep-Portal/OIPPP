@@ -1,4 +1,3 @@
-// Edge cases for authenticate/allow beyond the happy paths in aptitude-auth.test.js.
 jest.mock('../../src/modules/users/user.model', () => ({ findById: jest.fn() }));
 
 const jwt = require('jsonwebtoken');

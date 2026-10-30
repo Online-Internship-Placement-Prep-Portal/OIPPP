@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const Listing = require('../../src/modules/listings/listing.model');
 
 const validListing = () => ({

@@ -2,21 +2,35 @@ const mongoose = require('mongoose');
 const app = require('./app');
 const { port, mongoUri } = require('./config/env');
 const logger = require('./utils/logger');
+const aptitudeService = require('./modules/tests/aptitude.service');
+const { startAttemptTimeoutJob } = require('./modules/tests/attempt-timeout.job');
 const { startEmailRetryJob } = require('./modules/notifications/notification.service');
 const listingService = require('./modules/listings/listing.service');
 
+function closeExpiredListings() {
+  listingService.closeExpiredListings()
+    .catch((err) => logger.error({ err: err.message }, 'failed to close expired listings'));
+}
+
 async function main() {
   await mongoose.connect(mongoUri);
-  await require('./modules/tests/aptitude.service').initialize();
-  require('./modules/tests/attempt-timeout.job').startAttemptTimeoutJob();
   logger.info('connected to MongoDB');
+  await aptitudeService.initialize();
+
+  const stopAttemptTimeouts = startAttemptTimeoutJob();
   startEmailRetryJob();
-  listingService.closeExpiredListings().catch(err => logger.error({ err: err.message }, 'failed initial listing cleanup'));
-  const listingCleanupTimer = setInterval(() => {
-    listingService.closeExpiredListings().catch(err => logger.error({ err: err.message }, 'failed to close expired listings'));
-  }, 60 * 1000);
-  listingCleanupTimer.unref();
-  app.listen(port, () => logger.info({ port }, 'OIPPP API listening'));
+  closeExpiredListings();
+  setInterval(closeExpiredListings, 60 * 1000).unref();
+
+  const server = app.listen(port, () => logger.info({ port }, 'OIPPP API listening'));
+
+  const shutdown = (signal) => {
+    logger.info({ signal }, 'shutting down');
+    stopAttemptTimeouts();
+    server.close(() => mongoose.disconnect().finally(() => process.exit(0)));
+  };
+  process.once('SIGTERM', shutdown);
+  process.once('SIGINT', shutdown);
 }
 
 main().catch((err) => {

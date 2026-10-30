@@ -10,7 +10,6 @@ const Test = require('../../src/modules/tests/test.model');
 const Attempt = require('../../src/modules/tests/attempt.model');
 const Result = require('../../src/modules/tests/result.model');
 const service = require('../../src/modules/tests/aptitude.service');
-// SAFE-1 / task 4.5: refresh, closed tab, dropped connection, offline deadline and API restart.
 let mongo, admin, student, questions, publishedTest;
 const api = (method, path, body) => {
   const call = request(app)[method](`/api${path}`).set(as(student));

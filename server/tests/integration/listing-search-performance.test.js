@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 
 const Listing = require('../../src/modules/listings/listing.model');
@@ -76,7 +76,7 @@ describe('Issue #13: listing search performance over 5000 listings', () => {
   test.each(scenarios)('$name stays under the 2-second target', async ({ filters, expectedTotal }) => {
     const timings = [];
 
-    // Warm up the query once before measuring repeated runs.
+    // Warm-up run, not measured.
     await searchListings({ ...filters, page: 1, limit: 20 });
 
     let result;

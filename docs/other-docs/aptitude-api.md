@@ -2,15 +2,11 @@
 
 ## Delivery boundary
 
-Backend implementation for issues #25, #26, #27 (scoring) and #29 (refresh/reconnect). Feature branch changes require team review.
-There is no `client/` application in the inspected `dev` baseline: this delivers REST APIs,
-not an admin form, test-taking screen, or browser auto-save wiring. The real JWT middleware
-is reused unchanged. The current integrated `dev` now provides Member 1's User, auth, profile
-and admin modules; the conflict resolution retains those routes alongside aptitude, listings,
-applications and notifications. Verify real login and client integration end-to-end; do not add
-a permissive development login. Aptitude integration tests use the repository's existing fake-auth
-pattern with fixtures satisfying the real User schema. Separate unit checks exercise real JWT
-verification and disabled-account denial with a mocked identity-module boundary.
+Backend for issues #25, #26, #27 (scoring) and #29 (refresh/reconnect). There is no `client/`
+yet, so this delivers REST APIs, not an admin form, test-taking screen or browser auto-save wiring.
+Routes use the shared JWT middleware. Aptitude integration tests use the repository's fake-auth
+helper with fixtures that satisfy the real User schema; separate unit tests exercise real JWT
+verification and disabled-account denial.
 
 ## Run and verify
 
@@ -127,15 +123,15 @@ invalid IDs/bodies return 400; unauthenticated/unauthorized roles return 401/403
 There is no claim that end-to-end UI auto-save, selection-to-save timing, or p95 performance has
 been verified. Only server acknowledgement and persistence are implemented and tested here.
 
-## Deadline policy — explicit proposal requiring team review
+## Deadline policy (TST-5)
 
 The submitted TST-5 requires server expiry at endsAt and rejects answers more than 30 seconds
 late, but leaves the intervening 0–30 seconds ambiguous. This implementation chooses a **hard
 cutoff at endsAt**: no additional answer grace window. All answers at/after the server deadline
 are rejected, including those within 30 seconds. A request admitted to HTTP before the deadline
 but reaching the guarded database update after it is also rejected. Synchronize API/database
-clocks operationally. This policy is not asserted to be team-approved; resolve it in PR review.
-Do not implement a 30-second client clock extension.
+clocks operationally. The team adopted this rule when the attempt PRs merged ([DEVIATIONS](DEVIATIONS.md)
+row 10). Do not implement a 30-second client clock extension.
 
 The timeout job runs immediately on startup and every second, scans oldest overdue active
 attempts in batches of 100, and does not overlap itself. Errors are logged and retried on later
@@ -185,13 +181,9 @@ Browser-level checks (save indicator, reconnect banner, countdown) wait for the 
 
 Tasks 4.3/4.5/4.7 add `tests/unit/aptitude-scoring.test.js` (all-correct, all-wrong, unanswered,
 option 0, mixed-topic sums, canonical ordering, DTO) and `tests/integration/aptitude-recovery.test.js`
-(the table above), plus sweep-failure retry and version-error mapping. `aptitude.service.js` and
-`aptitude.routes.js` reach 100% line coverage.
-
-Earlier (PR #53): `npm run lint`: passed. `npm test`: 17 suites / 181 tests passed after integrating the latest dev and resolving PR #53 conflicts.
-49 new cases cover authoring permissions/validation, filtering/archive/publication, key redaction,
-concurrent starts, acknowledged saves/reload, stale versions, owner isolation, immutable snapshots,
-expiry (including 0–30 seconds), background catch-up, simultaneous finalization, submission/save
-races, transactional rollback and retry, worker lifecycle, and real JWT/disabled-account checks.
-The remaining 132 cases are the integrated module/schema regression suite. No load-test or browser
-acceptance/coverage threshold claim is made. Team review and end-to-end frontend/authentication integration remain.
+(the table above), plus sweep-failure retry and version-error mapping. `tests/integration/aptitude-api.test.js`
+covers authoring permissions and validation, filtering, archive and publication, key redaction,
+concurrent starts, acknowledged saves, stale versions, owner isolation, immutable snapshots,
+expiry (including 0–30 seconds), background catch-up, simultaneous finalization, submit/save
+races, and transactional rollback and retry. No load-test or browser acceptance claim is made;
+end-to-end checks wait for the client.

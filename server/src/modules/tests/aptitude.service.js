@@ -7,9 +7,9 @@ const Attempt = require('./attempt.model');
 const Result = require('./result.model');
 const { TOPICS, percentage } = require('./schema.helpers');
 
-const fail = (status, code, message) => { throw new AppError(status, code, message); };
+const fail = (status, code, message, details) => { throw new AppError(status, code, message, details); };
 const missing = () => fail(404, 'NOT_FOUND', 'Record not found');
-// serverTime lets a client derive remaining time from endsAt without trusting its own clock.
+// serverTime lets the client compute time left from endsAt without trusting its own clock.
 const publicAttempt = (attempt) => ({ ...attempt.toStudentView(), version: attempt.__v,
   lastSavedAt: attempt.lastSavedAt, submittedAt: attempt.submittedAt,
   submissionReason: attempt.submissionReason, serverTime: new Date() });
@@ -53,10 +53,16 @@ async function createTest(adminId, body) {
   const test = await Test.create({ ...body, createdBy: adminId });
   return { ...publicTest(test), questionIds: test.questionIds };
 }
-async function listTests(role, query) {
+async function listTests(role, query, studentId) {
   const filter = role === 'ADMIN' ? (query.status ? { status: query.status } : {}) : { status: 'PUBLISHED' };
   const items = await Test.find(filter).sort({ _id: -1 }).skip((query.page - 1) * query.limit).limit(query.limit);
-  return { items: items.map(publicTest), page: query.page, total: await Test.countDocuments(filter) };
+  const total = await Test.countDocuments(filter);
+  if (role === 'ADMIN') return { items: items.map(publicTest), page: query.page, total };
+  // Students also see their own attempt per test, so the client can resume it or open the result.
+  const attempts = await Attempt.find({ studentId, testId: { $in: items.map((t) => t._id) } }).select('testId status').lean();
+  const attemptOf = new Map(attempts.map((a) => [String(a.testId), { attemptId: String(a._id), status: a.status }]));
+  return { items: items.map((t) => ({ ...publicTest(t), myAttempt: attemptOf.get(String(t._id)) || null })),
+    page: query.page, total };
 }
 async function getTest(role, id) {
   const test = await Test.findById(id);
@@ -105,7 +111,7 @@ function scoreAttempt(attempt, submittedAt) {
     topicBreakdown: TOPICS.filter((t) => topics.has(t)).map((t) => topics.get(t))
       .map((t) => ({ ...t, percentage: percentage(t.correctAnswers, t.totalQuestions) })) };
 }
-// Replica set transactions keep closing and the canonical result all-or-nothing.
+// One transaction closes the attempt and writes its result, so neither happens alone.
 async function finalize(studentId, id, timeoutOnly = false) {
   const session = await mongoose.startSession();
   let result;
@@ -140,7 +146,10 @@ async function startAttempt(studentId, testId) {
   const existing = await Attempt.findOne({ studentId, testId });
   if (existing) {
     const view = await resumeView(existing);
-    if (view.status === 'SUBMITTED') fail(409, 'ATTEMPT_EXISTS', 'This test has already been submitted; retrieve the attempt result');
+    if (view.status === 'SUBMITTED') {
+      fail(409, 'ATTEMPT_EXISTS', 'This test has already been submitted; retrieve the attempt result',
+        [{ field: 'attemptId', message: String(existing._id) }]);
+    }
     return { created: false, ...view };
   }
   const test = await Test.findOne({ _id: testId, status: 'PUBLISHED' });
@@ -169,10 +178,10 @@ async function saveAnswer(studentId, id, body) {
   const questionId = String(new mongoose.Types.ObjectId(body.questionId));
   const q = attempt.questions.find((item) => String(item.questionId) === questionId);
   if (!q || body.optionIdx >= q.options.length) fail(400, 'INVALID_ANSWER', 'Choose an option from this attempt');
-  // A retry after a lost 204 finds its answer already stored; acknowledge it instead of a version conflict.
+  // A retry after a lost 204 finds its answer already stored: acknowledge it, don't report a conflict.
   if (attempt.answers.get(questionId) === body.optionIdx) return;
   if (body.version != null && body.version !== attempt.__v) fail(409, 'STALE_VERSION', 'Reload the attempt before retrying');
-  // Per-key atomic write + version guard prevents stale map replacement and finalization races.
+  // Atomic per-key write guarded by version and deadline, so it can't race a submit or overwrite newer answers.
   const saved = await Attempt.updateOne({ _id: id, studentId, status: 'IN_PROGRESS', __v: attempt.__v,
     $expr: { $gt: ['$endsAt', '$$NOW'] } },
   { $set: { [`answers.${questionId}`]: body.optionIdx, lastSavedAt: new Date() }, $inc: { __v: 1 } });

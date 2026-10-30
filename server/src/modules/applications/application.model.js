@@ -12,7 +12,7 @@ const historySchema = new mongoose.Schema({
 const applicationSchema = new mongoose.Schema({
   studentId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
   listingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing', required: true, immutable: true },
-  // APP-1: the resume current at apply time, so later uploads do not change what the recruiter saw
+  // Resume at apply time; later uploads don't change what the recruiter sees (APP-1).
   resumeFileId: { type: mongoose.Schema.Types.ObjectId, immutable: true },
   coverNote: { type: String, trim: true, maxlength: 1000, immutable: true },
   status: { type: String, enum: STATUSES, default: 'APPLIED', required: true },
@@ -20,9 +20,10 @@ const applicationSchema = new mongoose.Schema({
   history: { type: [historySchema], default: [] },
 }, { timestamps: true });
 
-// BR-3 / SAFE-1: one application per student per listing, even under concurrent submits
+// One application per student per listing, even under concurrent submits (BR-3).
 applicationSchema.index({ studentId: 1, listingId: 1 }, { unique: true });
 applicationSchema.index({ studentId: 1, createdAt: -1 });
 applicationSchema.index({ listingId: 1, status: 1, createdAt: -1 });
+applicationSchema.index({ resumeFileId: 1 }, { sparse: true });
 
 module.exports = mongoose.models.Application || mongoose.model('Application', applicationSchema);

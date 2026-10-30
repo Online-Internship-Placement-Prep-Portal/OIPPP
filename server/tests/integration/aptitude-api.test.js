@@ -184,9 +184,19 @@ describe('timed attempts and recovery (#26)', () => {
     expect(res.body.resultId).toBeDefined(); expect(res.body).not.toHaveProperty('studentId');
     expect((await api('post', `/attempts/${id}/submit`, student, {})).body.resultId).toBe(res.body.resultId);
     expect((await api('get', `/attempts/${id}/result`, student)).body.resultId).toBe(res.body.resultId);
-    expect((await start()).body.error.code).toBe('ATTEMPT_EXISTS');
+    const again = await start();
+    expect(again.body.error.code).toBe('ATTEMPT_EXISTS');
+    expect(again.body.error.details).toEqual([{ field: 'attemptId', message: id }]);
     expect((await api('patch', `/attempts/${id}/answers`, student, { questionId: questions[0].id, optionIdx: 1 })).body.error.code).toBe('ATTEMPT_CLOSED');
     expect(await Result.countDocuments()).toBe(1);
+  });
+  test('students see their own attempt on each listed test', async () => {
+    const before = await api('get', '/tests', student);
+    expect(before.body.items.find((t) => t.testId === String(publishedTest._id)).myAttempt).toBeNull();
+    const { body: { attemptId: id } } = await start();
+    const after = await api('get', '/tests', student);
+    expect(after.body.items.map((t) => t.myAttempt).filter(Boolean)).toEqual([{ attemptId: id, status: 'IN_PROGRESS' }]);
+    expect((await api('get', '/tests', admin)).body.items.every((t) => !('myAttempt' in t))).toBe(true);
   });
   test.each([1, 15000, 31000])('rejects saves %d ms after hard deadline and finalizes', async (delta) => {
     const { body: { attemptId: id } } = await start(); await expire(id, delta);

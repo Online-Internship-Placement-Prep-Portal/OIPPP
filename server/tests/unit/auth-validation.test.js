@@ -3,7 +3,7 @@ const { registerSchema, loginSchema } = require('../../src/modules/users/auth.va
 const opts = { abortEarly: false, stripUnknown: true };
 
 describe('registerSchema', () => {
-  const valid = { name: 'Asha Rao', email: 'asha@example.com', password: 'StrongPass123' };
+  const valid = { name: 'Asha Rao', email: 'asha@example.com', password: 'StrongPass123', srn: 'PES1UG24CS177' };
 
   test('accepts a valid student registration and defaults role to STUDENT', () => {
     const { error, value } = registerSchema.validate(valid, opts);
@@ -13,7 +13,7 @@ describe('registerSchema', () => {
   });
 
   test('accepts RECRUITER as a role', () => {
-    const { error, value } = registerSchema.validate({ ...valid, role: 'RECRUITER' }, opts);
+    const { error, value } = registerSchema.validate({ ...valid, srn: undefined, role: 'RECRUITER' }, opts);
 
     expect(error).toBeUndefined();
     expect(value.role).toBe('RECRUITER');
@@ -41,6 +41,9 @@ describe('registerSchema', () => {
     ['email', { email: 'not-an-email' }],
     ['password', { password: 'short' }],
     ['password', { password: 'x'.repeat(73) }],
+    ['srn', { srn: 'PES3UG24CS177' }],
+    ['srn', { srn: 'PES1PG24CS177' }],
+    ['srn', { srn: 'PES1UG24CS1777' }],
   ])('rejects an invalid %s', (field, override) => {
     const { error } = registerSchema.validate({ ...valid, ...override }, opts);
 
@@ -50,7 +53,19 @@ describe('registerSchema', () => {
   test('reports every missing field at once', () => {
     const { error } = registerSchema.validate({}, opts);
 
-    expect(error.details.map((d) => d.path[0]).sort()).toEqual(['email', 'name', 'password']);
+    expect(error.details.map((d) => d.path[0]).sort()).toEqual(['email', 'name', 'password', 'srn']);
+  });
+
+  test('upper-cases the SRN', () => {
+    const { value } = registerSchema.validate({ ...valid, srn: ' pes2ug23ec045 ' }, opts);
+
+    expect(value.srn).toBe('PES2UG23EC045');
+  });
+
+  test('forbids an SRN on a recruiter', () => {
+    const { error } = registerSchema.validate({ ...valid, role: 'RECRUITER' }, opts);
+
+    expect(error.details[0].path).toEqual(['srn']);
   });
 
   test('strips unknown fields such as status', () => {

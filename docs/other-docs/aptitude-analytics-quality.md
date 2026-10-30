@@ -6,7 +6,7 @@
 
 ## Reading and numbering rules
 
-This document completes only Member 4's three backlog sections. Backlog 5.4 maps to submitted SRS 4.7, backlog 5.5 maps to SRS 4.8, and backlog 6.3 maps to SRS 5.4 with related performance/safety requirements in 5.1/5.2. Existing requirement IDs are retained; no other member's section or approval record is replaced. A statement labeled **Baseline requirement** preserves the submitted requirement. Acceptance/design notes make verification concrete but must not silently change that baseline. The system requirements below describe the intended product, not an assertion that its routes, UI, worker or analytics service already exist.
+This document completes only Member 4's three backlog sections. Backlog 5.4 maps to submitted SRS 4.7, backlog 5.5 maps to SRS 4.8, and backlog 6.3 maps to SRS 5.4 with related performance/safety requirements in 5.1/5.2. Existing requirement IDs are retained; no other member's section or approval record is replaced. A statement labeled **Baseline requirement** preserves the submitted requirement. Acceptance/design notes make verification concrete but must not silently change that baseline. The system requirements below describe the intended product. The API routes and the timeout worker are built; the UI is not.
 
 ## 5.4 Aptitude Test Engine
 
@@ -118,18 +118,18 @@ Security dependencies remain SRS SO-1–SO-3, SEC-2/SEC-4 and BR-3/BR-4: role/ow
 | TST-1–TST-2 | Question/Test models; [ER](diagrams/er.png); admin test authoring | Existing model boundary tests; future endpoint/RBAC/existence tests. |
 | TST-3 | Attempt unique student/test index; [attempt sequence](diagrams/seq_test_attempt.png) | Existing real-MongoDB duplicate-start test; resume/service behavior not implemented. |
 | TST-4, SAFE-1 | Answer map, immutable deadline/snapshot, save/recovery flow | `aptitude-recovery.test.js`: refresh, reopen, lost-response retry, offline deadline, restart. Browser and timing tests await the client. |
-| TST-5 | Server-side timeout coordinator, deadline/status guards | Planned worker/service tests around endsAt and 30-second boundary; policy decision still required. |
+| TST-5 | Server-side timeout sweep (`attempt-timeout.job.js`), deadline/status guards | `attempt-timeout-job.test.js` and the expiry cases in `aptitude-api.test.js`, including the 0–30 second window under the hard cutoff (D1). |
 | TST-6 | Canonical Result, snapshotted answer key, consistent per-topic counts | `aptitude-scoring.test.js` (all-correct/wrong, unanswered, mixed topics) and submit/idempotency cases in `aptitude-api.test.js`. |
 | ANL-1–ANL-3, PERF-3 | [Component diagram](diagrams/component.png), Result/Application/Profile aggregation, admin export — [analytics API](analytics-api.md) | `analytics.test.js` covers owner scoping, RBAC, cohort filters and CSV escaping. `analytics-performance.test.js` checks the API share of PERF-3 with 2,000 students. Dashboard rendering awaits the client. |
 | SAFE-2, QA-1–QA-5, PERF-1–PERF-2 | Shared modules and the quality verification matrix above | Record results with fixtures, environment, timing/coverage and reviewer, rather than infer success from a diagram. |
 
 ## Decision register for implementation hand-off
 
-| Decision | Current evidence / discrepancy | Owner / next action |
+| Decision | Current evidence / discrepancy | Resolution |
 | --- | --- | --- |
-| D1 — Late answers and automatic timeout | TST-5 requires auto-submit at endsAt but only mandates rejection beyond endsAt +30 seconds; the old SAD sequence checked late submission instead of late answer writes. | All four members agree the intermediate-window/closure rule before task 4.2/4.5 implementation. Preserve both baseline statements; never silently reopen a submitted attempt. |
-| D2 — Combined readiness and weak-topic ranking | ANL-1/glossary describe outputs, not weights, history window or tie handling. | Proposed in [analytics-api.md](analytics-api.md#decisions-proposed-for-review): no combined score; weak topics pooled across Results. Awaiting team approval. |
-| D3 — Score and schema conventions | Current models choose separate Result, equal-weight percentages and Easy/Medium/Hard. | Team reviews these with #30; this documentation does not change model code or force approval. |
-| D4 — Cohort and cache semantics | Profile changes, missing cohorts, invalidation and CSV response are unspecified. | Proposed in [analytics-api.md](analytics-api.md#decisions-proposed-for-review): current Profile cohort, no cache; routes added to the [S5 contract](api-contract.md). Awaiting team approval. |
+| D1 — Late answers and automatic timeout | TST-5 requires auto-submit at endsAt but only mandates rejection beyond endsAt +30 seconds; the old SAD sequence checked late submission instead of late answer writes. | Adopted: hard cutoff at endsAt, recorded as [DEVIATIONS](DEVIATIONS.md) row 10. A submitted attempt is never reopened. |
+| D2 — Combined readiness and weak-topic ranking | ANL-1/glossary describe outputs, not weights, history window or tie handling. | Adopted in [analytics-api.md](analytics-api.md#decisions-d2-and-d4): no combined score; weak topics pooled across Results. |
+| D3 — Score and schema conventions | Current models choose separate Result, equal-weight percentages and Easy/Medium/Hard. | Adopted with #30: separate Result, equal-weight percentages, Easy/Medium/Hard. |
+| D4 — Cohort and cache semantics | Profile changes, missing cohorts, invalidation and CSV response are unspecified. | Adopted in [analytics-api.md](analytics-api.md#decisions-d2-and-d4): current Profile cohort, 5-minute placement-statistics cache; routes are in the [S5 contract](api-contract.md). |
 
-These are transparent implementation hand-off decisions, not unfilled SRS prose or a claim that the referenced features have passed acceptance. Submitted PDFs and other members' requirements remain unchanged.
+These decisions fill gaps in the SRS; they are not a claim that the features have passed acceptance. Submitted PDFs and other members' requirements remain unchanged.

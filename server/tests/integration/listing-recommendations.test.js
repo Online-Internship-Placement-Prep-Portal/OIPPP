@@ -1,4 +1,4 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 
 jest.mock('../../src/middleware/auth', () => require('../helpers/fakeAuth'));
 

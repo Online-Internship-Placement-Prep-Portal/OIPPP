@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 const Listing = require('./listing.model');
 const AppError = require('../../utils/AppError');
 
@@ -56,6 +56,16 @@ async function updateListing(recruiterId, listingId, input) {
   return listing;
 }
 
+async function getListing(listingId) {
+  const listing = await Listing.findById(listingId).lean();
+  if (!listing) throw new AppError(404, 'NOT_FOUND', 'Listing not found');
+  return listing;
+}
+
+function listMine(recruiterId) {
+  return Listing.find({ recruiterId }).sort({ createdAt: -1 }).lean();
+}
+
 async function closeExpiredListings() {
   return Listing.updateMany(
     { status: 'OPEN', deadline: { $lte: new Date() } },
@@ -63,4 +73,4 @@ async function closeExpiredListings() {
   );
 }
 
-module.exports = { createListing, updateListing, closeExpiredListings };
+module.exports = { createListing, updateListing, getListing, listMine, closeExpiredListings };

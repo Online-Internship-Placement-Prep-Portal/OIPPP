@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { MongoMemoryServer } = require('mongodb-memory-server');
+const { clearPlacementCache } = require('../../src/modules/analytics/analytics.service');
 
 let mongo;
 
@@ -8,8 +9,9 @@ async function connect() {
   await mongoose.connect(mongo.getUri());
 }
 
-// AuditLog blocks deleteMany by design, so drop collections at the driver level
+// AuditLog refuses deleteMany, so clear collections at the driver level.
 async function clear() {
+  clearPlacementCache();
   await Promise.all(Object.values(mongoose.connection.collections).map((c) => c.collection.deleteMany({})));
 }
 

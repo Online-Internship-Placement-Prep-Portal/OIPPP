@@ -1,105 +1,59 @@
-
 const express = require('express');
 const Joi = require('joi');
-
 const { authenticate, allow } = require('../../middleware/auth');
-const { validate } = require('../../middleware/validate');
+const { validate, idParam } = require('../../middleware/validate');
+const wrap = require('../../utils/wrap');
 const service = require('./admin.service');
+const settingsService = require('../settings/settings.service');
+const { sendResume } = require('./resume.storage');
 
 const router = express.Router();
 
-const idParam = Joi.object({
-  id: Joi.string().hex().length(24).required(),
+const rejectSchema = Joi.object({
+  reasonCode: Joi.string().valid(...service.RECRUITER_REJECT_REASONS).required(),
 });
 
-const wrap = (fn) => (req, res, next) => fn(req, res).catch(next);
+const usersQuery = Joi.object({
+  role: Joi.string().valid('STUDENT', 'RECRUITER', 'ADMIN'),
+  status: Joi.string().valid('ACTIVE', 'PENDING', 'DISABLED', 'REJECTED'),
+  search: Joi.string().trim().max(100),
+  page: Joi.number().integer().min(1).default(1),
+  limit: Joi.number().integer().min(1).max(50).default(20),
+});
 
-// Approve a recruiter.
-router.patch(
-  '/admin/recruiters/:id/approve',
-  authenticate,
-  allow('ADMIN'),
-  validate(idParam, 'params'),
+const settingsSchema = Joi.object({
+  oneOfferPolicy: Joi.boolean().required(),
+});
+
+router.use('/admin', authenticate, allow('ADMIN'));
+
+router.get('/admin/settings', wrap(async (req, res) => {
+  res.json({ settings: await settingsService.getSettings() });
+}));
+
+router.patch('/admin/settings', validate(settingsSchema), wrap(async (req, res) => {
+  res.json({ settings: await settingsService.updateSettings(req.user.id, req.body) });
+}));
+
+router.get('/admin/users', validate(usersQuery, 'query'), wrap(async (req, res) => {
+  res.json(await service.listUsers(req.query));
+}));
+
+router.patch('/admin/recruiters/:id/approve', validate(idParam, 'params'), wrap(async (req, res) => {
+  res.json({ user: await service.approveRecruiter(req.user.id, req.params.id) });
+}));
+
+router.patch('/admin/recruiters/:id/reject', validate(idParam, 'params'), validate(rejectSchema),
   wrap(async (req, res) => {
-    const recruiter = await service.approveRecruiter(
-      req.user.id,
-      req.params.id,
-    );
+    res.json({ user: await service.rejectRecruiter(req.user.id, req.params.id, req.body.reasonCode) });
+  }));
 
-    res.json({ user: recruiter });
-  }),
-);
+router.patch('/admin/users/:id/deactivate', validate(idParam, 'params'), wrap(async (req, res) => {
+  res.json({ user: await service.deactivateUser(req.user.id, req.params.id) });
+}));
 
-// Reject a recruiter with a required reason code.
-router.patch(
-  '/admin/recruiters/:id/reject',
-  authenticate,
-  allow('ADMIN'),
-  validate(idParam, 'params'),
-  validate(
-    Joi.object({
-      reasonCode: Joi.string()
-        .valid('INCOMPLETE_PROFILE', 'INVALID_COMPANY', 'OTHER')
-        .required(),
-    }),
-    'body',
-  ),
-  wrap(async (req, res) => {
-    const recruiter = await service.rejectRecruiter(
-      req.user.id,
-      req.params.id,
-      req.body.reasonCode,
-    );
-
-    res.json({ user: recruiter });
-  }),
-);
-
-// Deactivate a user.
-router.patch(
-  '/admin/users/:id/deactivate',
-  authenticate,
-  allow('ADMIN'),
-  validate(idParam, 'params'),
-  wrap(async (req, res) => {
-    const user = await service.deactivateUser(req.user.id, req.params.id);
-
-    res.json({ user });
-  }),
-);
-
-// Download a student's current resume. Only admins can access this route.
-router.get(
-  '/admin/users/:id/resume',
-  authenticate,
-  allow('ADMIN'),
-  validate(idParam, 'params'),
-  wrap(async (req, res) => {
-    const stream = await service.getStudentResume(req.params.id);
-
-    res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      'attachment; filename="resume.pdf"',
-    );
-
-    stream.on('error', (err) => {
-      if (!res.headersSent) {
-        // Undo the PDF headers so clients can read the JSON error.
-        res.removeHeader('Content-Disposition');
-        res.status(404).type('json').json({
-          error: {
-            code: 'RESUME_NOT_FOUND',
-            message: 'Resume file not found',
-          },
-        });
-      } else {
-        res.destroy(err);
-      }
-    });
-
-    stream.pipe(res);
-  }),
-);
+router.get('/admin/users/:id/resume', validate(idParam, 'params'), wrap(async (req, res) => {
+  sendResume(res, await service.getStudentResumeId(req.params.id));
+}));
 
 module.exports = router;

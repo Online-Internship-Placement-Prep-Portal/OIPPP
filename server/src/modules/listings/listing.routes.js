@@ -1,17 +1,14 @@
-﻿const express = require('express');
+const express = require('express');
 const Joi = require('joi');
 const { authenticate, allow } = require('../../middleware/auth');
-const { validate } = require('../../middleware/validate');
+const { validate, idParam } = require('../../middleware/validate');
 const AppError = require('../../utils/AppError');
+const wrap = require('../../utils/wrap');
 const service = require('./listing.service');
 const searchService = require('./listing.search.service');
 const recommendationService = require('./recommendation.service');
 
 const router = express.Router();
-const wrap = fn => (req, res, next) => fn(req, res).catch(next);
-
-const objectId = Joi.string().hex().length(24);
-const idParam = Joi.object({ id: objectId.required() });
 
 const fields = {
   company: Joi.string().trim().min(1).max(80),
@@ -43,6 +40,7 @@ const updateSchema = Joi.object({
 const searchSchema = Joi.object({
   search: Joi.string().trim().max(80),
   location: Joi.string().trim().max(60),
+  mode: Joi.string().uppercase().valid('ONSITE', 'REMOTE', 'HYBRID'),
   minStipend: Joi.number().min(0).max(9999999),
   maxStipend: Joi.number().min(0).max(9999999),
   skill: Joi.string().trim().min(1).max(30),
@@ -52,7 +50,7 @@ const searchSchema = Joi.object({
   order: Joi.string().valid('asc', 'desc').default('asc'),
   page: Joi.number().integer().min(1).default(1),
   limit: Joi.number().integer().min(1).max(100).default(20),
-}).unknown(false);
+});
 
 function requireApprovedRecruiter(req, res, next) {
   if (req.user.status !== 'ACTIVE') {
@@ -61,55 +59,36 @@ function requireApprovedRecruiter(req, res, next) {
   return next();
 }
 
-router.get(
-  '/listings',
-  validate(searchSchema, 'query'),
-  wrap(async (req, res) => {
-    if (
-      req.query.minStipend !== undefined
-      && req.query.maxStipend !== undefined
-      && req.query.minStipend > req.query.maxStipend
-    ) {
-      throw new AppError(400, 'VALIDATION', 'minStipend cannot exceed maxStipend');
-    }
+router.get('/listings', validate(searchSchema, 'query'), wrap(async (req, res) => {
+  const { minStipend, maxStipend } = req.query;
+  if (minStipend !== undefined && maxStipend !== undefined && minStipend > maxStipend) {
+    throw new AppError(400, 'VALIDATION', 'minStipend cannot exceed maxStipend');
+  }
 
-    const result = await searchService.searchListings(req.query);
-    res.json(result);
-  })
-);
+  res.json(await searchService.searchListings(req.query));
+}));
 
-router.post(
-  '/listings',
-  authenticate,
-  allow('RECRUITER'),
-  requireApprovedRecruiter,
-  validate(createSchema),
-  wrap(async (req, res) => {
-    const listing = await service.createListing(req.user.id, req.body);
-    res.status(201).json({ listing });
-  })
-);
+router.get('/listings/recommendations', authenticate, allow('STUDENT'), wrap(async (req, res) => {
+  res.json({ listings: await recommendationService.getRecommendations(req.user.id) });
+}));
 
-router.patch(
-  '/listings/:id',
-  authenticate,
-  allow('RECRUITER'),
-  requireApprovedRecruiter,
-  validate(idParam, 'params'),
-  validate(updateSchema),
-  wrap(async (req, res) => {
-    const listing = await service.updateListing(req.user.id, req.params.id, req.body);
-    res.json({ listing });
-  })
-);
+router.get('/listings/mine', authenticate, allow('RECRUITER'), wrap(async (req, res) => {
+  res.json({ listings: await service.listMine(req.user.id) });
+}));
 
-router.get(
-  '/listings/recommendations',
-  authenticate,
-  allow('STUDENT'),
+router.get('/listings/:id', validate(idParam, 'params'), wrap(async (req, res) => {
+  res.json({ listing: await service.getListing(req.params.id) });
+}));
+
+router.post('/listings', authenticate, allow('RECRUITER'), requireApprovedRecruiter, validate(createSchema),
   wrap(async (req, res) => {
-    const listings = await recommendationService.getRecommendations(req.user.id);
-    res.json({ listings });
-  })
-);
+    res.status(201).json({ listing: await service.createListing(req.user.id, req.body) });
+  }));
+
+router.patch('/listings/:id', authenticate, allow('RECRUITER'), requireApprovedRecruiter,
+  validate(idParam, 'params'), validate(updateSchema),
+  wrap(async (req, res) => {
+    res.json({ listing: await service.updateListing(req.user.id, req.params.id, req.body) });
+  }));
+
 module.exports = router;

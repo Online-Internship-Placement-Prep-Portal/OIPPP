@@ -1,6 +1,10 @@
+const Joi = require('joi');
 const AppError = require('../utils/AppError');
 
-// rejects keys like "$ne" anywhere in the body (SEC-4)
+const objectId = Joi.string().hex().length(24);
+const idParam = Joi.object({ id: objectId.required() });
+
+// Rejects Mongo operator keys such as "$ne" at any depth (SEC-4).
 function hasOperatorKey(value) {
   if (!value || typeof value !== 'object') return false;
   return Object.keys(value).some((k) => k.startsWith('$') || hasOperatorKey(value[k]));
@@ -21,4 +25,4 @@ function validate(schema, source = 'body') {
   };
 }
 
-module.exports = { validate, hasOperatorKey };
+module.exports = { validate, hasOperatorKey, objectId, idParam };

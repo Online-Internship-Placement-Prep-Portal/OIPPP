@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 
-// Minimal stand-ins for models owned by other modules (#6, #14), with only the fields
-// application.deps.js relies on. Real models win if they are already registered.
+// Stand-ins for other modules' models; the real ones win if already registered.
 function define(name, fields) {
   return mongoose.models[name] || mongoose.model(name, new mongoose.Schema(fields));
 }
