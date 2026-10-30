@@ -1,6 +1,6 @@
 area:identity:
   - changed-files:
-      - any-glob-to-any-file: ['server/src/modules/users/**', 'server/src/modules/auth/**']
+      - any-glob-to-any-file: ['server/src/modules/users/**', 'server/src/modules/settings/**']
 area:listings:
   - changed-files:
       - any-glob-to-any-file: 'server/src/modules/listings/**'
@@ -9,10 +9,16 @@ area:applications:
       - any-glob-to-any-file: ['server/src/modules/applications/**', 'server/src/modules/notifications/**', 'server/src/modules/audit/**']
 area:aptitude:
   - changed-files:
-      - any-glob-to-any-file: 'server/src/modules/tests/**'
+      - any-glob-to-any-file: ['server/src/modules/tests/**', 'server/src/modules/analytics/**']
+area:client:
+  - changed-files:
+      - any-glob-to-any-file: 'client/**'
+area:testing:
+  - changed-files:
+      - any-glob-to-any-file: ['docs/testing/**', 'server/tests/**', 'client/src/test/**']
 area:shared:
   - changed-files:
-      - any-glob-to-any-file: ['.github/**', 'server/src/app.js', 'server/src/index.js', 'server/src/middleware/**', 'server/src/config/**']
+      - any-glob-to-any-file: ['.github/**', 'server/src/app.js', 'server/src/index.js', 'server/src/middleware/**', 'server/src/config/**', 'server/src/utils/**', 'server/scripts/**', 'server/package*.json', 'render.yaml']
 type:documentation:
   - changed-files:
       - any-glob-to-any-file: ['docs/**', '*.md']
