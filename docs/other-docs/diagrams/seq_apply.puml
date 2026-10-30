@@ -1,34 +1,41 @@
 @startuml seq_apply
+!include diagram-style.puml
+hide footbox
+title Student applies to an internship (APP-1 to APP-4)
+caption As built in server/src/modules/applications.
 actor Student
-participant "React Client" as C
-participant "Auth Middleware" as MW
-participant "ApplicationController" as AC
-participant "ApplicationService" as AS
+boundary "React client" as C
+control "Auth middleware" as MW
+control "application.routes /\napplication.service" as AS
 database MongoDB as DB
-participant "NotificationService" as NS
-Student -> C : click "Apply" (resume, cover note)
-C -> MW : POST /api/applications\nAuthorization: Bearer <JWT>
-MW -> MW : verify token, role == STUDENT
-alt token invalid / wrong role
+control "notification.service" as NS
+Student -> C : click Apply (cover note)
+C -> MW : POST /api/applications\nAuthorization: Bearer JWT
+MW -> MW : verify token, account ACTIVE, role STUDENT
+alt bad token / wrong role
   MW --> C : 401 / 403
 else ok
-  MW -> AC : forward request
-  AC -> AS : apply(studentId, listingId, payload)
-  AS -> DB : find listing by id
-  alt listing closed or deadline passed
-    AS --> AC : ListingClosedError
-    AC --> C : 409 LISTING_CLOSED
-  else open
-    AS -> DB : insert application\n(unique index studentId+listingId)
-    alt duplicate key
+  MW -> AS : apply(studentId, listingId, coverNote)
+  AS -> DB : load listing + profile
+  alt listing CLOSED or deadline passed
+    AS --> C : 409 LISTING_CLOSED
+  else already applied
+    AS --> C : 409 ALREADY_APPLIED + existing application
+  else one-offer policy on and student holds an OFFER
+    AS --> C : 422 OFFER_HELD (DOM-2)
+  else CGPA below minCgpa
+    AS --> C : 422 NOT_ELIGIBLE (names the required CGPA)
+  else eligible
+    AS -> DB : insert application, status APPLIED, history[0]\nresumeFileId copied from profile\n(unique studentId + listingId)
+    alt concurrent duplicate
       DB --> AS : E11000
-      AC --> C : 409 ALREADY_APPLIED
+      AS --> C : 409 ALREADY_APPLIED + existing application
     else inserted
-      AS -> DB : append status history (APPLIED)
-      AS -> NS : notify(recruiterId, NEW_APPLICATION)
-      NS -->> DB : save in-app notification
-      AC --> C : 201 {applicationId, status: "APPLIED"}
-      C --> Student : show "Application submitted"
+      AS -> DB : audit APPLICATION_CREATED
+      AS -> NS : notify recruiter (APPLICATION_RECEIVED)
+      NS -> DB : save in-app notification
+      AS --> C : 201 {applicationId, status: APPLIED}
+      C --> Student : Application submitted
     end
   end
 end

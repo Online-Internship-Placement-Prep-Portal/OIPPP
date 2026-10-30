@@ -1,66 +1,62 @@
 @startuml seq_test_attempt
 !include diagram-style.puml
 hide footbox
-title Aptitude attempt — intended lifecycle and recovery
-caption Service/worker design; current repository implements models, not these endpoints.
+title Aptitude attempt — start, save, recover, finalize
+caption As built in server/src/modules/tests (ADR-2).
 actor Student
 boundary "React test screen" as C
-control "Authorized API / AttemptService" as AS
+control "aptitude.routes /\naptitude.service" as AS
 database "MongoDB" as DB
-control "Server timeout coordinator\n(planned)" as TIMER
+control "attempt-timeout.job\n(every 1 s)" as TIMER
 
 == Start or resume (TST-3 / SAFE-1) ==
 Student -> C : open test
 C -> AS : POST /api/tests/{id}/attempts
-AS -> AS : authenticate student + verify test availability
+AS -> AS : authenticate STUDENT; test PUBLISHED
 AS -> DB : find by studentId + testId
-alt existing SUBMITTED attempt
+alt existing closed attempt
   AS --> C : 409 ATTEMPT_EXISTS
 else existing IN_PROGRESS attempt
-  AS -> AS : check original deadline; finalize if due
-  AS --> C : existing attempt or closed/result response
+  AS -> AS : finalize first if endsAt has passed
+  AS --> C : 200 same attempt + saved answers\n+ endsAt + serverTime
 else no attempt
-  AS -> DB : load test + private question keys
-  AS -> DB : create unique Attempt with snapshots\nstartedAt = server now; endsAt = start + duration
+  AS -> DB : create Attempt with question snapshot\nstartedAt = now; endsAt = now + duration
   note right of DB
-    Concurrent duplicate-key creation:
-    reload/resume the existing attempt.
+    Unique (studentId, testId):
+    a concurrent duplicate reloads
+    the existing attempt.
   end note
-  AS --> C : 201 public questions + answers + endsAt
+  AS --> C : 201 questions (no keys) + endsAt + serverTime
 end
 
-== Select / acknowledge / recover (TST-4 / SAFE-1) ==
-loop each answer selection while permitted
+== Save each answer (TST-4) ==
+loop each selection
   C -> AS : PATCH /api/attempts/{id}/answers\n{questionId, optionIdx}
-  AS -> AS : verify owner, status, snapshot option\nand agreed deadline/grace policy
-  AS -> DB : persist validated answer + lastSavedAt\nconflict-safe write, not stale whole-map replacement
-  DB --> AS : acknowledged
-  AS --> C : 204; UI may now show Saved
+  alt now >= endsAt
+    AS --> C : 409 ATTEMPT_CLOSED
+  else open
+    AS -> DB : set answers.<questionId> (conditional on IN_PROGRESS)
+    AS --> C : 204, client shows Saved
+  end
 end
-opt browser refresh / reconnect
-  C -> AS : start/resume same test
-  AS -> DB : load existing state
-  AS --> C : saved answers + original endsAt\n(or closed state if already finalized)
+opt refresh / reconnect
+  C -> AS : GET /api/attempts/{id}
+  AS --> C : saved answers + original endsAt
 end
 
 == Finalize once (TST-5 / TST-6) ==
-alt manual submit
+alt student submits
   C -> AS : POST /api/attempts/{id}/submit
-else deadline reached without client
-  TIMER -> AS : finalize overdue active attempt
+else deadline passes
+  TIMER -> AS : expireOverdue()
 end
-AS -> AS : score saved answers using snapshot keys
-AS -> DB : atomically close attempt + create canonical Result\nusing agreed transaction/recovery strategy
-DB --> AS : durable state / existing result on retry
-AS --> C : manual request returns score + topicBreakdown
+AS -> AS : score saved answers against snapshot keys
+AS -> DB : transaction: close Attempt + insert Result
+DB --> AS : committed (or existing Result on retry)
+AS --> C : 200 score + topicBreakdown
 note over AS, TIMER
-  No dependency on a browser remaining open.
-  TST-5 rejects answers after endsAt +30 seconds;
-  handling of the intermediate grace window needs team agreement.
-  A submitted attempt is never silently reopened.
-end note
-note over AS, DB
-  Result holds score and topicBreakdown, not duplicated Attempt.score.
-  Analytics reads Results; a read-only Python engine does not write snapshots.
+  The browser countdown is display only.
+  Answers at or after endsAt are refused (D1).
+  A closed attempt is never reopened.
 end note
 @enduml

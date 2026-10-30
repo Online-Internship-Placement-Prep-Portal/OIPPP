@@ -1,70 +1,77 @@
 # Architecture and diagram guide
 
-**Owner:** E S Sukruth — shared deliverable S4 / issue #36.  
-**State:** complete diagram update proposed for team review, based on the current `dev` contracts and submitted SRS/SAD. These are design views, **not proof that all pictured components are implemented or deployed**.
+**Owner:** E S Sukruth — shared deliverable S4 / issue #36.
+**State:** matches release 1.0 as built. Every box and arrow is in the code; the [implementation boundary](#implementation-boundary) says where.
 
 ## Start here
 
 | Diagram | Rendered image | Editable source | Purpose |
 | --- | --- | --- | --- |
-| Component architecture | [component.png](component.png) | [component.puml](component.puml) | React → authorized Express modular monolith → MongoDB/GridFS; SMTP and private read-only Python analytics; planned server timeout coordinator. |
-| Logical ER | [er.png](er.png) | [er.puml](er.puml) | Cross-member User/Profile/Listing contracts, existing Application/Notification/AuditLog models, and Question/Test/Attempt/Result relationships. |
-| Actor/use-case view | [use_case.png](use_case.png) | [use_case.puml](use_case.puml) | Student, Recruiter and Placement Admin privileges, test save/evaluation, admin-only CSV and account administration. SMTP integration is shown in the component view. |
-| Aptitude attempt sequence | [seq_test_attempt.png](seq_test_attempt.png) | [seq_test_attempt.puml](seq_test_attempt.puml) | Intended start/resume, per-answer acknowledgement, refresh recovery, server timeout and canonical Result finalization. |
+| Component architecture | [component.png](component.png) | [component.puml](component.puml) | React client → one Express API (middleware, feature modules, in-process jobs) → MongoDB/GridFS, plus the SMTP provider. |
+| Logical ER | [er.png](er.png) | [er.puml](er.puml) | Every collection: User (with SRN and lockout fields), Profile, GridFS resume, Settings, Listing, Bookmark, Application, Notification, AuditLog, Question, Test, Attempt, Result. |
+| Actor/use-case view | [use_case.png](use_case.png) | [use_case.puml](use_case.puml) | What Students, Recruiters and the Placement Admin can do, including the one-offer policy and notifications. |
+| Aptitude attempt sequence | [seq_test_attempt.png](seq_test_attempt.png) | [seq_test_attempt.puml](seq_test_attempt.puml) | Start or resume, per-answer save, refresh recovery, server timeout and the transactional Result. |
+| Apply sequence | [seq_apply.png](seq_apply.png) | [seq_apply.puml](seq_apply.puml) | Apply checks in code order: closed listing, duplicate, one-offer policy, CGPA; then insert, audit and notify. |
+| Status update sequence | [seq_status_update.png](seq_status_update.png) | [seq_status_update.puml](seq_status_update.puml) | Ownership, state machine, reason code, conditional update, audit, notification and email retry. |
 
-The existing `seq_apply.puml/.png` and `seq_status_update.puml/.png` belong to the already-delivered Member 3 flows and are deliberately unchanged. The previous scoped [aptitude schema design](../database/aptitude-schema.md) remains valid as the detailed model reference. Shared styling is local in [diagram-style.puml](diagram-style.puml); there are no remote includes.
+Shared styling is local in [diagram-style.puml](diagram-style.puml); there are no remote includes. The [aptitude schema design](../database/aptitude-schema.md) has the detailed aptitude model reference.
 
 ## Architecture decisions and responsibilities
 
-- **Modular monolith:** one Node/Express API process, with each feature separated into routes/controller, service and Mongoose model layers. Controllers do not bypass service rules. This follows SAD 3.5; it does not introduce per-feature microservices.
-- **Trust boundaries:** the browser holds only its user session, not database credentials. API middleware/services authenticate, check the active account, authorize role/ownership and validate bodies. Only the API may mutate operational records. SMTP uses STARTTLS; analytics calls stay on the private network.
-- **Analytics:** the intended Python/Flask engine reads MongoDB with read-only credentials. The API controls authorized requests and cache ownership. The old test-attempt sequence's Python-to-database write was inconsistent with that design and is removed; no new readiness persistence contract is imposed here.
-- **Timer:** the UI countdown is a display, not the authority. A future server coordinator must finalize overdue attempts and recover after restart/sleep without extending deadlines. The middle 30-second grace-window rule remains the baseline ambiguity documented in the [owned SRS decision register](../aptitude-analytics-quality.md#decision-register-for-implementation-hand-off).
-- **Results:** the current Member 4 model is a separate canonical Result linked one-to-zero-or-one from Attempt, not a second unsynchronized score field on Attempt. Snapshot answer keys stay private.
-- **Other members:** Profile/User and Listing in the ER are intended integration contracts, not new models added by this change. `Profile` matches the model name expected by Member 3's dependency adapter; the older drawing's display name `StudentProfile` is reconciled to that contract. AuditLog.entityId is polymorphic, so the drawing does not pretend it is a fixed Application foreign key.
+The decisions are recorded in the [architecture decision records](../../adr/README.md).
 
-## Inspected implementation boundary
+- **Modular monolith ([ADR-1](../../adr/ADR-1-layered-modular-monolith.md)):** one Node/Express API process with one folder per feature under `server/src/modules/`. The React client in `client/` is a separate static site that calls `/api`.
+- **Layers ([ADR-4](../../adr/ADR-4-routes-service-model.md)):** each module has routes, service and model. There is no controller file; route handlers only call a service and shape the response.
+- **Trust boundaries:** the browser holds only its JWT. Middleware checks the token, re-reads the account status on every request, checks the role and validates the body. Only the API holds database credentials. SMTP uses STARTTLS.
+- **Timer ([ADR-2](../../adr/ADR-2-server-side-test-timer.md)):** the server owns `endsAt`. `attempt-timeout.job.js` submits overdue attempts every second and catches up after a restart. Answers at or after `endsAt` are refused (decision D1 in the [decision register](../aptitude-analytics-quality.md#decision-register-for-implementation-hand-off)).
+- **Results:** a separate Result is written in the same transaction that closes the Attempt. Snapshot answer keys never leave the server.
+- **Analytics ([ADR-3](../../adr/ADR-3-analytics-in-node-api.md)):** MongoDB aggregations in `modules/analytics`, inside the API. Placement statistics are cached for 5 minutes. There is no Python service ([DEVIATIONS](../DEVIATIONS.md) row 12).
+- **Resumes ([ADR-5](../../adr/ADR-5-gridfs-resumes-per-application.md)):** GridFS bucket `resumes`. Each application keeps the file it was sent with.
+- **Jobs:** three in-process intervals run next to the API: the attempt timeout sweep (1 s), the listing deadline closer (60 s) and the email retry (1, 5 and 15 minutes).
 
-| Area | Current dev evidence | Not claimed by these diagrams |
+## Implementation boundary
+
+| Area | Code | Not covered by these diagrams |
 | --- | --- | --- |
-| API shell | `server/src/app.js` mounts application and notification routes; middleware/config scaffolding exists. | Completed end-to-end identity/listing flow or production configuration. |
-| Applications / notifications / audit | Member 3 modules and [API documentation](../applications-api.md) exist. | New implementation or revalidation of their feature tests in this documentation-only change. |
-| Aptitude | Question/Test/Attempt/Result Mongoose models exist under `server/src/modules/tests/`. | Aptitude routes, scoring service, browser test screen or timeout worker. |
-| User/Profile and Listing | Named contracts in Member 3's dependency adapter and the submitted documents. | Current `users`/`listings` modules; none were present in the inspected dev tree. |
-| UI / analytics | Planned in the submitted SRS/SAD. | A built React client, Python deployment, live dashboards or CSV exporter. |
-
-Implementation status can evolve; diagrams label the inspected boundary so reviewers do not confuse intended architecture with a release-completion claim. These diagrams do not modify any shared model or runtime API.
+| Client | `client/`: React 18, Vite, React Router, axios, Recharts | Visual design details |
+| API | `server/src/app.js` mounts every module; see the [API contract](../api-contract.md) | |
+| Identity, profiles, admin | `server/src/modules/users/`, including GridFS resume storage and SRN | |
+| Policy settings | `server/src/modules/settings/` (one-offer policy, DOM-2) | |
+| Listings, bookmarks, recommendations | `server/src/modules/listings/` | |
+| Applications, notifications, audit | `server/src/modules/applications/`, `notifications/`, `audit/`; [API documentation](../applications-api.md) | |
+| Aptitude | `server/src/modules/tests/`, including the timeout job | |
+| Analytics | `server/src/modules/analytics/` | Python engine (not built, ADR-3) |
+| Deployment | `render.yaml` and the deployment guide in `docs/other-docs/deployment.md` | Hosting provider internals |
 
 ## Requirement traceability
 
 | View | Source / requirement coverage |
 | --- | --- |
-| Component | SAD 3.3–3.9; SRS role/security boundaries, TST-3–TST-6, ANL-1–ANL-3, SAFE-1. |
-| ER | SAD 4.1, current Member 3 model contracts and Member 4 schema implementation; TST-1–TST-6, BR-3, SAFE-2. |
-| Use case | SRS 2.2–2.3, feature groups 4.1–4.8, BR-4 and ANL-3; admins are seeded, not publicly registered. |
-| Attempt sequence | SRS TST-3–TST-6/SAFE-1; replaces the older SAD-derived sequence's missing server trigger and duplicated Attempt.score. |
+| Component | SAD 3.3–3.9; SRS role and security boundaries, TST-3–TST-6, ANL-1–ANL-3, SAFE-1, SEC-1–SEC-6. |
+| ER | SAD 4.1, SRS section 6 indexes; AUTH-1, AUTH-5, APP-1, TST-1–TST-6, BR-3, DOM-2, SAFE-2. |
+| Use case | SRS 2.2–2.3, feature groups 4.1–4.8, BR-1, BR-4, DOM-2 and ANL-3; admins are seeded, not publicly registered. |
+| Attempt sequence | TST-3–TST-6, SAFE-1. |
+| Apply sequence | APP-1–APP-4, BR-3, DOM-1, DOM-2, QA-3. |
+| Status update sequence | REV-2–REV-4, APP-4, SEC-6. |
 
-Read the full [Member 4 SRS sections](../aptitude-analytics-quality.md) for acceptance criteria and the [SRS source map](../SRS.md) for old/new numbering. Submitted [SRS](../../Part-1_Deliverables/SRS.pdf), [SAD](../../Part-1_Deliverables/SAD.pdf), and [Test Plan](../../Part-1_Deliverables/Test%20Plan.pdf) remain unchanged. The [deviations register](../DEVIATIONS.md) distinguishes numbering/design reconciliation from implemented behavior.
+Read the full [Member 4 SRS sections](../aptitude-analytics-quality.md) for acceptance criteria and the [SRS source map](../SRS.md) for old/new numbering. Submitted [SRS](../../Part-1_Deliverables/SRS.pdf), [SAD](../../Part-1_Deliverables/SAD.pdf), and [Test Plan](../../Part-1_Deliverables/Test%20Plan.pdf) remain unchanged. The [deviations register](../DEVIATIONS.md) lists every difference between them and the build.
 
 ## Reproduce and validate
 
-Use Java with **PlantUML 1.2025.2** and Graphviz. Obtain the renderer yourself from the official PlantUML distribution or Maven Central; do not commit its JAR. The diagrams render locally without sending private source to an online renderer.
+The PNGs are rendered locally with **PlantUML 1.2025.2**. Either set `PLANTUML_JAR` to a local JAR (needs Java and Graphviz), or leave it unset and the script uses the official `plantuml/plantuml:1.2025.2` Docker image. Don't commit the JAR.
 
 From the repository root:
 
 ```sh
-# Set this to the local PlantUML 1.2025.2 JAR.
-export PLANTUML_JAR=/absolute/path/to/plantuml-1.2025.2.jar
 bash docs/other-docs/diagrams/render.sh
 python3 server/scripts/check-member4-docs.py
 ```
 
-The render script compiles only the four owned/updated views, fails on syntax errors and checks each PNG exists. The Python check uses only the standard library and verifies local documentation links/anchors, all owned requirement IDs, paired diagram sources/PNGs and local style includes. It is a focused documentation check, not an application test or a claim that global CI has been configured. Open every generated PNG and inspect labels, arrows, overlap and readability before committing; a successful renderer is not visual QA.
+The render script compiles all six views, fails on syntax errors and checks each PNG exists. The Python check verifies local links and anchors, the owned requirement IDs, the paired sources and PNGs, and the local style include. Open every PNG after rendering and check labels, arrows and overlap; a successful render is not visual QA.
 
 ## Review acceptance
 
-- All four updated `.puml` sources render and their matching PNGs are committed.
+- All six `.puml` sources render and their PNGs are committed.
 - Actor access matches the SRS; no public Admin registration is implied.
-- Result/snapshot relationships match current models; external contracts are labeled.
-- The read-only analytics boundary and planned server timer are explicit.
-- Other members review shared boundaries before the normal approved merge into `dev`.
+- Every component, entity and endpoint shown exists in the code.
+- Changes to shared boundaries are reviewed by the other members before merging into `dev`.

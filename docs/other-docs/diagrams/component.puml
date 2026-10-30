@@ -2,52 +2,56 @@
 !include diagram-style.puml
 top to bottom direction
 title OIPPP — component architecture
-caption Design target with implementation boundaries; not a deployment-completeness claim.
-rectangle "Public browser boundary" as BROWSER {
-  component "React SPA\nStudent / Recruiter / Admin pages\n[planned]" as UI
+caption Release 1.0 as built: one React client, one Express API, MongoDB and an SMTP provider.
+rectangle "Browser" as BROWSER {
+  component "React SPA (client/)\nVite + React Router + axios + Recharts\nStudent / Recruiter / Admin pages" as UI
 }
-rectangle "API process — Node.js / Express" as API {
-  component "HTTP middleware\nHelmet / CORS / validated bodies\nJWT + role + ownership checks" as MW
-  package "Feature modules — routes/controller → service → model" as MODULES {
-    component "Identity / Profile\n[planned; Member 1]" as AUTH
-    component "Listing / Discovery\n[planned; Member 2]" as LIST
-    component "Applications\n[integrated; Member 3]" as APP
-    component "Notifications + retry job\n[integrated; Member 3]" as NOTIF
-    component "Audit logger\n[integrated; Member 3]" as AUD
-    component "Aptitude tests\n[models only; Member 4]" as TEST
+rectangle "API process — Node.js / Express (server/)" as API {
+  component "HTTP middleware\nhelmet / CORS / 100 kB body / rate limits\nJWT + active account + role checks / Joi" as MW
+  package "Feature modules — routes → service → model" as MODULES {
+    component "users\nauth, lockout, profile, resumes,\nadmin approvals" as AUTH
+    component "listings\nCRUD, search, bookmarks,\nrecommendations" as LIST
+    component "applications\napply, state machine, review" as APP
+    component "notifications\nin-app + email" as NOTIF
+    component "audit\nappend-only log" as AUD
+    component "settings\none-offer policy" as SET
+    component "tests\nquestion bank, tests,\nattempts, scoring" as TEST
+    component "analytics\nreadiness view, placement\nstats (5 min cache), CSV" as ANL
   }
-  component "Timeout coordinator\n[planned; server deadline]" as TIMER
-  component "Analytics gateway + cache\n[planned; Member 4]" as AGW
-  component "Persistence layer\nMongoose models + GridFS access" as STORE
+  package "In-process jobs" as JOBS {
+    component "Attempt timeout sweep\n(every 1 s)" as TIMER
+    component "Listing deadline closer\n(every 60 s)" as CLOSER
+    component "Email retry\n(1 / 5 / 15 min)" as RETRY
+  }
+  component "Mongoose models + GridFS bucket" as STORE
 }
-rectangle "Private analytics boundary" as ANALYTICS {
-  component "Python / Flask engine\nReadiness + placement statistics\n[planned; read-only]" as PY
-}
-database "MongoDB / GridFS\nApplication data + resume files" as DB
-cloud "SMTP provider\nExternal service" as SMTP
+database "MongoDB replica set\ncollections + GridFS resumes" as DB
+cloud "SMTP provider" as SMTP
 
-UI --> MW : HTTPS / REST JSON\nBearer session; never DB credentials
-MW --> MODULES : authenticate / authorize / dispatch
-MW --> AGW : authorized analytics requests
-APP --> NOTIF : delivery event
-APP --> AUD : audit event
-MODULES --> STORE : validated service operations
-STORE --> DB : API-held DB credentials
-TIMER --> TEST : finalize overdue attempts
-AGW --> PY : private HTTP\nscoped student / cohort request
-PY --> DB : read-only queries
+UI --> MW : HTTPS / REST JSON\nAuthorization: Bearer JWT
+MW --> MODULES : authorized, validated request
+APP --> NOTIF : status change
+APP --> AUD : audit entry
+AUTH --> NOTIF : recruiter decision
+AUTH --> AUD : admin action
+ANL ..> APP : reads
+ANL ..> TEST : reads Results
+APP ..> SET : reads policy
+MODULES --> STORE
+JOBS --> STORE
+STORE --> DB : API-held credentials
+RETRY --> NOTIF
 NOTIF --> SMTP : SMTP + STARTTLS
 note bottom of TIMER
-  Timer runs on the server, not in the browser.
-  Recovery after process sleep/restart is required.
+  The server owns the test clock (ADR-2).
+  The sweep catches up after a restart.
 end note
-note bottom of PY
-  Python does not write Result/readiness records.
-  API controls authorization and cache ownership.
+note right of ANL
+  Aggregations run inside the API (ADR-3).
+  No separate Python service.
 end note
 legend bottom left
-  [planned] / [models only] / [integrated] describe inspected dev code.
-  Middleware scaffolding exists; User/Listings and analytics integration remain dependencies.
-  One API modular monolith; Python is the separate analytics component.
+  One deployable API (ADR-1). Each module keeps routes, service and model (ADR-4).
+  Only the API holds database credentials; the browser holds only its token.
 endlegend
 @enduml

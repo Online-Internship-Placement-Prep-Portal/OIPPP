@@ -2,32 +2,36 @@
 !include diagram-style.puml
 left to right direction
 title OIPPP — actors and use cases
-caption Intended release-1.0 behavior from submitted SRS; not an implementation checklist.
+caption Release 1.0 as built.
 actor Student
 actor Recruiter
 actor "Placement Admin" as Admin
+actor "SMTP provider" as SMTP
 rectangle "OIPPP" {
   package "Shared access" {
-    usecase "Sign in" as Login
-    usecase "Register Student / Recruiter" as Register
+    usecase "Sign in (lockout after 5 failures)" as Login
+    usecase "Register Student (with SRN) / Recruiter" as Register
+    usecase "Read notifications" as Bell
   }
-  package "Student experience" {
+  package "Student features" {
     usecase "Manage profile / resume" as Profile
     usecase "Search / filter / bookmark listings" as Search
+    usecase "See recommended listings" as Feed
     usecase "Apply / track applications" as Apply
     usecase "Start / resume / submit aptitude test" as Attempt
-    usecase "Persist selected answers" as Save
-    usecase "Evaluate and show result" as Result
+    usecase "Save each answer" as Save
+    usecase "Score and show result" as Result
     usecase "View own progress / weak topics" as Progress
   }
-  package "Recruiter experience" {
+  package "Recruiter features" {
     usecase "Post / edit / close own listings" as Listing
     usecase "Review own listing's applicants" as Review
     usecase "Update application status" as Status
     usecase "Notify student" as Notify
   }
   package "Placement administration" {
-    usecase "Approve recruiters / disable accounts" as Accounts
+    usecase "Approve / reject recruiters,\ndisable accounts" as Accounts
+    usecase "Set one-offer policy" as Policy
     usecase "Author questions / tests" as Author
     usecase "View placement statistics" as Stats
     usecase "Export placement report CSV" as CSV
@@ -38,8 +42,11 @@ Recruiter --> Register
 Student --> Login
 Recruiter --> Login
 Admin --> Login
+Student --> Bell
+Recruiter --> Bell
 Student --> Profile
 Student --> Search
+Student --> Feed
 Student --> Apply
 Student --> Attempt
 Student --> Progress
@@ -47,14 +54,16 @@ Recruiter --> Listing
 Recruiter --> Review
 Recruiter --> Status
 Admin --> Accounts
+Admin --> Policy
 Admin --> Author
 Admin --> Stats
 Admin --> CSV
 Attempt ..> Save : <<include>>
 Attempt ..> Result : <<include>>
 Status ..> Notify : <<include>>
+Notify --> SMTP
 legend bottom left
-  Admin accounts are seeded, not publicly registered.
-  Recruiters cannot author tests or read batch statistics.
+  Admin accounts are seeded (npm run seed), never self-registered.
+  Recruiters start PENDING and cannot post until approved.
 endlegend
 @enduml

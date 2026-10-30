@@ -1,28 +1,42 @@
 @startuml seq_status_update
+!include diagram-style.puml
+hide footbox
+title Recruiter updates an application status (REV-2 to REV-4)
+caption As built in server/src/modules/applications and notifications.
 actor Recruiter
-participant "React Client" as C
-participant "Auth Middleware" as MW
-participant "ApplicationService" as AS
-participant "AuditLogger" as AL
+boundary "React client" as C
+control "Auth middleware" as MW
+control "application.service" as AS
+control "audit.service" as AL
 database MongoDB as DB
-participant "NotificationService" as NS
-participant "SMTP Provider" as SMTP
-Recruiter -> C : mark applicant "Shortlisted"
-C -> MW : PATCH /api/applications/{id}/status
-MW -> MW : verify JWT, role == RECRUITER
-MW -> AS : updateStatus(id, SHORTLISTED, recruiterId)
+control "notification.service\n+ email retry job" as NS
+participant "SMTP provider" as SMTP
+Recruiter -> C : move applicant to Shortlisted
+C -> MW : PATCH /api/applications/{id}/status\n{status, reasonCode?}
+MW -> MW : verify JWT, account ACTIVE, role RECRUITER
+MW -> AS : updateStatus(id, status, recruiterId)
 AS -> DB : load application + listing
-alt recruiter does not own listing
+alt recruiter does not own the listing
   AS --> C : 403 NOT_LISTING_OWNER
-else transition not allowed (e.g. OFFER -> APPLIED)
+else transition not allowed
   AS --> C : 422 INVALID_TRANSITION
+else REJECTED without a reason
+  AS --> C : 400 REASON_REQUIRED
 else valid
-  AS -> DB : update status (version check)
-  AS -> AL : log(actor, from, to, timestamp)
-  AL -> DB : insert audit entry
-  AS -> NS : notify(studentId, STATUS_CHANGED)
-  NS -> DB : save in-app notification
-  NS -> SMTP : send email (async, 3 retries)
-  AS --> C : 200 {status: "SHORTLISTED"}
+  AS -> DB : update where status = old status\npush history entry
+  alt another update won
+    AS --> C : 409 STALE_STATUS
+  else updated
+    AS -> AL : record(actor, from, to)
+    AL -> DB : insert audit entry
+    AS -> NS : notify student (APPLICATION_STATUS)
+    NS -> DB : save in-app notification
+    NS -> SMTP : send email
+    note right of NS
+      On failure: retry after 1, 5 and 15 minutes,
+      then mark FAILED. The request never fails on email.
+    end note
+    AS --> C : 200 {status: SHORTLISTED}
+  end
 end
 @enduml
