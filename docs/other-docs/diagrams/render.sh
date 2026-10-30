@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
-# Run with bash; the GitHub web upload does not need an executable file mode.
+# Renders every diagram locally with PlantUML 1.2025.2, from a JAR or the official Docker image.
 set -euo pipefail
-: "${PLANTUML_JAR:?Set PLANTUML_JAR to a local PlantUML 1.2025.2 JAR}"
-if [[ ! -f "$PLANTUML_JAR" ]]; then
-  printf 'PlantUML JAR not found: %s\n' "$PLANTUML_JAR" >&2
-  exit 1
-fi
-jar="$(cd "$(dirname "$PLANTUML_JAR")" && pwd)/$(basename "$PLANTUML_JAR")"
 cd "$(dirname "$0")"
-java -jar "$jar" -failfast2 -tpng component.puml er.puml use_case.puml seq_test_attempt.puml
-for diagram in component er use_case seq_test_attempt; do
+diagrams=(component er use_case seq_test_attempt seq_apply seq_status_update)
+sources=("${diagrams[@]/%/.puml}")
+if [[ -n "${PLANTUML_JAR:-}" ]]; then
+  java -jar "$PLANTUML_JAR" -failfast2 -tpng "${sources[@]}"
+else
+  MSYS_NO_PATHCONV=1 docker run --rm -v "$(pwd -W 2>/dev/null || pwd):/data" -w /data \
+    plantuml/plantuml:1.2025.2 -failfast2 -tpng "${sources[@]}"
+fi
+for diagram in "${diagrams[@]}"; do
   test -s "${diagram}.png"
   printf 'Rendered %s.png\n' "$diagram"
 done

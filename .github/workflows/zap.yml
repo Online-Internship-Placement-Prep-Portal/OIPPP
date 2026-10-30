@@ -1,0 +1,26 @@
+name: ZAP baseline scan
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 3 * * 1'
+
+permissions:
+  contents: read
+
+jobs:
+  zap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Skip when no target is set
+        if: vars.TARGET_URL == ''
+        run: echo "Set the TARGET_URL repository variable to the deployed API or client URL to enable this scan."
+      - uses: actions/checkout@v4
+        if: vars.TARGET_URL != ''
+      - uses: zaproxy/action-baseline@v0.14.0
+        if: vars.TARGET_URL != ''
+        with:
+          target: ${{ vars.TARGET_URL }}
+          allow_issue_writing: false
+          fail_action: false
+          cmd_options: '-a'

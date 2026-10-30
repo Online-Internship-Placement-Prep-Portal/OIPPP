@@ -9,7 +9,7 @@
 </p>
 
 > Software Engineering project — PES University, Dept. of Computer Science and Engineering
-> **Status:** backend modules are under development. Identity/profile/admin, listings, applications/notifications and aptitude models exist; aptitude authoring/timed-attempt and progress/analytics APIs are pending review. Frontend and end-to-end integration remain incomplete.
+> **Status:** release 1.0 is complete. The React client and the Express API cover all four feature areas: identity, profiles and admin; listings; applications and notifications; aptitude tests and analytics.
 
 Campus placement is currently split across two disconnected halves: students hunt for internships on
 scattered notice boards and mail threads, and practise for aptitude rounds on unrelated third-party
@@ -19,30 +19,32 @@ roles they are applying to.
 OIPPP puts both halves behind one login, so preparation history and application history inform each
 other.
 
-## What the portal does
+## What each role can do
 
-| Area | Capability |
-|:-----|:-----------|
-| Internship listings | Recruiters post, edit and close listings; students search, filter, bookmark and receive skill-matched recommendations |
-| Applications | Apply with resume and cover note; track status through Applied → Shortlisted → Interview → Offer / Rejected; recruiters shortlist and reject with reasons |
-| Aptitude tests | Admin-authored tests from a question bank; timed attempts with auto-save; auto-evaluated scores with a per-topic breakdown |
-| Progress tracking | Per-student readiness view combining test performance and application outcomes |
-| Analytics | Placement statistics for the admin; personal progress dashboards for students |
+| Role | Capabilities |
+|:-----|:-------------|
+| Student | Register with an SRN; keep a profile and one PDF resume; search, filter, sort and bookmark listings; see skill-matched recommendations; apply once per listing and track every status change; take timed aptitude tests that survive a refresh; see score trends, weakest topics and application counts |
+| Recruiter | Register and wait for approval; post, edit and close listings; review applicants and their resumes; move applications through Applied → Shortlisted → Interview → Offer / Rejected, with a reason on rejection |
+| Placement Admin | Approve or reject recruiters and disable accounts; turn the one-offer policy on or off; build the question bank and tests; view placement statistics by branch and graduation year; export the report as CSV |
 
-The full itemized feature list (F1–F16) is in [docs/PROPOSAL.md](docs/PROPOSAL.md#34-functional-features).
+Everyone gets in-app notifications, and status changes are also emailed. The full itemized feature list (F1–F16) is in [docs/PROPOSAL.md](docs/PROPOSAL.md#34-functional-features).
 
-## Tech stack
+## Architecture
 
-**MERN + Python**, as specified by the problem statement.
+A React single-page client talks to one Node.js/Express API over REST. The API is a layered modular monolith: one folder per feature, each with routes, service and model. MongoDB holds all data, and resumes are stored in GridFS. Three jobs run inside the API process: the aptitude timeout sweep, the listing deadline closer and the email retry.
+
+![Component diagram](docs/other-docs/diagrams/component.png)
+
+The reasons behind the main choices are in the [architecture decision records](docs/adr/README.md). The [diagram guide](docs/other-docs/diagrams/README.md) has the ER, use-case and sequence views.
 
 | Layer | Choice |
 |:------|:-------|
-| Frontend | React |
-| Backend | Node.js + Express |
-| Database | MongoDB |
-| Auth | JWT + bcrypt |
-| Analytics / scoring | Python service (optional, for aptitude evaluation and placement statistics) |
-| Testing | Jest + Supertest |
+| Client | React 18, Vite 8, React Router 7, axios, Recharts (Node 20.19+) |
+| API | Node.js 20, Express 4, Mongoose 8, Joi, jsonwebtoken, bcrypt, multer, helmet, express-rate-limit, pino, Nodemailer |
+| Database | MongoDB 7 replica set (Atlas in production); GridFS for resumes |
+| Analytics | MongoDB aggregations inside the API ([ADR-3](docs/adr/ADR-3-analytics-in-node-api.md)) |
+| Testing | Jest, Supertest and mongodb-memory-server (server); Vitest and Testing Library (client); Postman/Newman (API); a load-test script |
+| Tooling | GitHub Actions CI, ESLint, Python 3 for the documentation check |
 
 ## Repository layout
 
@@ -50,10 +52,13 @@ The full itemized feature list (F1–F16) is in [docs/PROPOSAL.md](docs/PROPOSAL
 OIPPP/
 ├── README.md                  you are here
 ├── .github/                   CI, PR automation and the PR template
+├── client/                    React + Vite single-page app — src/pages, src/components, src/api
 ├── server/                    Node.js + Express API — src/, tests/, scripts/
 └── docs/
     ├── Part-1_Deliverables/   submitted SRS, SAD and Test Plan (PDF)
-    ├── other-docs/            SRS map, API references, schemas, diagrams, deviations log
+    ├── adr/                   architecture decision records
+    ├── other-docs/            SRS map, API references, schemas, diagrams, deviations log, deployment
+    ├── testing/               Postman collection and test reports
     └── sprints/               sprint completion and workload charts
 ```
 
@@ -61,32 +66,73 @@ Only the submitted deliverables in `docs/Part-*_Deliverables/` are committed as 
 templates and guidelines are listed in `.gitignore` — pull them from the course page if you don't
 have them.
 
+## Getting started
+
+You need **Node.js 20+** and a MongoDB **replica set** (Atlas, or the
+[local Docker one-liner](docs/other-docs/aptitude-api.md#run-and-verify)): aptitude submissions use
+transactions, and the server refuses to start on a standalone MongoDB.
+
+**API** (terminal 1):
+
+```sh
+cd server
+npm ci
+cp .env.example .env   # set MONGO_URI, JWT_SECRET and the ADMIN_* values
+npm run seed           # creates the first admin account
+npm run seed:demo      # optional: sample recruiters, students, listings and tests
+npm run dev            # http://localhost:5000/api/health
+```
+
+**Client** (terminal 2):
+
+```sh
+cd client
+npm ci
+npm run dev            # http://localhost:5173, proxies /api to port 5000
+```
+
+Sign in with the admin email and password from `server/.env`. For a deployed client, set
+`VITE_API_URL` to the API's `/api` URL before `npm run build`.
+
+## Testing
+
+| Command | Where | What it runs |
+|:--|:--|:--|
+| `npm run lint` | `server/`, `client/` | ESLint, as in CI |
+| `npm test` | `server/` | Jest unit and integration suites on an in-memory replica set; no database needed |
+| `npm run test:coverage` | `server/` | The same suites with a coverage report (QA-4 target: 70% of statements) |
+| `npm run test:api` | `server/` | The Postman collection through Newman, against a running API |
+| `npm run test:load` | `server/` | Load test for PERF-1 and PERF-2 |
+| `npm test` | `client/` | Vitest component tests |
+
+The first server test run downloads a MongoDB binary. Results and the test summary are in
+[docs/testing](docs/testing/).
+
+## Deployment
+
+The API runs as a Render web service and the client as a static site, with MongoDB Atlas. Steps,
+environment variables and checks are in the [deployment guide](docs/other-docs/deployment.md).
+
 ## Documentation
 
 | Document | Purpose |
 |:---------|:--------|
-| [docs/PROPOSAL.md](docs/PROPOSAL.md) | Project proposal — title, team profile, description, functional features, plan of work, product ownership. Export to PDF for submission. |
-| [Identity and security SRS sections](docs/other-docs/identity-security.md) | Member 1 sections 2.3, 5.1 and 6.4 (task 1.8): requirement-by-requirement status and acceptance criteria. |
-| [docs/other-docs/SRS.md](docs/other-docs/SRS.md) | Submitted SRS source map and completed Member 4 aptitude, analytics and quality sections with acceptance criteria and traceability. |
-| [Architecture and diagrams](docs/other-docs/diagrams/README.md) | Component, ER, use-case and aptitude-sequence views; editable PlantUML, rendered PNGs and local verification commands. |
-| [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Backend endpoints, transaction-capable MongoDB setup, scoring, save/recovery verification and pending client integration (tasks 4.1/4.2/4.3/4.5). |
-| [Progress and analytics](docs/other-docs/analytics-api.md) | Student readiness, admin placement statistics and CSV export endpoints, plus the proposed weak-topic and cohort rules (task 4.4). |
-| [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Proposed Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
+| [docs/PROPOSAL.md](docs/PROPOSAL.md) | Project proposal — title, team profile, description, functional features, plan of work, product ownership. |
+| [Architecture decision records](docs/adr/README.md) | Why the system is built the way it is: monolith, server timer, analytics in the API, no controller layer, resume storage. |
+| [Architecture and diagrams](docs/other-docs/diagrams/README.md) | Component, ER, use-case and sequence views; editable PlantUML, rendered PNGs and the render script. |
 | [API contract (S5)](docs/other-docs/api-contract.md) | Every route, role, payload and error code across all four modules; the client builds against this. |
-| [docs/other-docs/applications-api.md](docs/other-docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
+| [docs/other-docs/SRS.md](docs/other-docs/SRS.md) | Map from the submitted SRS to the editable sections, with acceptance criteria and traceability. |
+| [Identity and security SRS sections](docs/other-docs/identity-security.md) | Member 1 sections 2.3, 5.1 and 6.4 (task 1.8): requirement-by-requirement status and acceptance criteria. |
+| [Applications and notifications](docs/other-docs/applications-api.md) | Applications, recruiter review and notifications: endpoints, state machine, collections. |
+| [Aptitude authoring and attempts](docs/other-docs/aptitude-api.md) | Endpoints, replica-set MongoDB setup, scoring, save/recovery verification and what the client must do (tasks 4.1/4.2/4.3/4.5). |
+| [Progress and analytics](docs/other-docs/analytics-api.md) | Student readiness, admin placement statistics and CSV export endpoints, plus the weak-topic and cohort rules (task 4.4). |
+| [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
+| [Deployment guide](docs/other-docs/deployment.md) | Hosting setup, environment variables and post-deploy checks. |
+| [Test summary report](docs/testing/test-report.md) | Results for every test case and SRS ID, defects found, and the Postman collection and load test in [docs/testing](docs/testing/). |
 | [docs/other-docs/DEVIATIONS.md](docs/other-docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
 
-## Getting started
-
-The backend lives in `server/`; there is not yet a `client/` application. Before integrating features:
-
-1. Read the [Team](#team) and [Working agreement](#working-agreement) sections below.
-2. Read the [project proposal](docs/PROPOSAL.md) ([PDF](docs/Part-1_Deliverables/Proposal.pdf)) for scope and feature ownership.
-3. Agree the **API contract** and the **MongoDB schemas** as a team (shared deliverable S5). Feature
-   work in parallel only works if the boundaries are settled first.
-4. For backend setup run `npm ci`, `npm run lint` and `npm test` inside `server/`. See [aptitude setup](docs/other-docs/aptitude-api.md#run-and-verify) for the replica-set requirement. Production login uses the shared User module and JWT middleware; verify end-to-end integration and do not bypass authentication.
-5. Build the shared `client/` and connect it to the approved APIs with the team.
-
+Before changing a shared schema or route, read the [Working agreement](#working-agreement) and the
+[API contract](docs/other-docs/api-contract.md).
 
 ## Team
 
@@ -167,7 +213,7 @@ One owner each; everyone reviews all of them.
 | S1 | Project proposal — `docs/PROPOSAL.md` → PDF | [@deekshithgowdag](https://github.com/deekshithgowdag) |
 | S2 | SRS document — `docs/other-docs/SRS.md` → PDF | [@Sharathhg123](https://github.com/Sharathhg123) |
 | S3 | Repo setup, branching rules, CI, `.env.example` | [@guru-bharadwaj20](https://github.com/guru-bharadwaj20) |
-| S4 | Architecture & ER / use-case diagrams — [sources and guide](docs/other-docs/diagrams/README.md) | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) |
+| S4 | Architecture & ER / use-case diagrams — [sources and guide](docs/other-docs/diagrams/README.md), [ADRs](docs/adr/README.md) | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) |
 | S5 | API contract — shared route + payload spec agreed by all four | All |
 | S6 | Final demo & presentation | All |
 
@@ -176,7 +222,7 @@ One owner each; everyone reviews all of them.
 **Branches**
 
 ```
-main                    merge only via reviewed PR from dev
+main                    release branch, fast-forwarded to dev by the maintainer
 dev                     integration branch — every feature PR targets this
 feat/<area>-<summary>   e.g. feat/listings-search-filter
 fix/<area>-<summary>
@@ -184,7 +230,7 @@ docs/<summary>
 ```
 
 **Commits** — `<type>(<scope>): <summary>`, e.g. `feat(applications): add shortlist endpoint`.
-Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`.
+Types: `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `ci`.
 
 **Pull requests**
 

@@ -1,0 +1,2367 @@
+{
+  "info": {
+    "name": "OIPPP API - Test Plan section 13",
+    "description": "API-level runs of the Test Plan test cases. Run the folders in order (newman runs the whole collection): they share tokens and ids, and the three waits keep each block inside the 10-per-minute auth limit (SEC-5).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "exec": [
+          "pm.environment.set('qCount', pm.environment.get('qCount') || 0);"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00 Setup",
+      "description": "Admin login and two approved recruiters (R1 owns the listings, R2 does not).",
+      "item": [
+        {
+          "name": "Health and run variables",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const run = Date.now().toString(36);",
+                  "const letters = () => String.fromCharCode(65 + Math.floor(Math.random() * 26), 65 + Math.floor(Math.random() * 26));",
+                  "const digits = () => String(Math.floor(Math.random() * 1000)).padStart(3, '0');",
+                  "pm.environment.set('run', run);",
+                  "for (const who of ['A', 'B', 'L']) {",
+                  "  pm.environment.set('email' + who, 'student' + who.toLowerCase() + '.' + run + '@pesu.pes.edu');",
+                  "  pm.environment.set('srn' + who, 'PES1UG24' + letters() + digits());",
+                  "}",
+                  "pm.environment.set('emailR1', 'r1.' + run + '@acme.example.com');",
+                  "pm.environment.set('emailR2', 'r2.' + run + '@globex.example.com');",
+                  "const day = 864e5;",
+                  "pm.environment.set('tomorrow', new Date(Date.now() + day).toISOString());",
+                  "pm.environment.set('yesterday', new Date(Date.now() - day).toISOString());",
+                  "pm.environment.set('inThirtySeconds', new Date(Date.now() + 30000).toISOString());",
+                  "pm.environment.set('qIds', '[]'); pm.environment.set('qCount', 0); pm.environment.set('burst', 0);"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('status ok', () => pm.expect(pm.response.json().status).to.eql('ok'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('adminToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register recruiter R1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Recruiter One\",\n  \"email\": \"{{emailR1}}\",\n  \"password\": \"Recruit123\",\n  \"role\": \"RECRUITER\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('recruiter starts PENDING', () => pm.expect(pm.response.json().user.status).to.eql('PENDING'));",
+                  "pm.environment.set('r1Id', pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register recruiter R2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Recruiter Two\",\n  \"email\": \"{{emailR2}}\",\n  \"password\": \"Recruit123\",\n  \"role\": \"RECRUITER\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('r2Id', pm.response.json().user.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin approves R1 (PROF-3)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/recruiters/{{r1Id}}/approve"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin approves R2",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/recruiters/{{r2Id}}/approve"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login R1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailR1}}\",\n  \"password\": \"Recruit123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('r1Token', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R1 posts LST-4 listing closing in 30 s",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Short Window {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"ONSITE\",\n  \"stipend\": 10000,\n  \"skills\": [\n    \"Java\"\n  ],\n  \"deadline\": \"{{inThirtySeconds}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('lShort', pm.response.json().listing._id);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-AUTH-01",
+      "description": "AUTH-1, AUTH-2: register a student, reject a duplicate email.",
+      "item": [
+        {
+          "name": "Register student A",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Student\",\n  \"email\": \"{{emailA}}\",\n  \"password\": \"Passw0rd1\",\n  \"srn\": \"{{srnA}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const { user } = pm.response.json();",
+                  "pm.test('role STUDENT, status ACTIVE', () => { pm.expect(user.role).to.eql('STUDENT'); pm.expect(user.status).to.eql('ACTIVE'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Duplicate email is rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Student\",\n  \"email\": \"{{emailA}}\",\n  \"password\": \"Passw0rd1\",\n  \"srn\": \"{{srnA}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('duplicate message', () => pm.expect(pm.response.json().error.message).to.eql('An account with this email already exists'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-AUTH-02",
+      "description": "AUTH-3: each weak password returns 400 and names the rule.",
+      "item": [
+        {
+          "name": "Weak password \"abc\"",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Weak Password\",\n  \"email\": \"weak.{{run}}@pesu.pes.edu\",\n  \"password\": \"abc\",\n  \"srn\": \"{{srnA}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error code VALIDATION', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION'));",
+                  "pm.test('names the failed rule', () => pm.expect(pm.response.json().error.message).to.match(/8/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Weak password \"abcdefgh\"",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Weak Password\",\n  \"email\": \"weak.{{run}}@pesu.pes.edu\",\n  \"password\": \"abcdefgh\",\n  \"srn\": \"{{srnA}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error code VALIDATION', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION'));",
+                  "pm.test('names the failed rule', () => pm.expect(pm.response.json().error.message).to.match(/digit/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Weak password \"12345678\"",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Weak Password\",\n  \"email\": \"weak.{{run}}@pesu.pes.edu\",\n  \"password\": \"12345678\",\n  \"srn\": \"{{srnA}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error code VALIDATION', () => pm.expect(pm.response.json().error.code).to.eql('VALIDATION'));",
+                  "pm.test('names the failed rule', () => pm.expect(pm.response.json().error.message).to.match(/letter/));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login student A",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailA}}\",\n  \"password\": \"Passw0rd1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('aToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "01 Second rate-limit window",
+      "description": "Remaining logins plus TC-SEC-01 step 2.",
+      "item": [
+        {
+          "name": "Wait for a fresh SEC-5 window",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// SEC-5 allows 10 auth requests per minute per IP; start a fresh window.",
+                  "setTimeout(() => {}, 61000);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login R2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailR2}}\",\n  \"password\": \"Recruit123\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('r2Token', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register student B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Student\",\n  \"email\": \"{{emailB}}\",\n  \"password\": \"Passw0rd1\",\n  \"srn\": \"{{srnB}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login student B",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailB}}\",\n  \"password\": \"Passw0rd1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.environment.set('bToken', pm.response.json().token);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "TC-SEC-01: NoSQL operator login is rejected (SEC-4)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{ \"email\": { \"$ne\": null }, \"password\": { \"$ne\": null } }"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('no token issued', () => pm.expect(pm.response.json().token).to.be.undefined);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-PROF-01",
+      "description": "PROF-1, PROF-2. Size boundaries (1.9 MB / 2.1 MB) are in tests/integration/resume.test.js.",
+      "item": [
+        {
+          "name": "Student A profile (PROF-1)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/profile/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cgpa\": 8.5,\n  \"branch\": \"CSE\",\n  \"gradYear\": 2027,\n  \"skills\": [\n    \"React\",\n    \"Node.js\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student B profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/profile/me",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cgpa\": 7.4,\n  \"branch\": \"CSE\",\n  \"gradYear\": 2027,\n  \"skills\": [\n    \"Java\"\n  ]\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "PDF resume is accepted",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/profile/me/resume",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "resume",
+                  "type": "file",
+                  "src": "fixtures/resume.pdf"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('returns resumeFileId', () => pm.expect(pm.response.json().resumeFileId).to.be.a('string'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "DOCX resume is rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/profile/me/resume",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "resume",
+                  "type": "file",
+                  "src": "fixtures/resume.docx"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));",
+                  "pm.test('error code INVALID_FILE_TYPE', () => pm.expect(pm.response.json().error.code).to.eql('INVALID_FILE_TYPE'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student B uploads a PDF",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/profile/me/resume",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "resume",
+                  "type": "file",
+                  "src": "fixtures/resume.pdf"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-LST-01",
+      "description": "LST-1, LST-2. Step 3 (auto-close) is checked in \"TC-LST-01 step 3\" near the end.",
+      "item": [
+        {
+          "name": "Create L1 with deadline tomorrow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Frontend Intern {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"HYBRID\",\n  \"stipend\": 15000,\n  \"skills\": [\n    \"React\",\n    \"Node\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('status OPEN', () => pm.expect(pm.response.json().listing.status).to.eql('OPEN'));",
+                  "pm.environment.set('l1', pm.response.json().listing._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Deadline yesterday is rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Past {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"HYBRID\",\n  \"stipend\": 15000,\n  \"skills\": [\n    \"React\",\n    \"Node\"\n  ],\n  \"deadline\": \"{{yesterday}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Negative stipend is rejected",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Negative {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"HYBRID\",\n  \"stipend\": -1,\n  \"skills\": [\n    \"React\",\n    \"Node\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-SRCH-01",
+      "description": "SRCH-1, SRCH-2, SRCH-3 on a run-unique keyword. The 5,000-listing version is in tests/integration/listing-search-performance.test.js.",
+      "item": [
+        {
+          "name": "Create search listing REMOTE 12000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Searchable Alpha {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"REMOTE\",\n  \"stipend\": 12000,\n  \"skills\": [\n    \"React\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create search listing REMOTE 18000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Searchable Beta {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"REMOTE\",\n  \"stipend\": 18000,\n  \"skills\": [\n    \"React\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create search listing ONSITE 20000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Searchable Gamma {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"ONSITE\",\n  \"stipend\": 20000,\n  \"skills\": [\n    \"React\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create search listing REMOTE 5000",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Searchable Delta {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"REMOTE\",\n  \"stipend\": 5000,\n  \"skills\": [\n    \"React\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Keyword + mode + stipend + sort",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/listings?search={{run}}&mode=REMOTE&minStipend=10000&sortBy=deadline&order=asc&page=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const { listings, pagination } = pm.response.json();",
+                  "pm.test('exactly the two REMOTE listings with stipend >= 10000', () => pm.expect(pagination.total).to.eql(2));",
+                  "pm.test('every result OPEN, REMOTE, stipend >= 10000', () => listings.forEach((l) => {",
+                  "  pm.expect(l.status).to.eql('OPEN'); pm.expect(l.mode).to.eql('REMOTE'); pm.expect(l.stipend).to.be.at.least(10000);",
+                  "}));",
+                  "pm.test('sorted by deadline', () => listings.forEach((l, i) => i && pm.expect(new Date(l.deadline) >= new Date(listings[i - 1].deadline)).to.be.true));",
+                  "pm.test('pages of 20 with a total', () => { pm.expect(pagination.limit).to.eql(20); pm.expect(pagination.total).to.be.a('number'); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Keyword matches skills too (SRCH-1)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/listings?search=Kotlin"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.sendRequest({ url: pm.environment.get('baseUrl') + '/listings', method: 'POST',",
+                  "  header: { Authorization: 'Bearer ' + pm.environment.get('r1Token'), 'Content-Type': 'application/json' },",
+                  "  body: { mode: 'raw', raw: JSON.stringify({ company: 'Globex', title: 'Plain Role ' + pm.environment.get('run'),",
+                  "    location: 'Pune', mode: 'REMOTE', stipend: 9000, skills: ['Kotlin'], deadline: pm.environment.get('tomorrow') }) } });"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('found by skill', () => pm.expect(pm.response.json().listings.some((l) => l.skills.includes('Kotlin'))).to.be.true);"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-APP-01",
+      "description": "APP-1, APP-4, APP-5.",
+      "item": [
+        {
+          "name": "Student A applies to L1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{l1}}\",\n  \"coverNote\": \"I have built two React and Node projects and would like to contribute to your frontend team this summer. I have built two React and Node projects and would like to contribute to your frontend team this summer.\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.test('APPLIED', () => pm.expect(pm.response.json().status).to.eql('APPLIED'));",
+                  "pm.environment.set('a1', pm.response.json().applicationId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Second apply is refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{l1}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('error code ALREADY_APPLIED', () => pm.expect(pm.response.json().error.code).to.eql('ALREADY_APPLIED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "My applications shows one entry with history",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/mine"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const mine = pm.response.json().items.filter((i) => String(i.listingId._id || i.listingId) === pm.environment.get('l1'));",
+                  "pm.test('one application', () => pm.expect(mine.length).to.eql(1));",
+                  "pm.test('one history entry', () => pm.expect(mine[0].history.length).to.eql(1));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-AUTH-04",
+      "description": "AUTH-6, SEC-3: wrong role, wrong owner and resume access are all 403.",
+      "item": [
+        {
+          "name": "Student cannot post a listing",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Nope {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"HYBRID\",\n  \"stipend\": 15000,\n  \"skills\": [\n    \"React\",\n    \"Node\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R2 cannot see L1's applicants",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/listings/{{l1}}/applications"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R2 cannot download A's resume",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r2Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{a1}}/resume"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 403', () => pm.response.to.have.status(403));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R1 (listing owner) can",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{a1}}/resume"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('served as PDF', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('application/pdf'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-APP-02",
+      "description": "APP-2, APP-3.",
+      "item": [
+        {
+          "name": "R1 creates L2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Closed Role {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"HYBRID\",\n  \"stipend\": 15000,\n  \"skills\": [\n    \"React\",\n    \"Node\"\n  ],\n  \"deadline\": \"{{tomorrow}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('l2', pm.response.json().listing._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R1 closes L2",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings/{{l2}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"CLOSED\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Apply to closed L2",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{l2}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('error code LISTING_CLOSED', () => pm.expect(pm.response.json().error.code).to.eql('LISTING_CLOSED'));",
+                  "pm.test('message', () => pm.expect(pm.response.json().error.message).to.eql('Applications for this internship are closed'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "R1 creates L3 needing CGPA 8.0",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"company\": \"Acme\",\n  \"title\": \"Strict Role {{run}}\",\n  \"location\": \"Bengaluru\",\n  \"mode\": \"HYBRID\",\n  \"stipend\": 15000,\n  \"skills\": [\n    \"React\",\n    \"Node\"\n  ],\n  \"deadline\": \"{{tomorrow}}\",\n  \"minCgpa\": 8\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('l3', pm.response.json().listing._id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student B (7.4) applies to L3",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{bToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{l3}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 422', () => pm.response.to.have.status(422));",
+                  "pm.test('error code NOT_ELIGIBLE', () => pm.expect(pm.response.json().error.code).to.eql('NOT_ELIGIBLE'));",
+                  "pm.test('names 8.0', () => pm.expect(pm.response.json().error.message).to.include('8.0'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-REV-01",
+      "description": "REV-2, REV-3, REV-4 (in-app part; email hand-off is logged when SMTP_HOST is empty).",
+      "item": [
+        {
+          "name": "Shortlist A1",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{a1}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"SHORTLISTED\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('SHORTLISTED', () => pm.expect(pm.response.json().status).to.eql('SHORTLISTED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Back to APPLIED is refused",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{a1}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"APPLIED\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 422', () => pm.response.to.have.status(422));",
+                  "pm.test('error code INVALID_TRANSITION', () => pm.expect(pm.response.json().error.code).to.eql('INVALID_TRANSITION'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Reject without reason is refused",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{a1}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"REJECTED\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 400', () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student A has a status notification",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/notifications"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('APPLICATION_STATUS notification', () => pm.expect(pm.response.json().items.some((n) => n.type === 'APPLICATION_STATUS')).to.be.true);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Move A1 to INTERVIEW",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{a1}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"INTERVIEW\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Move A1 to OFFER",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications/{{a1}}/status",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"OFFER\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-TST-01",
+      "description": "TST-3, TST-4, SAFE-1 with a 20-question, 30-minute test. Closing the tab = starting again.",
+      "item": [
+        {
+          "name": "Admin adds 20 questions",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/questions",
+            "body": {
+              "mode": "raw",
+              "raw": "{{qBody}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const n = Number(pm.environment.get('qCount') || 0);",
+                  "const topics = ['Quantitative', 'Logical', 'Verbal', 'Technical'];",
+                  "pm.variables.set('qBody', JSON.stringify({ text: 'Question ' + (n + 1) + ' ' + pm.environment.get('run'), topic: topics[n % 4],",
+                  "  difficulty: 'Easy', options: ['A', 'B', 'C', 'D'], answerIdx: n % 4 }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const ids = JSON.parse(pm.environment.get('qIds') || '[]');",
+                  "ids.push(pm.response.json().questionId);",
+                  "pm.environment.set('qIds', JSON.stringify(ids));",
+                  "pm.environment.set('qCount', ids.length);",
+                  "if (ids.length < 20) pm.execution.setNextRequest('Admin adds 20 questions');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin creates T1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/tests",
+            "body": {
+              "mode": "raw",
+              "raw": "{{tBody}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set('tBody', JSON.stringify({ title: 'T1 ' + pm.environment.get('run'), durationMin: 30, questionIds: JSON.parse(pm.environment.get('qIds')) }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "pm.environment.set('t1', pm.response.json().testId);",
+                  "pm.environment.set('t1Version', pm.response.json().version);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Admin publishes T1",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/tests/{{t1}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{{pBody}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set('pBody', JSON.stringify({ version: Number(pm.environment.get('t1Version')), status: 'PUBLISHED' }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student A starts T1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/tests/{{t1}}/attempts",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));",
+                  "const a = pm.response.json();",
+                  "pm.test('no answer keys sent', () => pm.expect(JSON.stringify(a)).not.to.include('answerIdx'));",
+                  "pm.environment.set('attempt', a.attemptId);",
+                  "pm.environment.set('endsAt', a.endsAt);",
+                  "pm.environment.set('attemptQs', JSON.stringify(a.questions.map((q) => ({ id: q.questionId, topic: q.topic, text: q.text }))));",
+                  "pm.environment.set('answered', 0);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Answer 5 questions",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/attempts/{{attempt}}/answers",
+            "body": {
+              "mode": "raw",
+              "raw": "{{aBody}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "const qs = JSON.parse(pm.environment.get('attemptQs'));",
+                  "const n = Number(pm.environment.get('answered'));",
+                  "pm.variables.set('aBody', JSON.stringify({ questionId: qs[n].id, optionIdx: 0 }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 204', () => pm.response.to.have.status(204));",
+                  "const n = Number(pm.environment.get('answered')) + 1;",
+                  "pm.environment.set('answered', n);",
+                  "if (n < 5) pm.execution.setNextRequest('Answer 5 questions');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Start T1 again after closing the tab",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/tests/{{t1}}/attempts",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const a = pm.response.json();",
+                  "pm.test('same attempt', () => pm.expect(a.attemptId).to.eql(pm.environment.get('attempt')));",
+                  "pm.test('timer counts from the original start', () => pm.expect(a.endsAt).to.eql(pm.environment.get('endsAt')));",
+                  "pm.test('5 saved answers', () => pm.expect(Object.keys(a.answers).length).to.eql(5));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-TST-02",
+      "description": "TST-6 and the closed-attempt check of TST-5. Waiting past a real end time is in tests/integration/aptitude-recovery.test.js and tests/unit/attempt-timeout-job.test.js.",
+      "item": [
+        {
+          "name": "Submit T1",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/attempts/{{attempt}}/submit",
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const r = pm.response.json();",
+                  "pm.test('score present', () => pm.expect(r.score).to.be.a('number'));",
+                  "pm.test('per-topic percentages', () => { pm.expect(r.topicBreakdown.length).to.be.above(0); r.topicBreakdown.forEach((t) => pm.expect(t.percentage).to.be.a('number')); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Late answer is refused",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/attempts/{{attempt}}/answers",
+            "body": {
+              "mode": "raw",
+              "raw": "{{lateBody}}"
+            }
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "pm.variables.set('lateBody', JSON.stringify({ questionId: JSON.parse(pm.environment.get('attemptQs'))[6].id, optionIdx: 1 }));"
+                ]
+              }
+            },
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('error code ATTEMPT_CLOSED', () => pm.expect(pm.response.json().error.code).to.eql('ATTEMPT_CLOSED'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Result is kept",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/attempts/{{attempt}}/result"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-ANL-01",
+      "description": "ANL-1, ANL-2, ANL-3: the CSV carries the same numbers as the dashboard.",
+      "item": [
+        {
+          "name": "Student readiness view",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/analytics/me"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const me = pm.response.json();",
+                  "pm.test('trend, weakest topics, application counts', () => {",
+                  "  pm.expect(me.trend.length).to.be.at.least(1); pm.expect(me.weakestTopics.length).to.be.at.most(2); pm.expect(me.applications.byStatus.OFFER).to.eql(1);",
+                  "});"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Placement statistics CSE 2027",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/analytics/placements?branch=CSE&gradYear=2027"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const s = pm.response.json();",
+                  "pm.test('at least one placed student', () => pm.expect(s.placedStudents).to.be.at.least(1));",
+                  "pm.environment.set('statStudents', s.students);",
+                  "pm.environment.set('statPlaced', s.placedStudents);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "CSV export matches",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              }
+            ],
+            "url": "{{baseUrl}}/analytics/placements/export?branch=CSE&gradYear=2027"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('text/csv', () => pm.expect(pm.response.headers.get('Content-Type')).to.include('text/csv'));",
+                  "const csv = pm.response.text();",
+                  "pm.test('same student count', () => pm.expect(csv).to.include('summary,students,,' + pm.environment.get('statStudents')));",
+                  "pm.test('same placed count', () => pm.expect(csv).to.include('summary,placedStudents,,' + pm.environment.get('statPlaced')));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "DOM-2 one-offer policy",
+      "description": "Admin switch; a student holding an offer cannot apply while it is on.",
+      "item": [
+        {
+          "name": "Turn the policy on",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/settings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oneOfferPolicy\": true\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Student A (holds an offer) is refused",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{aToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/applications",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"listingId\": \"{{l3}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 422', () => pm.response.to.have.status(422));",
+                  "pm.test('error code OFFER_HELD', () => pm.expect(pm.response.json().error.code).to.eql('OFFER_HELD'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Turn the policy off",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{adminToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/admin/settings",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"oneOfferPolicy\": false\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-AUTH-03",
+      "description": "AUTH-4, AUTH-5 in a fresh SEC-5 window.",
+      "item": [
+        {
+          "name": "Wait for a fresh SEC-5 window",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// SEC-5 allows 10 auth requests per minute per IP; start a fresh window.",
+                  "setTimeout(() => {}, 61000);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Register student L",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/register",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Student\",\n  \"email\": \"{{emailL}}\",\n  \"password\": \"Passw0rd1\",\n  \"srn\": \"{{srnL}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 201', () => pm.response.to.have.status(201));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login succeeds with a 60-minute token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailL}}\",\n  \"password\": \"Passw0rd1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 200', () => pm.response.to.have.status(200));",
+                  "const part = pm.response.json().token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');",
+                  "const claims = JSON.parse(require('atob')(part));",
+                  "pm.test('exp is 60 minutes after iat', () => pm.expect(claims.exp - claims.iat).to.eql(3600));",
+                  "pm.environment.set('wrong', 0);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Five wrong passwords",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailL}}\",\n  \"password\": \"Wrong1234\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 401', () => pm.response.to.have.status(401));",
+                  "const n = Number(pm.environment.get('wrong')) + 1;",
+                  "pm.environment.set('wrong', n);",
+                  "if (n < 5) pm.execution.setNextRequest('Five wrong passwords');"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Correct password is now locked",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{emailL}}\",\n  \"password\": \"Passw0rd1\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 423', () => pm.response.to.have.status(423));",
+                  "pm.test('error code ACCOUNT_LOCKED', () => pm.expect(pm.response.json().error.code).to.eql('ACCOUNT_LOCKED'));",
+                  "pm.test('tells the unlock time', () => pm.expect(pm.response.json().error.details[0].field).to.eql('retryAt'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-LST-01 step 3",
+      "description": "LST-4: by now the 30-second listing is past its deadline and the close job (every 60 s) has run.",
+      "item": [
+        {
+          "name": "Expired listing is CLOSED, not just past deadline",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{r1Token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/listings/{{lShort}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Renamed {{run}}\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('status 409', () => pm.response.to.have.status(409));",
+                  "pm.test('error code LISTING_CLOSED', () => pm.expect(pm.response.json().error.code).to.eql('LISTING_CLOSED'));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "TC-SEC-02",
+      "description": "SEC-5: the 11th login request in one minute returns 429. HTTPS (SEC-2) is checked on the deployed URL.",
+      "item": [
+        {
+          "name": "Wait for a fresh SEC-5 window",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          },
+          "event": [
+            {
+              "listen": "prerequest",
+              "script": {
+                "exec": [
+                  "// SEC-5 allows 10 auth requests per minute per IP; start a fresh window.",
+                  "setTimeout(() => {}, 61000);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Eleven logins in a minute",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": "{{baseUrl}}/auth/login",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"nobody.{{run}}@pesu.pes.edu\",\n  \"password\": \"Wrong1234\"\n}"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "const n = Number(pm.environment.get('burst') || 0) + 1;",
+                  "pm.environment.set('burst', n);",
+                  "if (n < 11) {",
+                  "  pm.test('request ' + n + ' is not limited', () => pm.expect(pm.response.code).to.eql(401));",
+                  "  pm.execution.setNextRequest('Eleven logins in a minute');",
+                  "} else {",
+                  "  pm.test('11th request is 429', () => pm.response.to.have.status(429));",
+                  "  pm.test('RATE_LIMITED', () => pm.expect(pm.response.json().error.code).to.eql('RATE_LIMITED'));",
+                  "  pm.environment.set('burst', 0);",
+                  "}"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -4,24 +4,42 @@ hide circle
 left to right direction
 title OIPPP — logical entity relationships
 caption Core fields only. MongoDB references are not enforced foreign keys.
-entity "User\n[Member 1 contract]" as User {
+entity User {
   *_id : ObjectId
   --
   email <<unique>>
-  name, role, status
+  srn <<unique, students>>
+  name, passwordHash, role, status
+  failedLogins, lockedUntil
 }
-entity "Profile\n[Member 1 contract]" as Profile {
-  *userId : User reference
+entity Profile {
+  *userId : User reference <<unique>>
   --
-  branch, gradYear, cgpa, skills
+  branch, gradYear, cgpa, skills[0..20]
   resumeFileId : GridFS reference
 }
-entity "Listing\n[Member 2 contract]" as Listing {
+entity "GridFS resume" as Resume {
+  *_id : ObjectId
+  --
+  PDF <= 2 MB
+}
+entity Settings {
+  *key = "global" <<unique>>
+  --
+  oneOfferPolicy : Boolean
+}
+entity Listing {
   *_id : ObjectId
   --
   recruiterId : User reference
-  title, company, status, deadline
-  minCgpa
+  company, title, location, mode
+  stipend, skills[1..10], minCgpa
+  deadline, status : OPEN / CLOSED
+}
+entity Bookmark {
+  *studentId, listingId <<unique pair>>
+  --
+  createdAt
 }
 entity Application {
   *_id : ObjectId
@@ -51,7 +69,7 @@ entity Question {
   createdBy : User reference
   text, topic, difficulty
   options[2..6], answerIdx <<private>>
-  archived
+  archived, version
 }
 entity Test {
   *_id : ObjectId
@@ -65,25 +83,27 @@ entity Attempt {
   *_id : ObjectId
   --
   studentId, testId <<unique pair>>
-  durationMin, startedAt, endsAt <<fixed>>
+  startedAt, endsAt <<fixed>>
   questions[] <<embedded snapshot>>
   answers : Map<questionId, optionIdx>
-  status, lastSavedAt, submittedAt
-  submissionReason
+  status, submittedAt, submissionReason
 }
 entity Result {
   *_id : ObjectId
   --
   attemptId <<unique>>
   studentId, testId <<unique pair>>
-  totalQuestions, correctAnswers, score
+  correctAnswers, totalQuestions, score
   topicBreakdown[] <<embedded>>
-  submittedAt
 }
 User ||--o| Profile : userId
+Profile }o--o| Resume : resumeFileId
 User ||--o{ Listing : recruiterId
+User ||--o{ Bookmark : studentId
+Listing ||--o{ Bookmark : listingId
 User ||--o{ Application : studentId
 Listing ||--o{ Application : listingId
+Application }o--o| Resume : resumeFileId
 User ||--o{ Notification : userId
 Application |o--o{ Notification : optional applicationId
 User ||--o{ AuditLog : actorId
@@ -92,10 +112,9 @@ Test }o--o{ Question : questionIds
 Test ||--o{ Attempt : testId
 Attempt ||--o| Result : attemptId
 legend bottom left
-  User / Profile / Listing are planned cross-member contracts, not new implementations.
-  Question, Test, Attempt, Result: current Member 4 models (schema task #30).
-  Question/Test.createdBy also reference User; Result.studentId/testId repeat its owner/test links.
-  Snapshot question data and topic breakdowns are embedded, not separate collections.
-  No TTL/cascade deletion of attempts/results; disabled accounts retain history.
+  An application keeps the resume it was sent with (ADR-5).
+  Settings is one document of admin switches, such as the one-offer policy (DOM-2).
+  Snapshot questions and topic breakdowns are embedded, not separate collections.
+  Disabling an account deletes nothing; history stays (SAFE-2).
 endlegend
 @enduml
