@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const { TOPICS, DIFFICULTIES, integer } = require('./schema.helpers');
 
-// Reused in the attempt snapshot so edits to the bank cannot alter a live test.
+// Also copied into each attempt, so later bank edits can't change a live test.
 const questionFields = {
   text: { type: String, required: true, trim: true, maxlength: 4000 },
   topic: { type: String, required: true, enum: TOPICS },

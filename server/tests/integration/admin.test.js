@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const app = require('../../src/app');
 const User = require('../../src/modules/users/user.model');
 const AuditLog = require('../../src/modules/audit/auditLog.model');
+const Notification = require('../../src/modules/notifications/notification.model');
 const { jwtSecret } = require('../../src/config/env');
 const db = require('../helpers/db');
 
@@ -75,6 +76,9 @@ describe('Admin user management API', () => {
 
     expect(savedRecruiter).not.toBeNull();
     expect(savedRecruiter.status).toBe('ACTIVE');
+
+    const notice = await Notification.findOne({ userId: recruiter._id }).lean();
+    expect(notice).toMatchObject({ type: 'RECRUITER_DECISION', title: 'Recruiter account approved' });
   });
 
   test('rejects recruiter approval by a student', async () => {
@@ -271,3 +275,57 @@ describe('Admin user management API', () => {
 });
 
 
+
+describe('GET /api/admin/users', () => {
+  let admin;
+
+  beforeEach(async () => {
+    admin = await createUser({ role: 'ADMIN', email: 'admin@example.com' });
+    await createUser({ role: 'RECRUITER', status: 'PENDING', email: 'pending@acme.io' });
+    await createUser({ role: 'RECRUITER', email: 'active@acme.io' });
+    await createUser({ role: 'STUDENT', email: 'asha@pes.edu' });
+  });
+
+  const list = (query = '', user = admin) => request(app)
+    .get(`/api/admin/users${query}`)
+    .set('Authorization', `Bearer ${tokenFor(user)}`);
+
+  test('lists pending recruiters for the approval queue', async () => {
+    const res = await list('?role=RECRUITER&status=PENDING');
+
+    expect(res.status).toBe(200);
+    expect(res.body.total).toBe(1);
+    expect(res.body.items[0]).toMatchObject({ email: 'pending@acme.io', status: 'PENDING' });
+    expect(res.body.items[0]).not.toHaveProperty('passwordHash');
+  });
+
+  test('searches by name or email and pages the result', async () => {
+    const res = await list('?search=acme.io&limit=1&page=2');
+
+    expect(res.body.total).toBe(2);
+    expect(res.body.page).toBe(2);
+    expect(res.body.items).toHaveLength(1);
+  });
+
+  test('is admin only and validates its query', async () => {
+    const student = await User.findOne({ role: 'STUDENT' });
+
+    expect((await list('', student)).status).toBe(403);
+    expect((await list('?role=ROOT')).status).toBe(400);
+  });
+});
+
+describe('GET /api/auth/me', () => {
+  test('returns the caller\'s public profile', async () => {
+    const student = await createUser({ role: 'STUDENT', email: 'me@pes.edu' });
+
+    const res = await request(app).get('/api/auth/me').set('Authorization', `Bearer ${tokenFor(student)}`);
+
+    expect(res.status).toBe(200);
+    expect(res.body.user).toEqual({ id: student.id, name: 'STUDENT Test', email: 'me@pes.edu', role: 'STUDENT', status: 'ACTIVE' });
+  });
+
+  test('needs a token', async () => {
+    expect((await request(app).get('/api/auth/me')).status).toBe(401);
+  });
+});

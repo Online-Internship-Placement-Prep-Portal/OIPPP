@@ -11,15 +11,12 @@ const upload = multer({
   },
   fileFilter(req, file, callback) {
     if (file.mimetype !== 'application/pdf') {
-      return callback(
-        new AppError(400, 'INVALID_FILE_TYPE', 'Only PDF resumes are allowed'),
-      );
+      return callback(new AppError(400, 'INVALID_FILE_TYPE', 'Only PDF resumes are allowed'));
     }
 
     return callback(null, true);
   },
 });
-
 
 function handleResumeUpload(req, res, next) {
   upload.single('resume')(req, res, (err) => {
@@ -33,19 +30,14 @@ function handleResumeUpload(req, res, next) {
       return next(new AppError(400, 'RESUME_REQUIRED', 'Please upload a PDF resume'));
     }
 
-    const pdfSignature = req.file.buffer.subarray(0, 5).toString();
-
-    if (pdfSignature !== '%PDF-') {
-      return next(
-        new AppError(400, 'INVALID_FILE_CONTENT', 'The uploaded file is not a valid PDF'),
-      );
+    // The MIME type comes from the client, so also check the file signature.
+    if (req.file.buffer.subarray(0, 5).toString() !== '%PDF-') {
+      return next(new AppError(400, 'INVALID_FILE_CONTENT', 'The uploaded file is not a valid PDF'));
     }
 
     return next();
   });
 }
-
-
 
 module.exports = {
   handleResumeUpload,

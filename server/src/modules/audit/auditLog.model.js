@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 
-// SEC-6 / APP-4: append-only. No route or service may edit or delete an entry.
+// Append-only (SEC-6): every update and delete is refused.
 const auditLogSchema = new mongoose.Schema({
   actorId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
   action: { type: String, required: true, immutable: true },

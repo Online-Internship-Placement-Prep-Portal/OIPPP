@@ -1,4 +1,5 @@
-﻿const Listing = require('./listing.model');
+const Listing = require('./listing.model');
+const escapeRegex = require('../../utils/escape-regex');
 
 const SORT_FIELDS = {
   deadline: 'deadline',
@@ -11,6 +12,7 @@ async function searchListings(filters) {
   const {
     search,
     location,
+    mode,
     minStipend,
     maxStipend,
     skill,
@@ -28,12 +30,18 @@ async function searchListings(filters) {
     deadline: { $gt: now },
   };
 
+  // SRCH-1: keyword across title, company and skills.
   if (search) {
-    query.title = { $regex: escapeRegex(search), $options: 'i' };
+    const pattern = new RegExp(escapeRegex(search), 'i');
+    query.$or = [{ title: pattern }, { company: pattern }, { skills: pattern }];
   }
 
   if (location) {
     query.location = { $regex: escapeRegex(location), $options: 'i' };
+  }
+
+  if (mode) {
+    query.mode = mode;
   }
 
   if (minStipend !== undefined || maxStipend !== undefined) {
@@ -46,7 +54,6 @@ async function searchListings(filters) {
     query.skills = { $in: [new RegExp(`^${escapeRegex(skill)}$`, 'i')] };
   }
 
-  // Keep the expiry rule and user-selected deadline bounds together.
   if (deadlineBefore) {
     query.deadline.$lte = new Date(deadlineBefore);
   }
@@ -78,10 +85,6 @@ async function searchListings(filters) {
       totalPages: Math.ceil(total / limit),
     },
   };
-}
-
-function escapeRegex(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 module.exports = { searchListings };

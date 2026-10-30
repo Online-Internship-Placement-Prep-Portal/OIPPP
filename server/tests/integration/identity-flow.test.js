@@ -18,7 +18,7 @@ afterAll(async () => {
   await disconnect();
 });
 
-const student = { name: 'Test Student', email: 'student@example.com', password: 'StrongPass123' };
+const student = { name: 'Test Student', email: 'student@example.com', password: 'StrongPass123', srn: 'PES1UG24CS101' };
 const recruiter = { name: 'Test Recruiter', email: 'recruiter@example.com', password: 'StrongPass123', role: 'RECRUITER' };
 
 const register = (body) => request(app).post('/api/auth/register').send(body);
@@ -101,7 +101,7 @@ describe('Identity flow', () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error.code).toBe('VALIDATION');
-    expect(response.body.error.details.map((d) => d.field).sort()).toEqual(['email', 'name', 'password']);
+    expect([...new Set(response.body.error.details.map((d) => d.field))].sort()).toEqual(['email', 'name', 'password', 'srn']);
   });
 
   test('clients cannot self-assign an ACTIVE status as a recruiter', async () => {

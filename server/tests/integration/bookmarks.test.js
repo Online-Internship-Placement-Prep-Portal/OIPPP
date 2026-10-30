@@ -1,4 +1,5 @@
-﻿const request = require('supertest');
+const request = require('supertest');
+const mongoose = require('mongoose');
 
 jest.mock('../../src/middleware/auth', () => require('../helpers/fakeAuth'));
 
@@ -112,5 +113,33 @@ describe('Issue #11: bookmarks', () => {
       .post(`/api/listings/${s.L1.id}/bookmark`);
 
     expect(res.status).toBe(401);
+  });
+
+  test('a student can hold at most 100 bookmarks (SRCH-4)', async () => {
+    await Bookmark.insertMany(Array.from({ length: 100 }, () => ({
+      studentId: s.student._id, listingId: new mongoose.Types.ObjectId(),
+    })));
+
+    const res = await request(app)
+      .post(`/api/listings/${s.L1.id}/bookmark`)
+      .set(as(s.student));
+
+    expect(res.status).toBe(422);
+    expect(res.body.error.code).toBe('BOOKMARK_LIMIT');
+    expect(res.body.error.message).toBe('You can save at most 100 internships');
+  });
+
+  test('re-bookmarking an existing listing still succeeds at the limit', async () => {
+    await Bookmark.create({ studentId: s.student._id, listingId: s.L1._id });
+    await Bookmark.insertMany(Array.from({ length: 99 }, () => ({
+      studentId: s.student._id, listingId: new mongoose.Types.ObjectId(),
+    })));
+
+    const res = await request(app)
+      .post(`/api/listings/${s.L1.id}/bookmark`)
+      .set(as(s.student));
+
+    expect(res.status).toBe(201);
+    expect(await Bookmark.countDocuments({ studentId: s.student._id })).toBe(100);
   });
 });

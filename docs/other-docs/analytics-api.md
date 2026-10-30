@@ -74,17 +74,17 @@ row per company, listing and branch. Lines end with CRLF. The export:
 - prefixes text starting with `=`, `+`, `-`, `@`, tab or CR with `'`, so a spreadsheet does not run it as a formula;
 - adds a `note,No students match the selected cohort` row for an empty cohort, so the report does not show bare zeroes.
 
-## Decisions proposed for review
+## Decisions D2 and D4
 
 The submitted SRS leaves D2 and D4 of the [decision register](aptitude-analytics-quality.md#decision-register-for-implementation-hand-off)
-open. This implementation proposes the following. **None of it is team-approved yet**; resolve it in PR review.
+open. The team adopted the following when #75 merged.
 
-| Decision | Proposal |
+| Decision | Rule |
 |:--|:--|
 | D2: combined readiness score | Not produced. The baseline defines no formula, and the SRS says not to invent one. The view returns its components: trend, average, weak topics, application counts. |
 | D2: weak-topic aggregation | Pool `correctAnswers / totalQuestions` per topic across all of the student's Results, so a topic asked more often carries more weight. Ties go to the topic with more questions, then to the order Quantitative, Logical, Verbal, Technical. Unassessed topics are never reported as weak. |
 | D4: cohort | A student's **current** Profile `branch` and `gradYear`. There is no history, so a branch change moves past results too. Students without a Profile or branch are reported under `branch: null`, and only in the unfiltered view. They are never assigned to a real branch. |
-| D4: caching | None. Every request reads live data, so a new Result or status change appears immediately. Add a cache only together with an invalidation rule. |
+| D4: caching | Placement statistics and the CSV are cached per `branch`/`gradYear` filter for 5 minutes (SAD 3.4); the entry expires on its own, so a change shows within 5 minutes. `GET /analytics/me` is never cached, so a student sees a new Result at once. |
 
 ## Verification
 

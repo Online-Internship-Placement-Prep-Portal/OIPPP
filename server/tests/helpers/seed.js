@@ -3,12 +3,11 @@ const { User, Profile, Listing } = require('./fixtures');
 
 const day = 24 * 3600 * 1000;
 
-// students Asha (CGPA 7.4, has resume) and Ravi (9.1); recruiters R1 (owns L1..L3) and R2.
-// L1 open, L2 closed, L3 open with minimum CGPA 8.
+// Asha (CGPA 7.4, resume), Ravi (9.1). R1 owns L1 (open), L2 (closed), L3 (min CGPA 8); R2 owns none.
 async function seed() {
   const [student, other, recruiter, recruiter2] = await User.create([
-    { name: 'Asha', email: 'asha@pes.edu', role: 'STUDENT' },
-    { name: 'Ravi', email: 'ravi@pes.edu', role: 'STUDENT' },
+    { name: 'Asha', email: 'asha@pes.edu', srn: 'PES1UG24CS001', role: 'STUDENT' },
+    { name: 'Ravi', email: 'ravi@pes.edu', srn: 'PES1UG24EC002', role: 'STUDENT' },
     { name: 'Rec One', email: 'r1@acme.io', role: 'RECRUITER' },
     { name: 'Rec Two', email: 'r2@acme.io', role: 'RECRUITER' },
   ]);

@@ -1,5 +1,6 @@
-// Unit-test the auth service with the persistence layer mocked out.
-jest.mock('../../src/modules/users/user.model', () => ({ findOne: jest.fn(), create: jest.fn() }));
+jest.mock('../../src/modules/users/user.model', () => ({
+  findOne: jest.fn(), create: jest.fn(), findOneAndUpdate: jest.fn(), updateOne: jest.fn(),
+}));
 jest.mock('../../src/modules/users/profile.model', () => ({ create: jest.fn() }));
 
 const bcrypt = require('bcrypt');
@@ -11,7 +12,7 @@ const { jwtSecret } = require('../../src/config/env');
 
 beforeEach(() => jest.clearAllMocks());
 
-const input = { name: 'Asha Rao', email: 'asha@example.com', password: 'StrongPass123' };
+const input = { name: 'Asha Rao', email: 'asha@example.com', password: 'StrongPass123', srn: 'PES1UG24CS177' };
 
 function mockCreatedUser() {
   User.create.mockImplementation(async (doc) => ({ _id: 'oid-1', id: 'user-1', ...doc }));
@@ -31,7 +32,7 @@ describe('register', () => {
     expect(await bcrypt.compare(input.password, saved.passwordHash)).toBe(true);
     expect(Profile.create).toHaveBeenCalledWith({ userId: 'oid-1' });
     expect(user).toEqual({
-      id: 'user-1', name: input.name, email: input.email, role: 'STUDENT', status: 'ACTIVE',
+      id: 'user-1', name: input.name, email: input.email, role: 'STUDENT', status: 'ACTIVE', srn: input.srn,
     });
   });
 
@@ -43,6 +44,7 @@ describe('register', () => {
 
     expect(user.role).toBe('RECRUITER');
     expect(user.status).toBe('PENDING');
+    expect(user).not.toHaveProperty('srn');
     expect(Profile.create).not.toHaveBeenCalled();
   });
 
@@ -58,7 +60,18 @@ describe('register', () => {
   test('rejects a duplicate email with 409 before hashing or creating', async () => {
     User.findOne.mockResolvedValue({ id: 'existing' });
 
-    await expect(authService.register(input)).rejects.toMatchObject({ status: 409, code: 'DUPLICATE' });
+    await expect(authService.register(input)).rejects.toMatchObject({
+      status: 409, code: 'DUPLICATE', message: 'An account with this email already exists',
+    });
+    expect(User.create).not.toHaveBeenCalled();
+  });
+
+  test('rejects a duplicate SRN with 409', async () => {
+    User.findOne.mockImplementation(async (query) => (query.srn ? { id: 'existing' } : null));
+
+    await expect(authService.register(input)).rejects.toMatchObject({
+      status: 409, code: 'DUPLICATE', message: 'An account with this SRN already exists',
+    });
     expect(User.create).not.toHaveBeenCalled();
   });
 });
@@ -67,7 +80,7 @@ describe('login', () => {
   let passwordHash;
 
   beforeAll(async () => {
-    // low cost keeps the test fast; compare works for any cost factor
+    // Low cost keeps the test fast.
     passwordHash = await bcrypt.hash(input.password, 4);
   });
 
@@ -113,5 +126,36 @@ describe('login', () => {
     mockStoredUser({ status });
 
     await expect(authService.login(input)).rejects.toMatchObject({ status: 403, code: 'FORBIDDEN' });
+  });
+
+  test('counts a wrong password against the account', async () => {
+    mockStoredUser({ _id: 'oid-1' });
+    User.findOneAndUpdate.mockResolvedValue({ failedLogins: 1 });
+
+    await expect(authService.login({ ...input, password: 'WrongPass123' })).rejects.toMatchObject({ status: 401 });
+
+    expect(User.findOneAndUpdate).toHaveBeenCalledWith({ _id: 'oid-1' }, { $inc: { failedLogins: 1 } }, expect.anything());
+    expect(User.updateOne).not.toHaveBeenCalled();
+  });
+
+  test(`locks the account on the ${authService.MAX_FAILED_LOGINS}th consecutive failure`, async () => {
+    mockStoredUser({ _id: 'oid-1' });
+    User.findOneAndUpdate.mockResolvedValue({ failedLogins: authService.MAX_FAILED_LOGINS });
+
+    await authService.login({ ...input, password: 'WrongPass123' }).catch(() => {});
+
+    const [, update] = User.updateOne.mock.calls[0];
+    expect(update.$set.failedLogins).toBe(0);
+    expect(update.$set.lockedUntil.getTime() - Date.now()).toBeGreaterThan(authService.LOCK_MS - 1000);
+  });
+
+  test('refuses a locked account before checking the password', async () => {
+    const lockedUntil = new Date(Date.now() + 60000);
+    mockStoredUser({ lockedUntil });
+    const compare = jest.spyOn(bcrypt, 'compare');
+
+    await expect(authService.login(input)).rejects.toMatchObject({ status: 423, code: 'ACCOUNT_LOCKED' });
+    expect(compare).not.toHaveBeenCalled();
+    compare.mockRestore();
   });
 });

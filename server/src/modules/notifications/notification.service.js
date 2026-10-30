@@ -4,7 +4,7 @@ const deps = require('../applications/application.deps');
 const AppError = require('../../utils/AppError');
 const logger = require('../../utils/logger');
 
-// REV-4 / SAD 4.4: first send, then up to 3 retries 1, 5 and 15 minutes apart
+// Minutes between retries after a failed send (REV-4); then the email is marked FAILED.
 const RETRY_GAPS_MIN = [1, 5, 15];
 
 async function deliverEmail(notification) {
@@ -25,7 +25,7 @@ async function deliverEmail(notification) {
   return notification;
 }
 
-// email failures never fail the caller's request
+// Email failures never fail the caller's request.
 async function notify(userId, { type, title, message, applicationId }, { email = false } = {}) {
   const notification = await Notification.create({
     userId, type, title, message, applicationId,

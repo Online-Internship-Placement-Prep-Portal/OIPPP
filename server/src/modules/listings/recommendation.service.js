@@ -1,4 +1,4 @@
-﻿const Profile = require('../users/profile.model');
+const Profile = require('../users/profile.model');
 const Listing = require('./listing.model');
 const AppError = require('../../utils/AppError');
 

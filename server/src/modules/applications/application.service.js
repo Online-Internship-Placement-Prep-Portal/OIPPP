@@ -2,6 +2,7 @@ const Application = require('./application.model');
 const { canTransition, REJECT_REASONS } = require('./application.constants');
 const deps = require('./application.deps');
 const audit = require('../audit/audit.service');
+const settings = require('../settings/settings.service');
 const notifications = require('../notifications/notification.service');
 const AppError = require('../../utils/AppError');
 
@@ -15,22 +16,31 @@ async function loadListing(listingId) {
   return listing;
 }
 
-// BR-2: only the recruiter who owns the listing
 function assertOwner(listing, recruiterId) {
   if (String(listing.recruiterId) !== String(recruiterId)) {
     throw new AppError(403, 'NOT_LISTING_OWNER', 'You can only manage applications for your own listings');
   }
 }
 
-// APP-1 .. APP-3
+function alreadyApplied(existing) {
+  return new AppError(409, 'ALREADY_APPLIED', 'You have already applied to this internship',
+    existing ? [{ applicationId: String(existing._id), status: existing.status }] : undefined);
+}
+
 async function apply(studentId, { listingId, coverNote }) {
   const listing = await loadListing(listingId);
-  if (listing.status !== 'OPEN' || (listing.deadline && new Date(listing.deadline) < new Date())) {
+  if (listing.status !== 'OPEN' || (listing.deadline && new Date(listing.deadline) <= new Date())) {
     throw new AppError(409, 'LISTING_CLOSED', 'Applications for this internship are closed');
   }
 
   const existing = await Application.findOne({ studentId, listingId }).select('_id status').lean();
   if (existing) throw alreadyApplied(existing);
+
+  // DOM-2: with the one-offer policy on, an offer holder cannot apply again.
+  if ((await settings.getSettings()).oneOfferPolicy
+    && await Application.exists({ studentId, status: 'OFFER' })) {
+    throw new AppError(422, 'OFFER_HELD', 'You already hold an offer; the one-offer policy is on');
+  }
 
   const profile = await deps.Profile().findOne({ userId: studentId }).lean();
   if (listing.minCgpa != null && (!profile || profile.cgpa == null || profile.cgpa < listing.minCgpa)) {
@@ -46,7 +56,7 @@ async function apply(studentId, { listingId, coverNote }) {
       history: [{ from: null, to: 'APPLIED', by: studentId }],
     });
   } catch (err) {
-    // two submits at once: the unique index lets exactly one through (SAD 3.7)
+    // Concurrent submits: the unique index lets exactly one through.
     if (err.code === 11000) {
       throw alreadyApplied(await Application.findOne({ studentId, listingId }).select('_id status').lean());
     }
@@ -63,12 +73,6 @@ async function apply(studentId, { listingId, coverNote }) {
   return application;
 }
 
-function alreadyApplied(existing) {
-  return new AppError(409, 'ALREADY_APPLIED', 'You have already applied to this internship',
-    existing ? [{ applicationId: String(existing._id), status: existing.status }] : undefined);
-}
-
-// APP-5
 async function listMine(studentId) {
   const items = await Application.find({ studentId }).sort({ createdAt: -1 }).lean();
   const listings = await deps.Listing().find({ _id: { $in: items.map((a) => a.listingId) } })
@@ -81,7 +85,6 @@ async function listMine(studentId) {
   }));
 }
 
-// REV-1
 async function listForListing(recruiterId, listingId, { status, page = 1, limit = 20 }) {
   const listing = await loadListing(listingId);
   assertOwner(listing, recruiterId);
@@ -122,7 +125,6 @@ async function listForListing(recruiterId, listingId, { status, page = 1, limit 
   };
 }
 
-// REV-2 .. REV-4, APP-4
 async function updateStatus(recruiterId, applicationId, { status, reasonCode }) {
   const application = await Application.findById(applicationId).lean();
   if (!application) throw new AppError(404, 'NOT_FOUND', 'Application not found');
@@ -144,7 +146,7 @@ async function updateStatus(recruiterId, applicationId, { status, reasonCode }) 
     entry.reasonCode = reasonCode;
     set.rejectReason = reasonCode;
   }
-  // conditional on the old status so two recruiters clicking at once cannot both win
+  // Conditional on the old status so two concurrent updates cannot both win.
   const updated = await Application.findOneAndUpdate(
     { _id: applicationId, status: from },
     { $set: set, $push: { history: entry } },
@@ -166,15 +168,6 @@ async function updateStatus(recruiterId, applicationId, { status, reasonCode }) 
   return updated;
 }
 
-module.exports = {
-  apply,
-  listMine,
-  listForListing,
-  updateStatus,
-  getResumeForApplication,
-};
-
-
 async function getResumeForApplication(userId, role, applicationId) {
   const application = await Application.findById(applicationId).lean();
 
@@ -182,15 +175,12 @@ async function getResumeForApplication(userId, role, applicationId) {
     throw new AppError(404, 'NOT_FOUND', 'Application not found');
   }
 
-  if (role === 'STUDENT') {
-    if (String(application.studentId) !== String(userId)) {
-      throw new AppError(403, 'FORBIDDEN', 'You cannot access this application');
-    }
-  } else if (role === 'RECRUITER') {
-    const listing = await loadListing(application.listingId);
-    assertOwner(listing, userId);
-  } else if (role !== 'ADMIN') {
-    throw new AppError(403, 'FORBIDDEN', 'You cannot access this resume');
+  if (role === 'STUDENT' && String(application.studentId) !== String(userId)) {
+    throw new AppError(403, 'FORBIDDEN', 'You cannot access this application');
+  }
+
+  if (role === 'RECRUITER') {
+    assertOwner(await loadListing(application.listingId), userId);
   }
 
   if (!application.resumeFileId) {
@@ -199,3 +189,11 @@ async function getResumeForApplication(userId, role, applicationId) {
 
   return application.resumeFileId;
 }
+
+module.exports = {
+  apply,
+  listMine,
+  listForListing,
+  updateStatus,
+  getResumeForApplication,
+};

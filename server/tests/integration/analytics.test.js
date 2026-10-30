@@ -173,3 +173,27 @@ describe('placement CSV export (ANL-3)', () => {
     expect(res.text).toContain('note,No students match the selected cohort');
   });
 });
+
+describe('placement statistics cache (SAD 3.4)', () => {
+  const { CACHE_MS } = require('../../src/modules/analytics/analytics.service');
+
+  afterEach(() => jest.useRealTimers());
+
+  test('reuses a cohort\'s figures for 5 minutes, per filter, then recomputes', async () => {
+    jest.useFakeTimers({ doNotFake: ['nextTick', 'setImmediate', 'setTimeout', 'setInterval', 'queueMicrotask'] });
+    const before = (await get('/analytics/placements', s.admin)).body.students;
+
+    await User.create({ name: 'Late', email: 'late@pes.edu', role: 'STUDENT' });
+    expect((await get('/analytics/placements', s.admin)).body.students).toBe(before);
+    expect((await get('/analytics/placements?gradYear=2028', s.admin)).body.students).toBe(1);
+
+    jest.setSystemTime(Date.now() + CACHE_MS + 1);
+    expect((await get('/analytics/placements', s.admin)).body.students).toBe(before + 1);
+  });
+
+  test('student readiness is never cached', async () => {
+    expect((await get('/analytics/me', s.student)).body.testsTaken).toBe(0);
+    await result(s.student, 'Mock 9', [['Verbal', 5, 3]], new Date('2026-03-01'));
+    expect((await get('/analytics/me', s.student)).body.testsTaken).toBe(1);
+  });
+});

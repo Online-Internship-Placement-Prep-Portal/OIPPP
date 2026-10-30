@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -14,6 +14,11 @@ const userSchema = new mongoose.Schema({
     lowercase: true,
     trim: true,
     maxlength: 254,
+  },
+  srn: {
+    type: String,
+    uppercase: true,
+    trim: true,
   },
   passwordHash: {
     type: String,
@@ -32,8 +37,17 @@ const userSchema = new mongoose.Schema({
     required: true,
     default: 'ACTIVE',
   },
+  failedLogins: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  lockedUntil: {
+    type: Date,
+  },
 }, { timestamps: true });
 
 userSchema.index({ email: 1 }, { unique: true });
+userSchema.index({ srn: 1 }, { unique: true, sparse: true });
 
 module.exports = mongoose.models.User || mongoose.model('User', userSchema);

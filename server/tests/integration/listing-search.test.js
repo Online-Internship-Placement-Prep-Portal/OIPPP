@@ -1,4 +1,4 @@
-﻿const request = require('supertest');
+const request = require('supertest');
 
 jest.mock('../../src/middleware/auth', () => require('../helpers/fakeAuth'));
 
@@ -155,4 +155,43 @@ describe('Issue #10: listing search, filters, sorting and pagination', () => {
 
     expect(res.status).toBe(200);
     expect(res.body.listings.map(item => item.title)).toEqual(['Later Deadline Role']);
+  });
+
+  test('keyword search also matches company and skills (SRCH-1)', async () => {
+    await Listing.create(listing({ title: 'Plain Role', company: 'Zephyrsoft' }));
+    await Listing.create(listing({ title: 'Other Role', skills: ['Kubernetes'] }));
+    await Listing.create(listing({ title: 'Unrelated Role', company: 'Nobody', skills: ['Excel'] }));
+
+    const byCompany = await request(app).get('/api/listings?search=zephyr');
+    const bySkill = await request(app).get('/api/listings?search=kubern');
+
+    expect(byCompany.body.listings.map(item => item.title)).toEqual(['Plain Role']);
+    expect(bySkill.body.listings.map(item => item.title)).toEqual(['Other Role']);
+  });
+
+  test('treats regex characters in the keyword literally', async () => {
+    await Listing.create(listing({ title: 'C++ Intern' }));
+
+    const res = await request(app).get('/api/listings?search=c%2B%2B');
+
+    expect(res.status).toBe(200);
+    expect(res.body.listings.map(item => item.title)).toEqual(['C++ Intern']);
+  });
+
+  test('filters by mode, case-insensitively (SRCH-2)', async () => {
+    await Listing.updateMany({}, { $set: { status: 'CLOSED' } });
+    await Listing.create(listing({ title: 'Remote Role', mode: 'REMOTE' }));
+    await Listing.create(listing({ title: 'Onsite Role', mode: 'ONSITE' }));
+
+    const res = await request(app).get('/api/listings?mode=remote');
+
+    expect(res.status).toBe(200);
+    expect(res.body.listings.map(item => item.title)).toEqual(['Remote Role']);
+  });
+
+  test('rejects an unknown mode', async () => {
+    const res = await request(app).get('/api/listings?mode=SPACE');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error.code).toBe('VALIDATION');
   });

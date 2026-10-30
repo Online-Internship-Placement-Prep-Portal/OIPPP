@@ -172,7 +172,7 @@ describe('Resume upload', () => {
     expect(response.status).toBe(403);
   });
 
-  test('replacing a resume preserves the old GridFS file', async () => {
+  test('replacing a resume removes the old file when no application uses it', async () => {
     const firstUpload = await uploadResume(
       s.student,
       makePdf('Original resume'),
@@ -204,12 +204,7 @@ describe('Resume upload', () => {
       .find({})
       .toArray();
 
-    expect(files).toHaveLength(2);
-
-    const storedIds = files.map((file) => String(file._id));
-
-    expect(storedIds).toContain(firstResumeId);
-    expect(storedIds).toContain(secondResumeId);
+    expect(files.map((file) => String(file._id))).toEqual([secondResumeId]);
   });
 });
 
@@ -324,6 +319,17 @@ describe('Application resume download', () => {
     const errorBody = JSON.parse(response.body.toString());
 
     expect(errorBody.error.code).toBe('RESUME_NOT_FOUND');
+  });
+
+  test('returns a JSON 404 when the application resume file is missing from storage', async () => {
+    const application = await createApplication(s.student, s.L1, new mongoose.Types.ObjectId());
+
+    const response = await downloadResume(application, s.recruiter);
+
+    expect(response.status).toBe(404);
+    expect(response.headers['content-type']).toMatch(/application\/json/);
+    expect(response.headers['content-disposition']).toBeUndefined();
+    expect(JSON.parse(response.body.toString()).error.code).toBe('RESUME_NOT_FOUND');
   });
 
   test('application can still download its original resume after profile replacement', async () => {

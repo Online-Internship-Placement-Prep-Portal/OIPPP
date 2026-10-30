@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 jest.mock('../../src/modules/listings/listing.model', () => ({
   create: jest.fn(),

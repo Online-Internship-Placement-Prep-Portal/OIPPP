@@ -1,4 +1,4 @@
-﻿const mongoose = require('mongoose');
+const mongoose = require('mongoose');
 
 const bookmarkSchema = new mongoose.Schema({
   studentId: {
@@ -18,5 +18,4 @@ const bookmarkSchema = new mongoose.Schema({
 bookmarkSchema.index({ studentId: 1, listingId: 1 }, { unique: true });
 bookmarkSchema.index({ studentId: 1, createdAt: -1 });
 
-module.exports = mongoose.models.Bookmark
-  || mongoose.model('Bookmark', bookmarkSchema);
+module.exports = mongoose.models.Bookmark || mongoose.model('Bookmark', bookmarkSchema);

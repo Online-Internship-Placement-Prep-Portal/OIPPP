@@ -1,8 +1,7 @@
 const service = require('./aptitude.service');
 const logger = require('../../utils/logger');
 
-// Catch up after restarts; no browser timer is trusted. Concurrent API/worker
-// submissions serialize through transactions and return the same canonical Result.
+// Server-side sweep that submits overdue attempts, including ones missed while the API was down.
 function startAttemptTimeoutJob({ intervalMs = 1000 } = {}) {
   let running = false;
   let stopped = false;

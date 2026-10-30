@@ -23,7 +23,7 @@ const attemptSchema = new mongoose.Schema({
       { validator: (items) => uniqueIds(items.map((q) => q.questionId)), message: 'Duplicate snapshot question' },
     ],
   },
-  // ObjectId strings are safe map keys for atomic $set answers.<questionId> writes.
+  // Keyed by questionId so one answer can be saved atomically with $set.
   answers: { type: Map, of: { type: Number, validate: integer(0, 5) }, default: () => ({}) },
   lastSavedAt: { type: Date },
   status: { type: String, enum: ['IN_PROGRESS', 'SUBMITTED'], default: 'IN_PROGRESS', required: true },

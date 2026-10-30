@@ -36,7 +36,7 @@ beforeAll(async () => {
 }, 120000);
 afterAll(db.disconnect);
 
-// PERF-3 covers the full dashboard render; this checks the API share of that 3 s budget.
+// Checks only the API share of PERF-3's 3 s dashboard budget.
 test.each(['', '?branch=CSE&gradYear=2027'])('placement statistics for 2,000 students in under 3 s (%s)', async (q) => {
   const startedAt = Date.now();
   const res = await request(app).get(`/api/analytics/placements${q}`).set(as(admin));

@@ -2,9 +2,10 @@ const express = require('express');
 const Joi = require('joi');
 const { authenticate, allow } = require('../../middleware/auth');
 const { validate } = require('../../middleware/validate');
-const AppError = require('../../utils/AppError');
+const wrap = require('../../utils/wrap');
 const { TOPICS, DIFFICULTIES } = require('./schema.helpers');
 const service = require('./aptitude.service');
+
 const router = express.Router();
 const objectId = Joi.string().hex().length(24).lowercase();
 const idParam = Joi.object({ id: objectId.required() });
@@ -16,11 +17,6 @@ const questionFields = { text: Joi.string().trim().max(4000), topic: Joi.string(
 const testFields = { title: Joi.string().trim().max(200), durationMin: Joi.number().integer().min(10).max(120),
   questionIds: Joi.array().items(objectId.required()).min(5).max(60).unique() };
 const requiredFields = (fields) => Object.fromEntries(Object.entries(fields).map(([k, v]) => [k, v.required()]));
-const wrap = (fn) => (req, res, next) => fn(req, res).catch((err) => {
-  if (err.name === 'ValidationError') return next(new AppError(400, 'VALIDATION', err.message));
-  if (err.name === 'VersionError') return next(new AppError(409, 'STALE_VERSION', 'Reload before retrying'));
-  return next(err);
-});
 router.use(['/questions', '/tests', '/attempts'], authenticate);
 router.post('/questions', allow('ADMIN'), validate(Joi.object(requiredFields(questionFields))),
   wrap(async (req, res) => res.status(201).json(await service.createQuestion(req.user.id, req.body))));
@@ -34,7 +30,7 @@ router.post('/tests', allow('ADMIN'), validate(Joi.object(requiredFields(testFie
   wrap(async (req, res) => res.status(201).json(await service.createTest(req.user.id, req.body))));
 router.get('/tests', allow('ADMIN', 'STUDENT'), validate(Joi.object({ ...pageFields,
   status: Joi.string().valid('DRAFT', 'PUBLISHED', 'ARCHIVED') }), 'query'),
-wrap(async (req, res) => res.json(await service.listTests(req.user.role, req.query))));
+wrap(async (req, res) => res.json(await service.listTests(req.user.role, req.query, req.user.id))));
 router.get('/tests/:id', allow('ADMIN', 'STUDENT'), validate(idParam, 'params'),
   wrap(async (req, res) => res.json(await service.getTest(req.user.role, req.params.id))));
 router.patch('/tests/:id', allow('ADMIN'), validate(idParam, 'params'),

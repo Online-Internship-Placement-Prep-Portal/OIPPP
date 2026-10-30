@@ -1,4 +1,4 @@
-﻿const AppError = require('../../src/utils/AppError');
+const AppError = require('../../src/utils/AppError');
 
 function authenticate(req, res, next) {
   const raw = req.headers['x-test-user'];
