@@ -62,7 +62,7 @@ These are the Test Plan checks that only make sense on the deployed URL. Record 
 | SEC-2 HTTPS | `curl -I http://<api>/api/health` | `301`/`308` redirect to `https://` (Render forces HTTPS) |
 | SEC-2 TLS version | Run https://www.ssllabs.com/ssltest/ on both hostnames | TLS 1.2 and 1.3 only; grade A |
 | TC-SEC-02 rate limit | `npm run test:api -- --env-var baseUrl=https://<api>/api --env-var adminEmail=<email> --env-var adminPassword=<password>` | All assertions pass, including the 429 on the 11th login |
-| ZAP baseline | Set the repository variable `TARGET_URL` to the client URL, then run the **ZAP baseline scan** workflow | No High findings. Medium and Low go to Jira |
+| ZAP baseline | Set the repository variable `TARGET_URL` to the client URL, then run the **ZAP baseline scan** workflow | No High findings. Medium and Low go to GitHub issues |
 | PERF-1/2/3 | Run `npm run test:load` on the test VM against a build started with `TRUST_PROXY=1` and `seed:demo --students=2000` data, as the Test Plan risk table says. Against Render, all virtual users share your one IP, so the 300 requests/minute API limit applies to all of them together | p95 under 2 s (search), 1 s (other calls), 3 s (dashboard) |
 
 `test:api` and `seed:demo` create test accounts. Run them against a demo database, not one in real use.

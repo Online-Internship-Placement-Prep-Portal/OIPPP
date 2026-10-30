@@ -1,12 +1,12 @@
 # Aptitude, analytics and quality requirements
 
 **Owner:** E S Sukruth — Member 4. **Deliverable:** task 4.8 / issue #32.  
-**Review state:** complete documentation proposal; teammate approval required before merge.  
+**Review state:** complete; part of release 1.0.  
 **Baseline:** submitted [SRS v1.0](../Part-1_Deliverables/SRS.pdf), [SAD v1.0](../Part-1_Deliverables/SAD.pdf), and [Test Plan](../Part-1_Deliverables/Test%20Plan.pdf).
 
 ## Reading and numbering rules
 
-This document completes only Member 4's three backlog sections. Backlog 5.4 maps to submitted SRS 4.7, backlog 5.5 maps to SRS 4.8, and backlog 6.3 maps to SRS 5.4 with related performance/safety requirements in 5.1/5.2. Existing requirement IDs are retained; no other member's section or approval record is replaced. A statement labeled **Baseline requirement** preserves the submitted requirement. Acceptance/design notes make verification concrete but must not silently change that baseline. The system requirements below describe the intended product. The API routes and the timeout worker are built; the UI is not.
+This document completes only Member 4's three backlog sections. Backlog 5.4 maps to submitted SRS 4.7, backlog 5.5 maps to SRS 4.8, and backlog 6.3 maps to SRS 5.4 with related performance/safety requirements in 5.1/5.2. Existing requirement IDs are retained; no other member's section or approval record is replaced. A statement labeled **Baseline requirement** preserves the submitted requirement. Acceptance/design notes make verification concrete but must not silently change that baseline. Release 1.0 implements these requirements: the API routes, the timeout worker and the client screens.
 
 ## 5.4 Aptitude Test Engine
 
@@ -23,7 +23,7 @@ Students practise aptitude and technical questions under a server-controlled tim
 5. Each answer selection is persisted and acknowledged; the UI distinguishes saving, saved and failed/offline states. A refresh/resume retrieves acknowledged answers and the original deadline.
 6. A manual submit or server timeout closes the attempt. Server-side scoring uses the snapshot's private correct answers; a canonical Result carries total and topic percentages. Retries must not produce duplicate attempts/results.
 
-Steps 3–6 describe intended service behavior. The existing schema implementation stores this data but does not implement a timed-test service or worker.
+Steps 3–6 are implemented by the attempt service, the timeout job and the client test screen.
 
 ### Functional requirements and acceptance
 
@@ -38,7 +38,7 @@ Steps 3–6 describe intended service behavior. The existing schema implementati
 
 ### Data, API and error boundaries
 
-The implemented schema proposal is documented in [aptitude-schema.md](database/aptitude-schema.md). It uses `Question`, `Test`, `Attempt`, and `Result`; one point per correct answer, no negative marking, Easy/Medium/Hard difficulty and percentage score are **current design conventions requiring team agreement**, not additional statements from the submitted SRS. Retain historical attempt snapshots when a bank question changes. The Result collection is the canonical score source; do not also keep an unsynchronized Attempt.score.
+The implemented schema is documented in [aptitude-schema.md](database/aptitude-schema.md). It uses `Question`, `Test`, `Attempt`, and `Result`; one point per correct answer, no negative marking, Easy/Medium/Hard difficulty and percentage score are **team design conventions (decision D3)**, not additional statements from the submitted SRS. Retain historical attempt snapshots when a bank question changes. The Result collection is the canonical score source; do not also keep an unsynchronized Attempt.score.
 
 SAD 4.3.4 specifies the following intended `/api` routes; this table is traceability, not a new API implementation or unilateral contract revision:
 
@@ -80,19 +80,19 @@ Students see their own preparation trend, weakest topics and application outcome
 | Output | Intended source | Boundary / unresolved convention |
 | --- | --- | --- |
 | Score trend | Result.studentId, submittedAt, score | Chronological submitted results; no answer keys or other students' raw records. |
-| Weak topics | Result.topicBreakdown | The aggregation/weighting and tie-break rule require shared agreement. Unassessed topics are not automatically classified weak. |
+| Weak topics | Result.topicBreakdown | Pooled across all Results ([decision D2](analytics-api.md#decisions-d2-and-d4)). Unassessed topics are not automatically classified weak. |
 | Application counts | Application.studentId and status | Include each application exactly once in its current status; preserve the official state names. |
 | Offer/student/company metrics | Applications with OFFER joined to Listing | Distinct offered students differs from number of offers. Do not treat an application status as an accepted-offer field absent from the model. |
 | Cohort/branch statistics | User ↔ Profile.userId with branch/gradYear, joined to Results/Applications | `Profile` is Member 1's integration model name expected by Member 3. Missing profiles, later branch changes and unknown cohort values must not be silently assigned to a real branch. |
 | CSV report | Same authorized aggregate/filter contract as dashboard | Export role/cohort checks apply even when a result is cached. |
 
-SAD 4.3.5 defines intended `GET /analytics/me` and `GET /analytics/placements?branch&gradYear`; the final CSV route, response schema, readiness formula, weak-topic aggregation and cohort-history semantics belong to S5/team review. A dashboard must distinguish loading, failed, empty and populated states; no invented readiness score should appear for a student without data.
+The final routes, response schema, weak-topic aggregation and cohort rules are in the [analytics API](analytics-api.md) and [DEVIATIONS](DEVIATIONS.md) rows 13 and 21. A dashboard must distinguish loading, failed, empty and populated states; no invented readiness score should appear for a student without data.
 
 The submitted architecture uses an API Analytics Gateway and a private Python/Flask engine with **read-only** MongoDB credentials. The API controls authorization and any cache/persistence. A five-minute cache is an SAD design choice, not an implemented freshness guarantee; a later design must specify invalidation or label stale data after new results/status changes. Do not let a read-only Python component write a readiness snapshot (the older test sequence incorrectly suggested this; the updated sequence removes it).
 
 ## 6.3 Quality Attributes and Related Constraints
 
-The numbered quality targets below are the submitted requirements, not measured achievements. Member 4 owns attempt recovery/fairness and contributes to shared quality verification; the owners of auth, listings and applications keep their respective implementation responsibility.
+The numbered quality targets below are the submitted requirements. Measured results are in the [test report](../testing/test-report.md). Member 4 owns attempt recovery/fairness and contributes to shared quality verification; the owners of auth, listings and applications keep their respective implementation responsibility.
 
 | ID / submitted location | Baseline target | Verification / responsibility |
 | --- | --- | --- |
@@ -115,12 +115,12 @@ Security dependencies remain SRS SO-1–SO-3, SEC-2/SEC-4 and BR-3/BR-4: role/ow
 
 | IDs | Design / data responsibility | Verification target; current evidence |
 | --- | --- | --- |
-| TST-1–TST-2 | Question/Test models; [ER](diagrams/er.png); admin test authoring | Existing model boundary tests; future endpoint/RBAC/existence tests. |
-| TST-3 | Attempt unique student/test index; [attempt sequence](diagrams/seq_test_attempt.png) | Existing real-MongoDB duplicate-start test; resume/service behavior not implemented. |
-| TST-4, SAFE-1 | Answer map, immutable deadline/snapshot, save/recovery flow | `aptitude-recovery.test.js`: refresh, reopen, lost-response retry, offline deadline, restart. Browser and timing tests await the client. |
+| TST-1–TST-2 | Question/Test models; [ER](diagrams/er.png); admin test authoring | `aptitude-models.test.js` and `aptitude-api.test.js` (endpoints, RBAC, existence checks). |
+| TST-3 | Attempt unique student/test index; [attempt sequence](diagrams/seq_test_attempt.png) | `aptitude-indexes.test.js` (duplicate start under concurrency) and the start/resume cases in `aptitude-api.test.js`. |
+| TST-4, SAFE-1 | Answer map, immutable deadline/snapshot, save/recovery flow | `aptitude-recovery.test.js`: refresh, reopen, lost-response retry, offline deadline, restart. Refresh and a dropped connection were also exercised in the browser for the Sprint 2 demo. |
 | TST-5 | Server-side timeout sweep (`attempt-timeout.job.js`), deadline/status guards | `attempt-timeout-job.test.js` and the expiry cases in `aptitude-api.test.js`, including the 0–30 second window under the hard cutoff (D1). |
 | TST-6 | Canonical Result, snapshotted answer key, consistent per-topic counts | `aptitude-scoring.test.js` (all-correct/wrong, unanswered, mixed topics) and submit/idempotency cases in `aptitude-api.test.js`. |
-| ANL-1–ANL-3, PERF-3 | [Component diagram](diagrams/component.png), Result/Application/Profile aggregation, admin export — [analytics API](analytics-api.md) | `analytics.test.js` covers owner scoping, RBAC, cohort filters and CSV escaping. `analytics-performance.test.js` checks the API share of PERF-3 with 2,000 students. Dashboard rendering awaits the client. |
+| ANL-1–ANL-3, PERF-3 | [Component diagram](diagrams/component.png), Result/Application/Profile aggregation, admin export — [analytics API](analytics-api.md) | `analytics.test.js` covers owner scoping, RBAC, cohort filters and CSV escaping. `analytics-performance.test.js` checks the API share of PERF-3 with 2,000 students. Dashboard rendering took 0.19–0.29 s; see the [test report](../testing/test-report.md). |
 | SAFE-2, QA-1–QA-5, PERF-1–PERF-2 | Shared modules and the quality verification matrix above | Record results with fixtures, environment, timing/coverage and reviewer, rather than infer success from a diagram. |
 
 ## Decision register for implementation hand-off
@@ -132,4 +132,4 @@ Security dependencies remain SRS SO-1–SO-3, SEC-2/SEC-4 and BR-3/BR-4: role/ow
 | D3 — Score and schema conventions | Current models choose separate Result, equal-weight percentages and Easy/Medium/Hard. | Adopted with #30: separate Result, equal-weight percentages, Easy/Medium/Hard. |
 | D4 — Cohort and cache semantics | Profile changes, missing cohorts, invalidation and CSV response are unspecified. | Adopted in [analytics-api.md](analytics-api.md#decisions-d2-and-d4): current Profile cohort, 5-minute placement-statistics cache; routes are in the [S5 contract](api-contract.md). |
 
-These decisions fill gaps in the SRS; they are not a claim that the features have passed acceptance. Submitted PDFs and other members' requirements remain unchanged.
+These decisions fill gaps in the SRS. Acceptance results are in the [test report](../testing/test-report.md). Submitted PDFs and other members' requirements remain unchanged.
