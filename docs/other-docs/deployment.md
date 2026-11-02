@@ -66,3 +66,45 @@ These are the Test Plan checks that only make sense on the deployed URL. Record 
 | PERF-1/2/3 | Run `npm run test:load` on the test VM against a build started with `TRUST_PROXY=1` and `seed:demo --students=2000` data, as the Test Plan risk table says. Against Render, all virtual users share your one IP, so the 300 requests/minute API limit applies to all of them together | p95 under 2 s (search), 1 s (other calls), 3 s (dashboard) |
 
 `test:api` and `seed:demo` create test accounts. Run them against a demo database, not one in real use.
+
+## 6. Part-3 test build (2–6 Nov 2026)
+
+The build used for system testing, the security checks, the performance rerun and UAT (#92). Record every result against this environment and the commit below.
+
+| Item | Value |
+|:--|:--|
+| Client | https://oippp-client.onrender.com |
+| API | https://oippp-api.onrender.com/api (`/api/health` returns `{"status":"ok"}`) |
+| Render region | Singapore, free plan, both services |
+| Database | Atlas M0 replica set (Mumbai), database `oippp`, user `oippp-api` with read and write on `oippp` only |
+| Build commit | `f044d21`, branch `fix/identity-mongodb-require` (bug #99, PR #100). Once #100 is merged, `main` is synced and the API is redeployed from `main`; update this row then |
+| Email | Mailtrap sandbox inbox (`sandbox.smtp.mailtrap.io`, port 2525). Every email lands in the inbox and none reaches a real address |
+| Data | `npm run seed` (admin), then `npm run seed:demo`: 1 admin, 10 recruiters, 200 students, 5,000 listings (4,500 open), 100 questions, 5 tests, 600 applications, 199 results, 400 bookmarks |
+| `TARGET_URL` | Repository variable set to the client URL for the ZAP workflow |
+
+Test accounts (no real student data):
+
+| Role | Email | Password |
+|:--|:--|:--|
+| Admin | `admin@oippp.dev` | Shared privately in the team group, not stored in the repo |
+| Recruiter | `recruiter01@example.com` … `recruiter10@example.com` | `Demo12345` (the `seed:demo` default) |
+| Student | `student0001@students.example.com` … `student0200@students.example.com` | `Demo12345` |
+
+Checks run on 2 Nov 2026 after deploying:
+
+| Check | Result |
+|:--|:--|
+| `GET /api/health` | 200 `{"status":"ok"}` |
+| Admin, recruiter and student login | 200 each; the admin token carries role `ADMIN` |
+| Guest `GET /listings` | 200, 4,500 open listings |
+| CORS | Only `https://oippp-client.onrender.com` is allowed |
+| `http://` on both hostnames | 301 to `https://` |
+| Client deep link (`/login`) | 200, served by the `index.html` rewrite, with `X-Frame-Options: DENY` |
+| Client bundle | Calls `https://oippp-api.onrender.com/api` |
+| Mailtrap | A test message from the same SMTP settings arrived in the inbox |
+
+Notes:
+
+- The first deploy failed: the API exited with `Cannot find module 'mongodb'`, because `npm ci --omit=dev` leaves out the copy that `mongodb-memory-server` brings in. Logged as #99 and fixed in PR #100.
+- `SMTP_HOST` is set to Mailtrap on the service instead of Brevo from `render.yaml`, so test emails stay in the sandbox.
+- `seed:demo --reset` deletes every user, listing and application. Don't run it during the test week; teammates' results depend on this data.
