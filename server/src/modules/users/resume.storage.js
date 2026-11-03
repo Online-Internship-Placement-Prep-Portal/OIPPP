@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
-const { GridFSBucket, ObjectId } = require('mongodb');
+// The driver bundled with mongoose; `mongodb` is not a direct dependency.
+const { GridFSBucket, ObjectId } = mongoose.mongo;
 const AppError = require('../../utils/AppError');
 
 const BUCKET_NAME = 'resumes';
