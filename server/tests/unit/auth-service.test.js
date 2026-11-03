@@ -100,6 +100,7 @@ describe('login', () => {
     expect(payload.sub).toBe('user-1');
     expect(payload.role).toBe('STUDENT');
     expect(payload.exp).toBeGreaterThan(payload.iat);
+    expect(payload.exp - payload.iat).toBe(60 * 60);
     expect(result.user).not.toHaveProperty('passwordHash');
   });
 
