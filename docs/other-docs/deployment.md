@@ -77,7 +77,7 @@ The build used for system testing, the security checks, the performance rerun an
 | API | https://oippp-api.onrender.com/api (`/api/health` returns `{"status":"ok"}`) |
 | Render region | Singapore, free plan, both services |
 | Database | Atlas M0 replica set (Mumbai), database `oippp`, user `oippp-api` with read and write on `oippp` only |
-| Build commit | `f044d21`, branch `fix/identity-mongodb-require` (bug #99, PR #100). Once #100 is merged, `main` is synced and the API is redeployed from `main`; update this row then |
+| Build commit | `main`. First deployed on 2 Nov from `f044d21` (branch `fix/identity-mongodb-require`, bug #99). After PR #100 was merged, both services were switched to `main` and redeployed on 4 Nov 2026. Render shows the exact live commit on each service's Events page |
 | Email | Mailtrap sandbox inbox (`sandbox.smtp.mailtrap.io`, port 2525). Every email lands in the inbox and none reaches a real address |
 | Data | `npm run seed` (admin), then `npm run seed:demo`: 1 admin, 10 recruiters, 200 students, 5,000 listings (4,500 open), 100 questions, 5 tests, 600 applications, 199 results, 400 bookmarks |
 | `TARGET_URL` | Repository variable set to the client URL for the ZAP workflow |
