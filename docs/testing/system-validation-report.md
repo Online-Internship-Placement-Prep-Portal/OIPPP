@@ -48,13 +48,13 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 
 ### 4.1 Summary
 
-| Module | Owner | Test cases | Pass | Fail | Blocked | Not run |
-|:--|:--|--:|--:|--:|--:|--:|
-| Identity and security | Deekshith Gowda G (#84) | 14 | | | | 14 |
-| Listings and search | Sharath H G (#88) | 11 | | | | 11 |
-| Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API) | 0 | 0 | UI steps |
-| Aptitude and analytics | E S Sukruth (#96) | Pending #95 | | | | |
-| **Total** | | **34 + #95** | **9 (API)** | **0** | **0** | **25 + #95** |
+| Module | Owner | Test cases | Pass | Partial | Fail | Blocked | Not run |
+|:--|:--|--:|--:|--:|--:|--:|--:|
+| Identity and security | Deekshith Gowda G (#84) | 14 | 0 | 0 | 0 | 0 | 14 |
+| Listings and search | Sharath H G (#88) | 11 | 4 | 2 | 0 | 2 | 3 |
+| Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API) | 0 | 0 | 0 | UI steps pending |
+| Aptitude and analytics | E S Sukruth (#96) | Pending #95 | | | | | |
+| **Total** | | **34 + #95** | **13** | **2** | **0** | **2** | **17 + #95** |
 
 ### 4.2 Applications, review and notifications
 
@@ -91,7 +91,27 @@ Pending #84. The 14 test cases are in [test-cases/identity.md](test-cases/identi
 
 ### 4.4 Listings and search
 
-Pending #88. The 11 test cases are in [test-cases/listings.md](test-cases/listings.md).
+Issue #88 execution against the deployed test build on 04-11-2026. API checks used `https://oippp-api.onrender.com/api`. The exact deployed application commit SHA was not independently verified from Render Events.
+
+| Test case | Result | Evidence and outstanding work |
+|:--|:--|:--|
+| TC-LST-01 — Listing creation, validation and expiry | Pass | Valid creation returned 201 and OPEN. Past deadline and negative stipend returned 400. A short-deadline listing eventually became CLOSED; editing it returned 409 `LISTING_CLOSED`. |
+| LST-3 — Listing ownership | Pass | Other recruiter received 403 for edit and close. Owner successfully edited and closed the listing; GET confirmed CLOSED. |
+| SRCH-4 — Saved internships and bookmark limit | Partial | Save returned 201; duplicate save returned the same bookmark ID; GET showed one occurrence; removal returned 204. Closed and expired listings returned 400 `LISTING_NOT_BOOKMARKABLE`. The 100/101 boundary and duplicate-at-limit case were not tested to avoid polluting shared seeded data. |
+| SRCH-5 — Recommendations | Partial | 1,455 recommendations returned. All were OPEN and not expired; match counts were consistent and ranking descending. Unauthenticated access returned 401; recruiter access returned 403. Empty-profile behaviour was not verified. |
+| TC-PERF-01 — Search/API load performance | Blocked | 50-VU load test not run against Render. Deployment guidance requires a dedicated VM because shared-IP rate limits can distort results. |
+| PERF-3 — Dashboard rendering | Blocked | 2,000-student test not rerun. Deployed seed has 200 students; dedicated dataset and environment required. |
+| TC-SRCH-01 — Search, filters, sort and pagination | Pass | Search, mode, stipend and skill queries returned expected results. Stipend-descending order was monotonic across 50 records; pages 1 and 2 had no duplicate IDs. Invalid mode, sort and stipend range returned 400. Newman run: 10 requests, 15 assertions, 0 failures. |
+| UI-LST-01 — Listing search page | Pass | Manual check showed 803 React search results. User confirmed filters, sorting and pagination worked. |
+| UI-LST-02 — Recruiter listing form | Not run | No separately recorded UI execution. |
+| UI-SRCH-04 — Saved internships UI | Not run | No separately recorded UI execution. |
+| UI-SRCH-05 — Student home feed UI | Not run | No separately recorded UI execution. |
+
+**Issue #88 summary:** 4 Pass, 2 Partial, 2 Blocked, 3 Not run, 0 confirmed failures.
+
+**Observation — public listing count:** the public API initially reported 4,421 listings and later 4,427 after test listings were created. Seed documentation describes 4,500 open listings. The difference is unexplained and is recorded as an observation, not a confirmed defect.
+
+The short-deadline listing was OPEN on an early poll and CLOSED on a later GET. Editing after the deadline returned 409 `LISTING_CLOSED`. The exact background-job closure time was not measured.
 
 ### 4.5 Aptitude and analytics
 
@@ -144,7 +164,7 @@ Every SRS requirement ID and whether it has a passed test on the test build. Fil
 
 | Area | Requirement | Result | Source |
 |:--|:--|:--|:--|
-| Performance | PERF-1, PERF-2, PERF-3 | | #89 |
+| Performance | PERF-1, PERF-2, PERF-3 | Issue #88 rerun: TC-PERF-01 and PERF-3 blocked pending dedicated environment and 2,000-student dataset. Historical 30-10-2026 results only: search p95 37 ms, other APIs p95 62 ms at 50 VUs; dashboard render 0.19–0.29 s for 2,000 students | #89, #88 |
 | Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 also on the deployed build (section 4.6). SEC-2 TLS check pending | #85 ([ZAP report](zap-baseline-report.md)), #84 |
 | Safety | SAFE-1, SAFE-2 | | #96 |
 | Usability | QA-1 | | #97 |
@@ -166,20 +186,27 @@ Pending #97.
 Observations (not defects against the SRS):
 
 - **O-1, email configuration.** When `SMTP_HOST` is not set, the mailer uses a JSON transport that sends nothing but reports success, so notifications show email status `SENT`. This is intended for development, but in production it hides a missing setting, as in the first applications run (section 4.2). A warning at startup when `NODE_ENV` is `production` and `SMTP_HOST` is empty would make this visible.
+- **O-2, public listing count.** The deployed public listings API reported 4,421 records initially and 4,427 after Issue #88 test listings were created. Seed documentation describes 4,500 open listings. The difference has not been reconciled; investigate the seed, listing status and public-query criteria before treating it as a defect.
 
 ## 9. Metrics (Test Plan section 14)
 
 | Metric | Value |
 |:--|:--|
-| Test cases executed | 9 of 34 written so far (applications, API steps), 04-11-2026 |
-| Test cases passed / failed | 9 / 0 |
-| Defects by severity | Critical 1 (fixed), High 0, Medium 0, Low 0 |
+| Test cases executed | 9 applications API cases and 4 listings cases fully passed; 2 additional listings cases partial, 04-11-2026 |
+| Test cases passed / failed | 13 / 0 (full passes; partial cases excluded) |
+| Issue #88 partial cases | 2 |
+| Issue #88 blocked cases | 2 |
+| Issue #88 not-run cases | 3 |
+| Defects by severity | Critical 1 (fixed), High 0, Medium 0, Low 0; no confirmed new Issue #88 defect |
 | Defects by module | Identity 1 |
 | Defect age (days open) | #99: 2 days (02-11 to 04-11) |
 | Requirement coverage (share of IDs with a passed test) | |
 | Server statement coverage | 95.16% |
 
 ## 10. Conclusion and sign-off
+
+Issue #88 has partial validation evidence: four listings scenarios passed, two were partially tested, and two performance scenarios remain blocked. Three listings UI scenarios were not run. No confirmed new defect was identified during the executed checks. This report is not a final release sign-off. Complete the blocked and unrun checks, investigate the public listing-count difference, and verify the deployed commit SHA before closing Issue #88.
+
 
 | Role | Name | Date |
 |:--|:--|:--|
