@@ -161,7 +161,7 @@ Pending #97.
 
 | Issue | Title | Severity | Module | Found by | Status |
 |:--|:--|:--|:--|:--|:--|
-| #99 | API fails to start in production: Cannot find module 'mongodb' | Critical (blocks deployment) | Identity (resume storage) | Deployment, 02-11-2026 | Closed: fixed in PR #100, merged and deployed 04-11-2026 |
+| #99 | API fails to start in production: Cannot find module 'mongodb' | Critical (blocks deployment) | Identity (resume storage) | Deployment, 02-11-2026 | Fixed in PR #100, merged and deployed 04-11-2026 |
 
 Observations (not defects against the SRS):
 
