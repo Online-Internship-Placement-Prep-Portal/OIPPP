@@ -50,7 +50,7 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 
 | Module | Owner | Test cases | Pass | Fail | Blocked | Not run |
 |:--|:--|--:|--:|--:|--:|--:|
-| Identity and security | Deekshith Gowda G (#84) | 14 | | | | 14 |
+| Identity and security | Deekshith Gowda G (#84) | 14 | Partial (see 4.3) | 0 | 0 | Remaining cases |
 | Listings and search | Sharath H G (#88) | 11 | | | | 11 |
 | Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API) | 0 | 0 | UI steps |
 | Aptitude and analytics | E S Sukruth (#96) | Pending #95 | | | | |
@@ -87,7 +87,37 @@ The status changes themselves returned 200 at once, so email failures did not fa
 
 ### 4.3 Identity and security
 
-Pending #84. The 14 test cases are in [test-cases/identity.md](test-cases/identity.md).
+Issue #84 testing was partially executed against the deployed test build.
+
+**Deployed UI checks**
+
+| Check | Result |
+|:--|:--|
+| Student login | Pass |
+| Student profile editing and persistence | Pass |
+| Student access to Admin UI | Pass |
+| Recruiter login | Pass |
+| Recruiter access to Admin UI | Pass |
+| Unauthenticated access to Admin UI | Pass |
+
+**Deployed API checks**
+
+| Check | Result |
+|:--|:--|
+| Unauthenticated GET /auth/me | Pass - HTTP 401 |
+| Student GET /admin/users | Pass - HTTP 403 |
+| Recruiter GET /admin/users | Pass - HTTP 403 |
+| Admin GET /admin/users | Pass - HTTP 200 |
+| `$ne` injection | Pass - HTTP 400 VALIDATION |
+| `$gt` injection | Pass - HTTP 400 VALIDATION |
+| `$where` injection | Pass - HTTP 400 VALIDATION |
+| XSS login payload | API validation passed - HTTP 400; website rendering verification pending |
+
+**Local automated tests**
+
+Eight integration test suites were run locally: identity-flow, identity-edge-cases, RBAC, auth, profile, resume, admin and audit. Result: 109 tests passed, 0 failed. These are local automated results, not deployed system-test passes.
+
+The remaining identity test cases have not yet been fully executed against the deployed build. See [test-cases/identity.md](test-cases/identity.md).
 
 ### 4.4 Listings and search
 
