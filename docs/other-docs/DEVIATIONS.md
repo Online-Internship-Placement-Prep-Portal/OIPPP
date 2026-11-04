@@ -31,6 +31,7 @@ Each member adds rows for their own area. Architecture decisions behind several 
 | 24 | Process | Part-2 rules 2c, 2d; README working agreement | The assigned member raises the PR, a repo owner reviews it, and each PR covers one issue | Guru raised #46, #47 and #49 for issues assigned to Sukruth; #51, #64, #76 and #77 merged with no review; PRs #78 to #80 and the final release PR each cover several items, and Guru merged those PRs | Recorded for explanation at the final demo. No history was rewritten |
 | 25 | Process | Part-2 rule 3b | Two-minute Sprint 2 video | The [Sprint 2 video](../../Sprint%202%20Demo.mp4) runs 4:22 | The team kept the length so that all three roles appear in the working product |
 | 26 | Process | Test Plan UAT, 19–21 Nov 2026 | UAT and live checks are part of the test cycle | Development froze on 30 Oct 2026 with these checks still open | Part-2 rule 3d fixes the freeze in Sprint 2. The open checks are listed in the [test report](../testing/test-report.md#6-pending-items-and-how-to-close-them) |
+| 27 | Process | Test Plan 7 | System test execution until 18 Nov, UAT 19–21 Nov, test summary report 23 Nov 2026 | System testing, the security and performance checks on the deployed build, UAT and the Part-3 reports ran 2–6 Nov 2026 against the Render test build ([deployment.md section 6](deployment.md#6-part-3-test-build-26-nov-2026)) | Part-3 fixes testing and the reports for 2–6 Nov. The test cases were updated to v2.0 in the [Test Case Document](../testing/test-case-document.md) |
 
 ## Member 4 design notes
 
