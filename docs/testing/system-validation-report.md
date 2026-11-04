@@ -6,7 +6,7 @@
 | Release | 1.0 (tag `v1.0.0`) plus the fixes listed in section 8 |
 | Test window | 2–6 Nov 2026 |
 | Prepared by | Guru R Bharadwaj (QA lead), with results from all four members |
-| Date | 06-11-2026 (draft) |
+| Date | 04-11-2026 (interim; final on 06-11-2026) |
 
 ## 1. Scope
 
@@ -28,7 +28,7 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 | API | https://oippp-api.onrender.com/api (Render free web service, Singapore, Node 22) |
 | Database | MongoDB Atlas M0 replica set (Mumbai), database `oippp` |
 | Email | Mailtrap sandbox inbox |
-| Build commit | `f044d21` (v1.0.0 plus the fix for #99). Final commit: to be filled in on 06-11-2026 |
+| Build commit | `f044d21` (v1.0.0 plus the fix for #99) for the 2 Nov runs in section 4; `main` from 4 Nov, after PR #100 was merged. Final commit: filled in on 06-11-2026 |
 | Data | `seed:demo`: 1 admin, 10 recruiters, 200 students, 5,000 listings, 100 questions, 5 tests, 600 applications |
 | Details | [deployment.md section 6](../other-docs/deployment.md#6-part-3-test-build-26-nov-2026) |
 
@@ -38,11 +38,11 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 |:--|:--|:--|
 | Entry: stable build deployed to the test environment | Met, 02-11-2026 | Post-deploy checks in deployment.md section 6 |
 | Entry: seed data loaded | Met, 02-11-2026 | `seed` and `seed:demo` output |
-| Entry: test cases reviewed | | PRs #101 and the module test-case PRs |
-| Exit: all planned test cases executed | | Section 4 |
-| Exit: no open Critical or High defects | | Section 8 |
-| Exit: server statement coverage at least 70% (QA-4) | | Code Coverage Report |
-| Exit: every requirement in the RTM has at least one passed test | | Section 5 |
+| Entry: test cases reviewed | Partly met | Identity (#83, PR #105), listings (#87, PR #109) and applications (#91, PR #101) merged; aptitude and analytics (#95) pending |
+| Exit: all planned test cases executed | Not yet | Applications API steps done (section 4.2); #84, #88 and #96 pending |
+| Exit: no open Critical or High defects | Met on 04-11-2026 | Section 8: #99 fixed; ZAP found 0 High |
+| Exit: server statement coverage at least 70% (QA-4) | Met | 95.16% statements ([Unit Test Report](unit-test-report.md)); Code Coverage Report (#90) to confirm |
+| Exit: every requirement in the RTM has at least one passed test | Not yet | Every requirement has a passing automated test (Unit Test Report); system-test passes pending |
 
 ## 4. Test case results
 
@@ -50,11 +50,11 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 
 | Module | Owner | Test cases | Pass | Fail | Blocked | Not run |
 |:--|:--|--:|--:|--:|--:|--:|
-| Identity and security | Deekshith Gowda G (#84) | | | | | |
-| Listings and search | Sharath H G (#88) | | | | | |
+| Identity and security | Deekshith Gowda G (#84) | 14 | | | | 14 |
+| Listings and search | Sharath H G (#88) | 11 | | | | 11 |
 | Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API) | 0 | 0 | UI steps |
-| Aptitude and analytics | E S Sukruth (#96) | | | | | |
-| **Total** | | | | | | |
+| Aptitude and analytics | E S Sukruth (#96) | Pending #95 | | | | |
+| **Total** | | **34 + #95** | **9 (API)** | **0** | **0** | **25 + #95** |
 
 ### 4.2 Applications, review and notifications
 
@@ -87,15 +87,15 @@ The status changes themselves returned 200 at once, so email failures did not fa
 
 ### 4.3 Identity and security
 
-From #84.
+Pending #84. The 14 test cases are in [test-cases/identity.md](test-cases/identity.md).
 
 ### 4.4 Listings and search
 
-From #88.
+Pending #88. The 11 test cases are in [test-cases/listings.md](test-cases/listings.md).
 
 ### 4.5 Aptitude and analytics
 
-From #96.
+Pending #96 (test cases from #95).
 
 ### 4.6 Postman collection on the deployed build
 
@@ -145,23 +145,23 @@ Every SRS requirement ID and whether it has a passed test on the test build. Fil
 | Area | Requirement | Result | Source |
 |:--|:--|:--|:--|
 | Performance | PERF-1, PERF-2, PERF-3 | | #89 |
-| Security | SEC-1 to SEC-6, ZAP baseline, npm audit | | #85, #84 |
+| Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 also on the deployed build (section 4.6). SEC-2 TLS check pending | #85 ([ZAP report](zap-baseline-report.md)), #84 |
 | Safety | SAFE-1, SAFE-2 | | #96 |
 | Usability | QA-1 | | #97 |
 | Availability | QA-2 | Not measurable within the semester (Test Plan section 4) | |
-| Reliability | QA-3 | | Unit Test Report, TC-REV-04 |
-| Maintainability | QA-4 | | Code Coverage Report |
+| Reliability | QA-3 | 540 of 540 automated tests pass (487 server, 53 client); TC-REV-04 concurrent change passes on the deployed build | Unit Test Report, TC-REV-04 |
+| Maintainability | QA-4 | Server coverage 95.16% statements, 89.06% branches | Unit Test Report; Code Coverage Report (#90) |
 | Portability | QA-5 | | #97 |
 
 ## 7. User acceptance testing
 
-From #97.
+Pending #97.
 
 ## 8. Defects
 
 | Issue | Title | Severity | Module | Found by | Status |
 |:--|:--|:--|:--|:--|:--|
-| #99 | API fails to start in production: Cannot find module 'mongodb' | Critical (blocks deployment) | Identity (resume storage) | Deployment, 02-11-2026 | Fixed in PR #100 |
+| #99 | API fails to start in production: Cannot find module 'mongodb' | Critical (blocks deployment) | Identity (resume storage) | Deployment, 02-11-2026 | Closed: fixed in PR #100, merged and deployed 04-11-2026 |
 
 Observations (not defects against the SRS):
 
@@ -171,13 +171,13 @@ Observations (not defects against the SRS):
 
 | Metric | Value |
 |:--|:--|
-| Test cases executed | |
-| Test cases passed / failed | |
-| Defects by severity | |
-| Defects by module | |
-| Defect age (days open) | |
+| Test cases executed | 9 of 34 written so far (applications, API steps), 04-11-2026 |
+| Test cases passed / failed | 9 / 0 |
+| Defects by severity | Critical 1 (fixed), High 0, Medium 0, Low 0 |
+| Defects by module | Identity 1 |
+| Defect age (days open) | #99: 2 days (02-11 to 04-11) |
 | Requirement coverage (share of IDs with a passed test) | |
-| Server statement coverage | |
+| Server statement coverage | 95.16% |
 
 ## 10. Conclusion and sign-off
 
