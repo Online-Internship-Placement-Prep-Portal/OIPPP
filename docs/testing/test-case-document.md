@@ -3,7 +3,7 @@
 | | |
 |:--|:--|
 | Project | Online Internship & Placement Preparation Portal (OIPPP) |
-| Version | 2.0 (draft) |
+| Version | 2.0 |
 | Authors | Deekshith Gowda G, Sharath H G, Guru R Bharadwaj, E S Sukruth |
 | Date | 06-11-2026 |
 | Replaces | Software Test Plan v1.0 (05-10-2026), section 13 |
@@ -44,7 +44,7 @@ The test build, accounts and data set are in [deployment.md section 6](../other-
 | Identity and security | [test-cases/identity.md](test-cases/identity.md) | Deekshith Gowda G (#83) | AUTH, PROF, SEC, DOM-2 |
 | Listings and search | [test-cases/listings.md](test-cases/listings.md) | Sharath H G (#87) | LST, SRCH, PERF |
 | Applications, review and notifications | [test-cases/applications.md](test-cases/applications.md) | Guru R Bharadwaj (#91) | APP, REV, DOM-1 |
-| Aptitude and analytics | [test-cases/aptitude-analytics.md](test-cases/aptitude-analytics.md) | E S Sukruth (#95) | TST, ANL, SAFE, DOM-3 |
+| Aptitude and analytics | `test-cases/aptitude-analytics.md` (pending) | E S Sukruth (#95) | TST, ANL, SAFE, DOM-3 |
 
 The PDF places the four files in this order after this section.
 
@@ -53,7 +53,7 @@ The PDF places the four files in this order after this section.
 | TC | Change in v2.0 | DEVIATIONS row |
 |:--|:--|:--|
 | TC-AUTH-01 | Duplicate-email error code and message | 18 |
-| TC-AUTH-02 | To be confirmed by #83 | |
+| TC-AUTH-02 | Explicit password-rule cases (length, letter, digit) | |
 | TC-AUTH-03 | 423 `ACCOUNT_LOCKED` with `retryAt` | 18 |
 | TC-AUTH-04 | Step 3 uses `GET /applications/:id/resume` | 16 |
 | TC-PROF-01 | A 2.1 MB PDF returns 413 `FILE_TOO_LARGE`; DOCX returns 400 `INVALID_FILE_TYPE` | 23 |
@@ -71,15 +71,15 @@ The PDF places the four files in this order after this section.
 
 ## 5. Summary of results
 
-Filled in on 06-11-2026 from the four module files.
+Status on 04-11-2026: test cases written for three modules; system-test results (#84, #88, #96) and the aptitude and analytics cases (#95) are still to come. Re-filled from the four module files and re-exported on 06-11-2026.
 
 | Module | Test cases | Pass | Fail | Blocked | Not run |
 |:--|--:|--:|--:|--:|--:|
-| Identity and security | | | | | |
-| Listings and search | | | | | |
-| Applications, review and notifications | 9 | | | | |
-| Aptitude and analytics | | | | | |
-| **Total** | | | | | |
+| Identity and security | 14 | | | | 14 |
+| Listings and search | 11 | | | | 11 |
+| Applications, review and notifications | 9 | | | | 9 |
+| Aptitude and analytics | Pending #95 | | | | |
+| **Total** | **34 + #95** | | | | **34** |
 
 ## 6. Requirements traceability matrix
 
@@ -87,25 +87,25 @@ Filled in on 06-11-2026 from the four module files.
 
 | Requirement | v1.0 test case(s) | v2.0 test case(s) | Automated by |
 |:--|:--|:--|:--|
-| AUTH-1 | TC-AUTH-01 | #83 | `integration/auth.test.js` |
-| AUTH-2 | TC-AUTH-01 | #83 | `integration/auth.test.js` |
-| AUTH-3 | TC-AUTH-02 | #83 | `integration/auth.test.js`, `unit/auth-validation.test.js` |
-| AUTH-4 | TC-AUTH-03 | #83 | `integration/auth.test.js`, `unit/auth-service.test.js` |
-| AUTH-5 | TC-AUTH-03 | #83 | `integration/auth.test.js` |
-| AUTH-6 | TC-AUTH-04 | #83 | `integration/rbac.test.js` |
-| PROF-1 | Unit/integration suite only | #83 | `integration/profile.test.js`, `unit/profile-model.test.js` |
-| PROF-2 | TC-PROF-01 | #83 | `integration/resume.test.js` |
-| PROF-3 | Unit/integration suite only | #83 | `integration/admin.test.js` |
-| PROF-4 | Unit/integration suite only | #83 | `integration/identity-flow.test.js`, `integration/rbac.test.js` |
-| LST-1 | TC-LST-01 | #87 | `integration/listings.test.js` |
-| LST-2 | TC-LST-01 | #87 | `integration/listings.test.js` |
-| LST-3 | Unit/integration suite only | #87 | `integration/listings.test.js` |
-| LST-4 | TC-LST-01 | #87 | `integration/listings.test.js` |
-| SRCH-1 | TC-SRCH-01 | #87 | `integration/listing-search.test.js` |
-| SRCH-2 | TC-SRCH-01 | #87 | `integration/listing-search.test.js` |
-| SRCH-3 | TC-SRCH-01 | #87 | `integration/listing-search.test.js` |
-| SRCH-4 | Unit/integration suite only | #87 | `integration/bookmarks.test.js` |
-| SRCH-5 | Unit/integration suite only | #87 | `integration/listing-recommendations.test.js` |
+| AUTH-1 | TC-AUTH-01 | TC-AUTH-06 | `integration/auth.test.js` |
+| AUTH-2 | TC-AUTH-01 | TC-AUTH-01 | `integration/auth.test.js` |
+| AUTH-3 | TC-AUTH-02 | TC-AUTH-02 | `integration/auth.test.js`, `unit/auth-validation.test.js` |
+| AUTH-4 | TC-AUTH-03 | TC-AUTH-05 | `integration/auth.test.js`, `unit/auth-service.test.js` |
+| AUTH-5 | TC-AUTH-03 | TC-AUTH-03 | `integration/auth.test.js` |
+| AUTH-6 | TC-AUTH-04 | TC-AUTH-04 | `integration/rbac.test.js` |
+| PROF-1 | Unit/integration suite only | PROF-1 | `integration/profile.test.js`, `unit/profile-model.test.js` |
+| PROF-2 | TC-PROF-01 | TC-PROF-01 | `integration/resume.test.js` |
+| PROF-3 | Unit/integration suite only | PROF-3 | `integration/admin.test.js` |
+| PROF-4 | Unit/integration suite only | PROF-4 | `integration/identity-flow.test.js`, `integration/rbac.test.js` |
+| LST-1 | TC-LST-01 | TC-LST-01, UI-LST-02 | `integration/listings.test.js` |
+| LST-2 | TC-LST-01 | TC-LST-01, UI-LST-02 | `integration/listings.test.js` |
+| LST-3 | Unit/integration suite only | LST-3 | `integration/listings.test.js` |
+| LST-4 | TC-LST-01 | TC-LST-01 | `integration/listings.test.js` |
+| SRCH-1 | TC-SRCH-01 | TC-SRCH-01, UI-LST-01 | `integration/listing-search.test.js` |
+| SRCH-2 | TC-SRCH-01 | TC-SRCH-01, UI-LST-01 | `integration/listing-search.test.js` |
+| SRCH-3 | TC-SRCH-01 | TC-SRCH-01, UI-LST-01 | `integration/listing-search.test.js` |
+| SRCH-4 | Unit/integration suite only | SRCH-4, UI-SRCH-04 | `integration/bookmarks.test.js` |
+| SRCH-5 | Unit/integration suite only | SRCH-5, UI-SRCH-05 | `integration/listing-recommendations.test.js` |
 | APP-1 | TC-APP-01 | TC-APP-01 | `integration/apply.test.js`, `integration/reliability.test.js` |
 | APP-2 | TC-APP-02 | TC-APP-02 | `integration/apply.test.js` |
 | APP-3 | TC-APP-02 | TC-APP-02, TC-APP-04 | `integration/apply.test.js` |
@@ -115,28 +115,28 @@ Filled in on 06-11-2026 from the four module files.
 | REV-2 | TC-REV-01 | TC-REV-01, TC-REV-03, TC-REV-04 | `integration/status.test.js`, `unit/application-transitions.test.js` |
 | REV-3 | TC-REV-01 | TC-REV-01, TC-REV-03 | `integration/review.test.js` |
 | REV-4 | TC-REV-01 | TC-REV-01, TC-REV-05 | `integration/notifications.test.js`, `integration/status.test.js` |
-| TST-1 | Unit/integration suite only | #95 | `integration/aptitude-api.test.js`, `unit/aptitude-models.test.js` |
-| TST-2 | Unit/integration suite only | #95 | `integration/aptitude-api.test.js` |
-| TST-3 | TC-TST-01 | #95 | `integration/aptitude-recovery.test.js` |
-| TST-4 | TC-TST-01 | #95 | `integration/aptitude-recovery.test.js`, `integration/aptitude-indexes.test.js` |
-| TST-5 | TC-TST-02 | #95 | `integration/aptitude-recovery.test.js`, `unit/attempt-timeout-job.test.js` |
-| TST-6 | TC-TST-02 | #95 | `unit/aptitude-scoring.test.js` |
-| ANL-1 | Unit/integration suite only | #95 | `integration/analytics.test.js` |
-| ANL-2 | TC-ANL-01 | #95 | `integration/analytics.test.js` |
-| ANL-3 | TC-ANL-01 | #95 | `integration/analytics.test.js` |
-| PERF-1 | TC-PERF-01 | #87 | `integration/listing-search-performance.test.js`; load run (#89) |
-| PERF-2 | TC-PERF-01 | #87 | Load run (#89) |
-| PERF-3 | Reviewed in Sprint 3 | #87 | `integration/analytics-performance.test.js`; load run (#89) |
-| SAFE-1 | TC-TST-01 | #95 | `integration/aptitude-recovery.test.js` |
-| SAFE-2 | Reviewed in Sprint 3 | #95 | `integration/identity-edge-cases.test.js` |
-| SEC-1 | TC-SEC-01 | #83 | `unit/auth-service.test.js` |
-| SEC-2 | TC-SEC-02 | #83 | Deployed-URL check (#85) |
-| SEC-3 | TC-AUTH-04 | #83 | `integration/rbac.test.js`, `integration/resume.test.js` |
-| SEC-4 | TC-SEC-01 | #83 | `unit/validate-middleware.test.js` |
-| SEC-5 | TC-SEC-02 | #83 | `integration/auth.test.js` |
-| SEC-6 | Security checklist 5.1 | #83 | `integration/audit.test.js`, `integration/status.test.js` |
+| TST-1 | Unit/integration suite only | Pending #95 | `integration/aptitude-api.test.js`, `unit/aptitude-models.test.js` |
+| TST-2 | Unit/integration suite only | Pending #95 | `integration/aptitude-api.test.js` |
+| TST-3 | TC-TST-01 | Pending #95 | `integration/aptitude-recovery.test.js` |
+| TST-4 | TC-TST-01 | Pending #95 | `integration/aptitude-recovery.test.js`, `integration/aptitude-indexes.test.js` |
+| TST-5 | TC-TST-02 | Pending #95 | `integration/aptitude-recovery.test.js`, `unit/attempt-timeout-job.test.js` |
+| TST-6 | TC-TST-02 | Pending #95 | `unit/aptitude-scoring.test.js` |
+| ANL-1 | Unit/integration suite only | Pending #95 | `integration/analytics.test.js` |
+| ANL-2 | TC-ANL-01 | Pending #95 | `integration/analytics.test.js` |
+| ANL-3 | TC-ANL-01 | Pending #95 | `integration/analytics.test.js` |
+| PERF-1 | TC-PERF-01 | TC-PERF-01 | `integration/listing-search-performance.test.js`; load run (#89) |
+| PERF-2 | TC-PERF-01 | TC-PERF-01 | Load run (#89) |
+| PERF-3 | Reviewed in Sprint 3 | PERF-3 | `integration/analytics-performance.test.js`; load run (#89) |
+| SAFE-1 | TC-TST-01 | Pending #95 | `integration/aptitude-recovery.test.js` |
+| SAFE-2 | Reviewed in Sprint 3 | Pending #95 | `integration/identity-edge-cases.test.js` |
+| SEC-1 | TC-SEC-01 | TC-SEC-01 | `unit/auth-service.test.js` |
+| SEC-2 | TC-SEC-02 | TC-SEC-02 (deployed-URL part, #85) | Deployed-URL check (#85) |
+| SEC-3 | TC-AUTH-04 | TC-AUTH-04 | `integration/rbac.test.js`, `integration/resume.test.js` |
+| SEC-4 | TC-SEC-01 | TC-SEC-01 | `unit/validate-middleware.test.js` |
+| SEC-5 | TC-SEC-02 | TC-SEC-02 | `integration/auth.test.js` |
+| SEC-6 | Security checklist 5.1 | SEC-6 | `integration/audit.test.js`, `integration/status.test.js` |
 | DOM-1 | Not listed | TC-APP-02, TC-APP-04 | `integration/apply.test.js` |
-| DOM-2 | Not listed | #83 | `integration/settings.test.js` |
-| DOM-3 | Not listed | #95 | `integration/analytics.test.js` |
+| DOM-2 | Not listed | DOM-2 | `integration/settings.test.js` |
+| DOM-3 | Not listed | Pending #95 | `integration/analytics.test.js` |
 
 Quality attributes QA-1 to QA-5 are measured in the System Validation Report (UAT and devices in #97, QA-3 and QA-4 from the automated suites), not by individual test cases.
