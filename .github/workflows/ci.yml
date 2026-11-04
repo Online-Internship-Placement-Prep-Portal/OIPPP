@@ -1,4 +1,4 @@
-name: CI
+﻿name: CI
 
 on:
   push:
@@ -48,7 +48,13 @@ jobs:
           cache-dependency-path: client/package-lock.json
       - run: npm ci
       - run: npm run lint
-      - run: npm test
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: client-coverage
+          path: client/coverage
+          if-no-files-found: ignore
       - run: npm run build
       - name: Dependency audit
         run: npm audit --omit=dev --audit-level=high
@@ -62,3 +68,4 @@ jobs:
           python-version: '3.11'
       # The docs check uses only the standard library, so there is nothing for pip-audit to scan.
       - run: python server/scripts/check-member4-docs.py
+
