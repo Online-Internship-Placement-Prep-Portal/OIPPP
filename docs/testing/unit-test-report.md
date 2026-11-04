@@ -40,6 +40,71 @@
 
 The coverage run also completed with 40 suites and 486 tests passed (0 failed); duration 192.917 seconds.
 
+## 2a. Per-file results (rerun 4 Nov 2026)
+
+Rerun on commit `9b1eab7` (dev, after #107–#109) with Node.js 24.21.0 on Windows 11, using `npx jest --json` and `npx vitest run --reporter=json`. Server: 40 suites, 487 tests, all passed (one more than the v1.0.0 count of 486). Client: 6 files, 53 tests, all passed. Server tests use an in-memory MongoDB.
+
+### Server unit (14 files, 203 tests)
+
+| File | Module | What it covers | Tests | Passed | Failed | Time (s) |
+|---|---|---|---|---|---|---|
+| `unit/application-transitions.test.js` | Applications | REV-2 state machine | 9 | 9 | 0 | 0.19 |
+| `unit/aptitude-auth.test.js` | Aptitude | See file | 5 | 5 | 0 | 0.40 |
+| `unit/aptitude-models.test.js` | Aptitude | Question — TST-1; Test — TST-2; Attempt — TST-3 to TST-5 / SAFE-1 | 44 | 44 | 0 | 5.18 |
+| `unit/aptitude-scoring.test.js` | Aptitude | scoreAttempt — TST-6 auto-evaluation; publicResult | 9 | 9 | 0 | 5.44 |
+| `unit/attempt-timeout-job.test.js` | Aptitude | See file | 3 | 3 | 0 | 0.40 |
+| `unit/auth-middleware.test.js` | Identity | authenticate; allow | 11 | 11 | 0 | 3.15 |
+| `unit/auth-service.test.js` | Identity | register; login | 14 | 14 | 0 | 3.92 |
+| `unit/auth-validation.test.js` | Identity | registerSchema; loginSchema | 21 | 21 | 0 | 3.03 |
+| `unit/identity-infrastructure.test.js` | Platform | error middleware; resume storage helpers | 17 | 17 | 0 | 5.48 |
+| `unit/listing-model.test.js` | Listings | Listing model - Issue #14 | 18 | 18 | 0 | 1.83 |
+| `unit/listing-service.test.js` | Listings | Listing service unit tests - Issue #15 | 11 | 11 | 0 | 4.98 |
+| `unit/profile-model.test.js` | Identity | Profile Model Validation | 14 | 14 | 0 | 4.97 |
+| `unit/user-profile-schema.test.js` | Identity | User schema; Profile schema | 17 | 17 | 0 | 8.06 |
+| `unit/validate-middleware.test.js` | Platform | hasOperatorKey; validate | 10 | 10 | 0 | 0.54 |
+
+### Server integration (26 files, 284 tests)
+
+| File | Module | What it covers | Tests | Passed | Failed | Time (s) |
+|---|---|---|---|---|---|---|
+| `integration/admin.test.js` | Admin | Admin user management API; GET /api/admin/users; GET /api/auth/me | 15 | 15 | 0 | 12.23 |
+| `integration/analytics-performance.test.js` | Analytics | See file | 2 | 2 | 0 | 8.76 |
+| `integration/analytics.test.js` | Analytics | student readiness GET /analytics/me (ANL-1); placement statistics GET /analytics/placements (ANL-2); placement CSV export (ANL-3) | 19 | 19 | 0 | 12.54 |
+| `integration/apply.test.js` | Applications | TC-APP-01: apply once and record history (APP-1, APP-4, APP-5); TC-APP-02: closed listing or not eligible (APP-2, APP-3); Confidentiality: cross-user application isolation | 10 | 10 | 0 | 12.01 |
+| `integration/aptitude-api.test.js` | Aptitude | question bank and test authoring (#25); timed attempts and recovery (#26) | 44 | 44 | 0 | 15.10 |
+| `integration/aptitude-indexes.test.js` | Aptitude | See file | 5 | 5 | 0 | 8.08 |
+| `integration/aptitude-recovery.test.js` | Aptitude | refresh and closed tab (SAFE-1); dropped connection (SAFE-1, TST-4); deadline passes while offline (TST-5) | 9 | 9 | 0 | 13.06 |
+| `integration/audit.test.js` | Admin | audit log is append-only (SEC-6, APP-4) | 2 | 2 | 0 | 2.83 |
+| `integration/auth.test.js` | Identity | Authentication API; Student SRN (AUTH-1); Password rule (AUTH-3) | 20 | 20 | 0 | 16.24 |
+| `integration/bookmarks.test.js` | Listings | Issue #11: bookmarks | 10 | 10 | 0 | 12.17 |
+| `integration/health.test.js` | Platform | See file | 2 | 2 | 0 | 2.99 |
+| `integration/identity-edge-cases.test.js` | Identity | Login account status; Admin user management edge cases; Profile and resume failure paths | 20 | 20 | 0 | 12.48 |
+| `integration/identity-flow.test.js` | Identity | Identity flow | 8 | 8 | 0 | 14.13 |
+| `integration/listing-recommendations.test.js` | Listings | Issue #12: skill-match listing recommendations | 5 | 5 | 0 | 12.01 |
+| `integration/listing-search-performance.test.js` | Listings | Issue #13: listing search performance over 5000 listings | 4 | 4 | 0 | 9.62 |
+| `integration/listing-search.test.js` | Listings | Issue #10: listing search, filters, sorting and pagination | 13 | 13 | 0 | 11.48 |
+| `integration/listings.test.js` | Listings | Issue #9: recruiter listing management; Additional listing integration coverage - Issue #15; listing reads for the client | 16 | 16 | 0 | 11.76 |
+| `integration/notifications.test.js` | Applications | REV-4: in-app notification and email; GET /api/notifications | 6 | 6 | 0 | 11.70 |
+| `integration/profile.test.js` | Identity | Student profile API | 12 | 12 | 0 | 11.78 |
+| `integration/rbac.test.js` | Identity | Role-based access control with real JWT authentication | 13 | 13 | 0 | 11.79 |
+| `integration/reliability.test.js` | Platform | reliability and tampering (SAFE-1, SO-2, SEC-4) | 6 | 6 | 0 | 12.15 |
+| `integration/request-log.test.js` | Platform | request log (SAD 4.4) | 4 | 4 | 0 | 4.43 |
+| `integration/resume.test.js` | Identity | Resume upload; Current profile resume download; Application resume download | 19 | 19 | 0 | 12.42 |
+| `integration/review.test.js` | Applications | REV-1: recruiter applicant list; REV-3: rejection needs a reason from the fixed list | 7 | 7 | 0 | 12.16 |
+| `integration/settings.test.js` | Admin | Admin settings; One-offer policy (DOM-2, BR-5) | 8 | 8 | 0 | 12.11 |
+| `integration/status.test.js` | Applications | TC-REV-01: status lifecycle (REV-2, REV-4, APP-4) | 5 | 5 | 0 | 12.21 |
+
+### Client (6 files, 53 tests)
+
+| File | Module | What it covers | Tests | Passed | Failed | Time (s) |
+|---|---|---|---|---|---|---|
+| `test/api-client.test.js` | Identity | toApiError; handleResponseError | 7 | 7 | 0 | 0.03 |
+| `test/guard.test.jsx` | Identity | RequireRole (AUTH-6) | 3 | 3 | 0 | 0.11 |
+| `test/pages.test.jsx` | Identity | Register; Login; Applicants (recruiter) | 11 | 11 | 0 | 3.42 |
+| `test/status-format.test.js` | Applications | status transitions (REV-2); formatting | 7 | 7 | 0 | 0.00 |
+| `test/timer.test.js` | Identity | server-synced countdown; answer auto-save (TST-4) | 9 | 9 | 0 | 0.00 |
+| `test/validation.test.js` | Identity | SRN (AUTH-1); password rule (AUTH-3); validateRegister | 16 | 16 | 0 | 0.01 |
+
 ## 3. Client test results
 
 **Command:** `npm test -- --run` (from `client/`)
