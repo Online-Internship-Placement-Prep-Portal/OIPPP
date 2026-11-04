@@ -4,6 +4,13 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { AuthProvider } from './auth/AuthContext';
 import './styles.css';
+import '@fontsource/inter/400.css';
+import '@fontsource/inter/500.css';
+import '@fontsource/inter/600.css';
+import '@fontsource/inter/700.css';
+
+import '@fontsource/playfair-display/600.css';
+import '@fontsource/playfair-display/700.css';
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
