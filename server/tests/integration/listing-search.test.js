@@ -111,6 +111,29 @@ describe('Issue #10: listing search, filters, sorting and pagination', () => {
     });
   });
 
+  test('allows guest search and filters by maxStipend', async () => {
+    await Listing.create(listing({
+      title: 'Guest Max Stipend 8000',
+      stipend: 8000,
+    }));
+    await Listing.create(listing({
+      title: 'Guest Max Stipend 15000',
+      stipend: 15000,
+    }));
+    await Listing.create(listing({
+      title: 'Guest Max Stipend 25000',
+      stipend: 25000,
+    }));
+
+    const res = await request(app)
+      .get('/api/listings?search=Guest%20Max%20Stipend&maxStipend=15000');
+
+    expect(res.status).toBe(200);
+    expect(res.body.listings.map(item => item.title).sort()).toEqual([
+      'Guest Max Stipend 15000',
+      'Guest Max Stipend 8000',
+    ]);
+  });
   test('rejects invalid sorting and stipend ranges', async () => {
     const badSort = await request(app).get('/api/listings?sortBy=password');
     expect(badSort.status).toBe(400);
