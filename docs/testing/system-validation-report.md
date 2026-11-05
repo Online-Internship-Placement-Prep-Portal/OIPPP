@@ -50,11 +50,13 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 
 | Module | Owner | Test cases | Pass | Partial | Fail | Blocked | Not run |
 |:--|:--|--:|--:|--:|--:|--:|--:|
-| Identity and security | Deekshith Gowda G (#84) | 14 | 0 | 0 | 0 | 0 | 14 |
+| Identity and security | Deekshith Gowda G (#84) | 14 | 1 | 0 | 0 | 0 | 13 |
 | Listings and search | Sharath H G (#88) | 11 | 4 | 2 | 0 | 2 | 3 |
 | Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API) | 0 | 0 | 0 | UI steps pending |
 | Aptitude and analytics | E S Sukruth (#96) | Pending #95 | | | | | |
-| **Total** | | **34 + #95** | **13** | **2** | **0** | **2** | **17 + #95** |
+| **Total** | | **34 + #95** | **14** | **2** | **0** | **2** | **16 + #95** |
+
+Identity also ran 12 login, RBAC and injection checks that passed on the deployed build, and an XSS check that passed at the API with the page-rendering check pending (section 4.3). They are not counted above because they are not separate test cases in identity.md.
 
 ### 4.2 Applications, review and notifications
 
@@ -87,7 +89,37 @@ The status changes themselves returned 200 at once, so email failures did not fa
 
 ### 4.3 Identity and security
 
-Pending #84. The 14 test cases are in [test-cases/identity.md](test-cases/identity.md).
+Issue #84 testing was partially executed against the deployed test build. Of the 14 test cases in identity.md, PROF-1 (student profile editing) passed on the deployed UI; the other checks below support AUTH-6 and SEC-4 but do not complete a listed test case.
+
+**Deployed UI checks**
+
+| Check | Result |
+|:--|:--|
+| Student login | Pass |
+| Student profile editing and persistence | Pass |
+| Student access to Admin UI | Pass |
+| Recruiter login | Pass |
+| Recruiter access to Admin UI | Pass |
+| Unauthenticated access to Admin UI | Pass |
+
+**Deployed API checks**
+
+| Check | Result |
+|:--|:--|
+| Unauthenticated GET /auth/me | Pass, HTTP 401 |
+| Student GET /admin/users | Pass, HTTP 403 |
+| Recruiter GET /admin/users | Pass, HTTP 403 |
+| Admin GET /admin/users | Pass, HTTP 200 |
+| `$ne` injection | Pass, HTTP 400 VALIDATION |
+| `$gt` injection | Pass, HTTP 400 VALIDATION |
+| `$where` injection | Pass, HTTP 400 VALIDATION |
+| XSS login payload | API validation passed, HTTP 400; website rendering verification pending |
+
+**Local automated tests**
+
+Eight integration test suites were run locally: identity-flow, identity-edge-cases, RBAC, auth, profile, resume, admin and audit. Result: 109 tests passed, 0 failed. These are local automated results, not deployed system-test passes.
+
+The remaining identity test cases have not yet been fully executed against the deployed build. See [test-cases/identity.md](test-cases/identity.md).
 
 ### 4.4 Listings and search
 
@@ -165,7 +197,7 @@ Every SRS requirement ID and whether it has a passed test on the test build. Fil
 | Area | Requirement | Result | Source |
 |:--|:--|:--|:--|
 | Performance | PERF-1, PERF-2, PERF-3 | Issue #88 rerun: TC-PERF-01 and PERF-3 blocked pending dedicated environment and 2,000-student dataset. Historical 30-10-2026 results only: search p95 37 ms, other APIs p95 62 ms at 50 VUs; dashboard render 0.19–0.29 s for 2,000 students | #89, #88 |
-| Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 also on the deployed build (section 4.6). SEC-2 TLS check pending | #85 ([ZAP report](zap-baseline-report.md)), #84 |
+| Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 also on the deployed build (section 4.6); SEC-4 injection checks (`$ne`, `$gt`, `$where`) also pass on the deployed build (section 4.3). SEC-2 TLS check pending | #85 ([ZAP report](zap-baseline-report.md)), #84 |
 | Safety | SAFE-1, SAFE-2 | | #96 |
 | Usability | QA-1 | | #97 |
 | Availability | QA-2 | Not measurable within the semester (Test Plan section 4) | |
@@ -192,8 +224,8 @@ Observations (not defects against the SRS):
 
 | Metric | Value |
 |:--|:--|
-| Test cases executed | 9 applications API cases and 4 listings cases fully passed; 2 additional listings cases partial, 04-11-2026 |
-| Test cases passed / failed | 13 / 0 (full passes; partial cases excluded) |
+| Test cases executed | 9 applications API cases, 4 listings cases and 1 identity case fully passed; 2 additional listings cases partial, 04-11-2026 |
+| Test cases passed / failed | 14 / 0 (full passes; partial cases excluded) |
 | Issue #88 partial cases | 2 |
 | Issue #88 blocked cases | 2 |
 | Issue #88 not-run cases | 3 |
@@ -207,6 +239,7 @@ Observations (not defects against the SRS):
 
 Issue #88 has partial validation evidence: four listings scenarios passed, two were partially tested, and two performance scenarios remain blocked. Three listings UI scenarios were not run. No confirmed new defect was identified during the executed checks. This report is not a final release sign-off. Complete the blocked and unrun checks, investigate the public listing-count difference, and verify the deployed commit SHA before closing Issue #88.
 
+Issue #84 has partial validation evidence: PROF-1 passed on the deployed UI, the login, RBAC and injection checks passed on the deployed build, and 109 local integration tests passed. The XSS rendering check and the other 13 identity test cases still need a deployed run before closing Issue #84.
 
 | Role | Name | Date |
 |:--|:--|:--|

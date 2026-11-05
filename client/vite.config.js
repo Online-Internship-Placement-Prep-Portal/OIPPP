@@ -1,4 +1,4 @@
-﻿import { defineConfig } from 'vite';
+import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
@@ -26,7 +26,6 @@ export default defineConfig({
     css: false,
     coverage: {
       provider: 'v8',
-      all: true,
       include: ['src/**/*.{js,jsx}'],
       exclude: ['src/test/**'],
       reporter: ['text', 'text-summary', 'html', 'lcov', 'json-summary'],
@@ -34,4 +33,3 @@ export default defineConfig({
     },
   },
 });
-

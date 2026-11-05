@@ -133,8 +133,8 @@ Actual results and execution status must be updated only after the tests are per
 | Steps             | 1. Log in as a student. 2. Open the profile page. 3. Edit branch, CGPA, graduation year, and skills. 4. Save the changes. |
 | Test data         | Valid branch, CGPA between 0 and 10, graduation year, and skills.                                                         |
 | Expected result   | Profile changes are saved and displayed correctly. CGPA must remain within the allowed range.                             |
-| Actual result     | Not run.                                                                                                                  |
-| Status            | Not run                                                                                                                   |
+| Actual result     | Changes saved and persisted on the deployed UI (SVR section 4.3).                                                         |
+| Status            | Pass (deployed UI)                                                                                                        |
 | Automated by      | Automation mapping to be confirmed from the relevant profile test files.                                                  |
 | Changes from v1.0 | New test case for student profile editing.                                                                                |
 
