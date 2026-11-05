@@ -156,7 +156,7 @@ Issue #96 run against the deployed test build on 05-11-2026 with [`server/script
 | TC-TST-03 — Question bank | Not run (admin) | Role checks pass: student and recruiter 403 on `/questions`; student questions carry no `answerIdx`. |
 | TC-TST-04 — Draft, publish, archive | Not run (admin) | Role check passes: student `POST /tests` 403; students see only published tests. |
 | TC-TST-05 — Single attempt | Pass (API) | Other student 404 on read/save/submit/result; `ATTEMPT_OPEN` before submit; submit idempotent (same `resultId`); later save 409 `ATTEMPT_CLOSED`; restart 409 `ATTEMPT_EXISTS`. |
-| TC-TST-06 — Save within 1 s | **Fail** | 20 saves measured at the client: median 931 ms, p95 1,023 ms, 4 of 20 over 1 s (one earlier save 2,832 ms). `GET /health` from the same laptop: median 694 ms, so the network to Render takes most of the time; server + database share about 240 ms. Bug to be raised for the module owner (draft ready). |
+| TC-TST-06 — Save within 1 s | **Fail** | 20 saves measured at the client: median 931 ms, p95 1,023 ms, 4 of 20 over 1 s (one earlier save 2,832 ms). `GET /health` from the same laptop: median 694 ms, so the network to Render takes most of the time; server + database share about 240 ms. Bug #118 (Low), assigned to the module owner. |
 | TC-ANL-01 — Placement statistics and CSV | Not run (admin) | Role checks pass: student and recruiter 403 on `/analytics/placements` and `/export`. |
 | TC-ANL-02 — Student progress | Pass (API) | New result appears at the end of the trend, `testsTaken` +1, average = mean of trend, weakest two topics, application counts match `/applications/mine`; a student with no results gets `averageScore: null`; recruiter 403. |
 | TC-DOM-03 — Per graduation year | Not run (admin) | |
@@ -231,6 +231,7 @@ Pending #97.
 | Issue | Title | Severity | Module | Found by | Status |
 |:--|:--|:--|:--|:--|:--|
 | #99 | API fails to start in production: Cannot find module 'mongodb' | Critical (blocks deployment) | Identity (resume storage) | Deployment, 02-11-2026 | Fixed in PR #100, merged and deployed 04-11-2026 |
+| #118 | TC-TST-06: answer saves exceed 1 s at the client on the Render build (TST-4) | Low (no data loss) | Aptitude | #96, 05-11-2026 | Open: mostly network latency to Render; owner to accept as a deployment limitation or retest |
 
 Observations (not defects against the SRS):
 

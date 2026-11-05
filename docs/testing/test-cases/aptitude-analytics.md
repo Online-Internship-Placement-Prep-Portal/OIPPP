@@ -121,7 +121,7 @@ Each case lists API steps (run with Postman, newman or `server/scripts/system-te
 | Test data | Placement Practice Test with no attempt for the student. |
 | Expected result | Every save returns 204 within 1,000 ms of being sent, measured at the client. Step 2 returns 400 `INVALID_ANSWER`. Step 3 returns 204 without a conflict. Step 4 returns 409 `STALE_VERSION`. In the UI "Saving…" changes to "✓ Saved" within a second, and a failed save shows "Not saved". |
 | Actual result | 20 saves from a team laptop to Render (Singapore): median 931 ms, p95 1,023 ms, max 1,191 ms; 16 of 20 under 1 s. In the first run 1 of 5 saves took 2,832 ms. Network baseline in the same run (`GET /health`, no database): median 694 ms, p95 990 ms, so about 240 ms of each save is server and database time. Out-of-range option 400 `INVALID_ANSWER`; lost-204 retry 204; stale different answer 409 `STALE_VERSION`. Evidence: `docs/testing/evidence/aptitude-save-latency.json`. |
-| Status | Fail — 4 of 20 saves over 1 s at the client; Render, 05-11-2026, `main` @ `1e07391` |
+| Status | Fail (bug #118) — 4 of 20 saves over 1 s at the client; Render, 05-11-2026, `main` @ `1e07391` |
 | Automated by | `server/tests/integration/aptitude-recovery.test.js` ("retrying a save whose 204 was lost…", "a different answer from a stale screen is still a conflict"); `aptitude-api.test.js` ("stale client versions and invalid snapshot answers are rejected"); client `client/src/test/pages.test.jsx` ("restores saved answers and auto-saves a new pick") |
 | Changes from v1.0 | New. v1.0 had no timing check for TST-4. The time is measured at the client, so the network round trip to Render counts; the `/health` baseline separates network time from server time. |
 
