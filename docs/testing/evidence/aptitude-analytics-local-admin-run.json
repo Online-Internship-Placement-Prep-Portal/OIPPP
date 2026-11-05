@@ -1,0 +1,554 @@
+{
+  "api": "http://localhost:5000/api",
+  "startedAt": "2026-11-05T14:41:00.570Z",
+  "finishedAt": "2026-11-05T14:56:52.952Z",
+  "options": [
+    "--admin",
+    "--timeout",
+    "--safe2"
+  ],
+  "students": [
+    "student0187@students.example.com",
+    "student0188@students.example.com"
+  ],
+  "recruiter": "recruiter07@example.com",
+  "passed": 89,
+  "failed": 0,
+  "results": [
+    {
+      "tc": "ENV",
+      "name": "GET /health",
+      "pass": true,
+      "detail": "200 {\"status\":\"ok\"}"
+    },
+    {
+      "tc": "TST-RBAC",
+      "name": "unauthenticated GET /tests is 401",
+      "pass": true,
+      "detail": "401"
+    },
+    {
+      "tc": "TST-RBAC",
+      "name": "recruiter GET /tests is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-1",
+      "name": "recruiter GET /questions is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-1",
+      "name": "student GET /questions is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-1",
+      "name": "student POST /questions is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-2",
+      "name": "student POST /tests is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-2",
+      "name": "student test list shows only PUBLISHED tests",
+      "pass": true,
+      "detail": "5 tests: Placement Practice Test 5 (20q/30m, myAttempt=none); Placement Practice Test 4 (20q/30m, myAttempt=none); Placement Practice Test 3 (20q/30m, myAttempt=none); Placement Practice Test 2 (20q/30m, myAttempt=none); Placement Practice Test 1 (20q/30m, myAttempt=SUBMITTED)"
+    },
+    {
+      "tc": "TC-TST-01",
+      "name": "start returns 201 with endsAt and questions",
+      "pass": true,
+      "detail": "201, 20 questions, endsAt 2026-11-05T15:11:04.036Z"
+    },
+    {
+      "tc": "TST-5",
+      "name": "endsAt = startedAt + durationMin (server clock)",
+      "pass": true,
+      "detail": "30 min vs 30"
+    },
+    {
+      "tc": "TST-1",
+      "name": "student attempt questions carry no answerIdx",
+      "pass": true,
+      "detail": "questionId,text,topic,difficulty,options"
+    },
+    {
+      "tc": "TC-TST-01",
+      "name": "5 saves acknowledged with 204 (incl. option 0)",
+      "pass": true,
+      "detail": "ms: 29, 9, 21, 18, 15"
+    },
+    {
+      "tc": "TST-4",
+      "name": "each save acknowledged within 1 s (client round trip)",
+      "pass": true,
+      "detail": "max 29 ms"
+    },
+    {
+      "tc": "TST-4",
+      "name": "changing an answer returns 204",
+      "pass": true,
+      "detail": "204"
+    },
+    {
+      "tc": "SAFE-1",
+      "name": "retry of an already stored answer (lost 204) is 204, even with an old version",
+      "pass": true,
+      "detail": "204"
+    },
+    {
+      "tc": "TST-4",
+      "name": "different answer with a stale version is 409 STALE_VERSION",
+      "pass": true,
+      "detail": "409 STALE_VERSION"
+    },
+    {
+      "tc": "TST-4",
+      "name": "out-of-range option is 400 INVALID_ANSWER",
+      "pass": true,
+      "detail": "400 INVALID_ANSWER"
+    },
+    {
+      "tc": "SAFE-1",
+      "name": "refresh (GET attempt) returns all 5 acknowledged answers and the original endsAt",
+      "pass": true,
+      "detail": "200, answers {\"6aec9549605f8121beee20c3\":0,\"6aec9549605f8121beee20c4\":2,\"6aec9549605f8121beee20c5\":2,\"6aec9549605f8121beee20c6\":3,\"6aec9549605f8121beee20c7\":0}"
+    },
+    {
+      "tc": "SAFE-1",
+      "name": "remaining time = endsAt − serverTime, counted from the original start",
+      "pass": true,
+      "detail": "1800 s left"
+    },
+    {
+      "tc": "TC-TST-01",
+      "name": "reopen (start again) returns 200 with the same attempt and endsAt",
+      "pass": true,
+      "detail": "200, same id true"
+    },
+    {
+      "tc": "TST-3",
+      "name": "3 concurrent starts all resume the same attempt",
+      "pass": true,
+      "detail": "200,200,200"
+    },
+    {
+      "tc": "TST-3",
+      "name": "another student cannot read, save or submit A's attempt (404)",
+      "pass": true,
+      "detail": "404,404,404"
+    },
+    {
+      "tc": "TST-6",
+      "name": "result before submission is 409 ATTEMPT_OPEN",
+      "pass": true,
+      "detail": "409 ATTEMPT_OPEN"
+    },
+    {
+      "tc": "TST-6",
+      "name": "submit returns 200 with score and per-topic breakdown that sums to the totals",
+      "pass": true,
+      "detail": "200, 4/20 = 20%, topics Quantitative 2/5, Logical 0/5, Verbal 1/5, Technical 1/5, 34 ms"
+    },
+    {
+      "tc": "PERF-2",
+      "name": "submit round trip measured at the client < 1 s (includes the network to Render)",
+      "pass": true,
+      "detail": "34 ms"
+    },
+    {
+      "tc": "TST-6",
+      "name": "repeat submit returns the same result",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-6",
+      "name": "GET result matches submit",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-6",
+      "name": "another student cannot read A's result (404)",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "tc": "TST-3",
+      "name": "attempt is SUBMITTED / MANUAL",
+      "pass": true,
+      "detail": "SUBMITTED MANUAL"
+    },
+    {
+      "tc": "TST-5",
+      "name": "answer after submission is 409 ATTEMPT_CLOSED",
+      "pass": true,
+      "detail": "409 ATTEMPT_CLOSED"
+    },
+    {
+      "tc": "TST-3",
+      "name": "starting a submitted test again is 409 ATTEMPT_EXISTS",
+      "pass": true,
+      "detail": "409 ATTEMPT_EXISTS"
+    },
+    {
+      "tc": "TST-3",
+      "name": "test list shows myAttempt SUBMITTED for that test",
+      "pass": true,
+      "detail": "{\"attemptId\":\"6aec9580483d814e4b5535d9\",\"status\":\"SUBMITTED\"}"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "GET /analytics/me shows the new result at the end of the trend",
+      "pass": true,
+      "detail": "200, testsTaken 1 -> 2, last Placement Practice Test 5 20"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "testsTaken increased by 1; trend oldest first",
+      "pass": true,
+      "detail": "2"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "averageScore is the mean of the trend scores",
+      "pass": true,
+      "detail": "35 vs 35"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "weakestTopics = first two of topics (weakest first)",
+      "pass": true,
+      "detail": "Logical 10.0%, Technical 30.0%"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "application counts per status match GET /applications/mine",
+      "pass": true,
+      "detail": "{\"APPLIED\":1,\"SHORTLISTED\":1,\"INTERVIEW\":0,\"OFFER\":0,\"REJECTED\":1} total 3"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "recruiter GET /analytics/me is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "ANL-2",
+      "name": "student and recruiter GET /analytics/placements(+/export) are 403",
+      "pass": true,
+      "detail": "403,403,403"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "student with no tests: averageScore null, empty trend/topics",
+      "pass": true,
+      "detail": "student0200"
+    },
+    {
+      "tc": "TST-1",
+      "name": "admin creates 2-option and 6-option questions (201, DTO has answerIdx)",
+      "pass": true,
+      "detail": "201, 201"
+    },
+    {
+      "tc": "TST-1",
+      "name": "invalid question (1 option) is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "invalid question (7 options) is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "invalid question (answerIdx out of range) is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "invalid question (fractional answerIdx) is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "invalid question (unknown topic) is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "invalid question (unknown difficulty) is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "invalid question (duplicate options) is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "edit with the current version is 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-1",
+      "name": "edit with a stale version is 409 STALE_VERSION",
+      "pass": true,
+      "detail": "409 STALE_VERSION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "edit with answerIdx outside the current options is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-1",
+      "name": "archive (soft delete) is 200 archived=true",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-1",
+      "name": "archived question listed under archived=true, not in the active list",
+      "pass": true,
+      "detail": "active total 101"
+    },
+    {
+      "tc": "TST-2",
+      "name": "4 questions is 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-2",
+      "name": "9 minutes and 121 minutes are 400",
+      "pass": true,
+      "detail": "400, 400"
+    },
+    {
+      "tc": "TST-2",
+      "name": "duplicate question IDs are 400",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "TST-2",
+      "name": "an archived question is 400 INVALID_QUESTIONS",
+      "pass": true,
+      "detail": "400 INVALID_QUESTIONS"
+    },
+    {
+      "tc": "TST-2",
+      "name": "5 questions / 120 minutes creates a DRAFT (201)",
+      "pass": true,
+      "detail": "201"
+    },
+    {
+      "tc": "TST-2",
+      "name": "student cannot start a DRAFT test (404)",
+      "pass": true,
+      "detail": "404 NOT_FOUND"
+    },
+    {
+      "tc": "TST-2",
+      "name": "draft content edit is 200",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-2",
+      "name": "publish with a stale version is 409 STALE_VERSION",
+      "pass": true,
+      "detail": "409 STALE_VERSION"
+    },
+    {
+      "tc": "TST-2",
+      "name": "publish is 200 PUBLISHED",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-2",
+      "name": "editing a published test is 409 TEST_LOCKED",
+      "pass": true,
+      "detail": "409 TEST_LOCKED"
+    },
+    {
+      "tc": "TST-2",
+      "name": "published test appears in the student list",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "tc": "TST-2",
+      "name": "archive is 200 ARCHIVED",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-2",
+      "name": "republishing an archived test is 409",
+      "pass": true,
+      "detail": "409 TEST_LOCKED"
+    },
+    {
+      "tc": "TST-2",
+      "name": "archived test is hidden from students",
+      "pass": true,
+      "detail": ""
+    },
+    {
+      "tc": "ANL-2",
+      "name": "GET /analytics/placements (whole batch) is 200",
+      "pass": true,
+      "detail": "53 ms, students 200, placed 99, companies 9, listings 554, branches CSE:65.3 EEE:64.0"
+    },
+    {
+      "tc": "PERF-3",
+      "name": "placement statistics API < 3 s",
+      "pass": true,
+      "detail": "53 ms"
+    },
+    {
+      "tc": "ANL-2",
+      "name": "placed students ≤ offers; offers per company sum = offers per listing sum",
+      "pass": true,
+      "detail": "placed 99, offers 99/99"
+    },
+    {
+      "tc": "DOM-3",
+      "name": "filter branch=CSE gradYear=2027 narrows every metric",
+      "pass": true,
+      "detail": "students 26, placed 17"
+    },
+    {
+      "tc": "DOM-3",
+      "name": "branch filter ignores case",
+      "pass": true,
+      "detail": "26"
+    },
+    {
+      "tc": "DOM-3",
+      "name": "per-graduation-year cohorts are each a subset of the batch",
+      "pass": true,
+      "detail": "{\"2025\":0,\"2026\":0,\"2027\":104,\"2028\":96}"
+    },
+    {
+      "tc": "DOM-3",
+      "name": "empty cohort (gradYear 2099) returns 0 students and empty lists",
+      "pass": true,
+      "detail": "0"
+    },
+    {
+      "tc": "DOM-3",
+      "name": "gradYear 1999 is 400 VALIDATION",
+      "pass": true,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "ANL-3",
+      "name": "CSV export is 200 text/csv attachment",
+      "pass": true,
+      "detail": "200 text/csv; charset=utf-8, 89 lines"
+    },
+    {
+      "tc": "ANL-3",
+      "name": "CSV student and placed counts equal the filtered dashboard",
+      "pass": true,
+      "detail": "csv summary|students||26 / summary|placedStudents||17"
+    },
+    {
+      "tc": "ANL-3",
+      "name": "recruiter export is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-5",
+      "name": "answer ~2 s before endsAt is accepted (204)",
+      "pass": true,
+      "detail": "204 null"
+    },
+    {
+      "tc": "TST-5",
+      "name": "answer 5 s after endsAt is 409 ATTEMPT_CLOSED (hard cutoff, inside the old 30 s window)",
+      "pass": true,
+      "detail": "409 ATTEMPT_CLOSED"
+    },
+    {
+      "tc": "TC-TST-02",
+      "name": "answer 40 s after endsAt is 409 ATTEMPT_CLOSED",
+      "pass": true,
+      "detail": "409 ATTEMPT_CLOSED"
+    },
+    {
+      "tc": "TC-TST-02",
+      "name": "attempt was auto-submitted by the server: SUBMITTED / TIMEOUT",
+      "pass": true,
+      "detail": "SUBMITTED TIMEOUT, submittedAt 2026-11-05T14:51:06.675Z, 1.0 s after endsAt"
+    },
+    {
+      "tc": "TC-TST-02",
+      "name": "score = 4/6 from saved answers (66.67%); per-topic Quantitative 2/2, Logical 2/2, Technical 0/2",
+      "pass": true,
+      "detail": "4/6 = 66.66666666666667, Quantitative 2/2 100.0%, Logical 2/2 100.0%, Technical 0/2 0.0%"
+    },
+    {
+      "tc": "SAFE-2",
+      "name": "admin deactivates student0199@students.example.com (200)",
+      "pass": true,
+      "detail": "200 undefined"
+    },
+    {
+      "tc": "SAFE-2",
+      "name": "the existing token is refused after deactivation",
+      "pass": true,
+      "detail": "401 UNAUTHENTICATED"
+    },
+    {
+      "tc": "SAFE-2",
+      "name": "login is refused after deactivation",
+      "pass": true,
+      "detail": "403 FORBIDDEN"
+    },
+    {
+      "tc": "SAFE-2",
+      "name": "user record kept, status DISABLED",
+      "pass": true,
+      "detail": "{\"status\":\"DISABLED\",\"email\":\"student0199@students.example.com\"}"
+    },
+    {
+      "tc": "SAFE-2",
+      "name": "admin can still read the profile resume (or 404 if none was uploaded)",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "tc": "SAFE-2",
+      "name": "after deactivation the batch still counts the same results and applications",
+      "pass": true,
+      "detail": "results 202 -> 202, applications 600 -> 600, students 200 -> 200"
+    }
+  ],
+  "csvSample": "section,group,detail,value\nfilter,branch,,CSE\nfilter,gradYear,,2027\nsummary,students,,26\nsummary,placedStudents,,17\noffersPerCompany,Hooli,,6\noffersPerCompany,Cyberdyne,,4\noffersPerCompany,Stark Systems,,4\noffersPerCompany,Globex,,1\noffersPerCompany,Initech,,1\noffersPerCompany,Tyrell Robotics,,1\napplicationsPerListing,Product Design Intern 2816,Stark Systems,2"
+}

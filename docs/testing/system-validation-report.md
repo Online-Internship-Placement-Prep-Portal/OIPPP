@@ -53,8 +53,8 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 | Identity and security | Deekshith Gowda G (#84) | 14 | 1 | 0 | 0 | 0 | 13 |
 | Listings and search | Sharath H G (#88) | 11 | 4 | 2 | 0 | 2 | 3 |
 | Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API) | 0 | 0 | 0 | UI steps pending |
-| Aptitude and analytics | E S Sukruth (#96) | 17 | 3 | 1 | 1 | 0 | 12 |
-| **Total** | | **51** | **17** | **3** | **1** | **2** | **28** |
+| Aptitude and analytics | E S Sukruth (#96) | 17 | 15 (3 Render, 12 local) | 1 | 1 | 0 | 0 |
+| **Total** | | **51** | **29** | **3** | **1** | **2** | **16** |
 
 Identity also ran 12 login, RBAC and injection checks that passed on the deployed build, and an XSS check that passed at the API with the page-rendering check pending (section 4.3). They are not counted above because they are not separate test cases in identity.md.
 
@@ -147,24 +147,34 @@ The short-deadline listing was OPEN on an early poll and CLOSED on a later GET. 
 
 ### 4.5 Aptitude and analytics
 
-Issue #96 run against the deployed test build on 05-11-2026 with [`server/scripts/system-test-aptitude.js`](../../server/scripts/system-test-aptitude.js) (API, same calls as Postman). Deployed `main` was `1e07391`; the exact SHA was not re-checked on Render Events. Evidence JSON is in [`evidence/`](evidence/). Test cases: [test-cases/aptitude-analytics.md](test-cases/aptitude-analytics.md).
+Issue #96, run on 05-11-2026 with [`server/scripts/system-test-aptitude.js`](../../server/scripts/system-test-aptitude.js) (API, same calls as Postman) and by hand in a browser. Test cases: [test-cases/aptitude-analytics.md](test-cases/aptitude-analytics.md). Evidence JSON: [`evidence/`](evidence/).
 
-| Test case | Result | Evidence and outstanding work |
-|:--|:--|:--|
-| TC-TST-01 — Resume after refresh / closed tab | Pass (API) | Start 201, 20 questions, `endsAt` = start + 30 min, no answer keys. 5 saves 204 (incl. option 0) and a changed answer; refresh returned all answers and the same `endsAt`; restart returned 200 with the same attempt; 3 concurrent starts resolved to one attempt. UI steps pending. |
-| TC-TST-02 — Auto-submit at end time | Partial | A 30-minute *Placement Practice Test 2* attempt (`student0188`, 20 answers saved, then no calls; `endsAt` 06:00:38 UTC) was `SUBMITTED` / `TIMEOUT` when checked at 14:31 UTC, scored 20/20 from the saved answers, and a later save returned 409 `ATTEMPT_CLOSED`. `submittedAt` was the time of the check, not `endsAt`: the free Render instance had gone to sleep, so the one-second sweep was not running and the read-time expiry check closed the attempt (DEVIATIONS row 11). No late answer was accepted and no time was added. The 10-minute `ST-96` run with 5 s / 40 s late answers needs the admin account. |
-| TC-TST-03 — Question bank | Not run (admin) | Role checks pass: student and recruiter 403 on `/questions`; student questions carry no `answerIdx`. |
-| TC-TST-04 — Draft, publish, archive | Not run (admin) | Role check passes: student `POST /tests` 403; students see only published tests. |
-| TC-TST-05 — Single attempt | Pass (API) | Other student 404 on read/save/submit/result; `ATTEMPT_OPEN` before submit; submit idempotent (same `resultId`); later save 409 `ATTEMPT_CLOSED`; restart 409 `ATTEMPT_EXISTS`. |
-| TC-TST-06 — Save within 1 s | **Fail** | 20 saves measured at the client: median 931 ms, p95 1,023 ms, 4 of 20 over 1 s (one earlier save 2,832 ms). `GET /health` from the same laptop: median 694 ms, so the network to Render takes most of the time; server + database share about 240 ms. Bug #118 (Low), assigned to the module owner. |
-| TC-ANL-01 — Placement statistics and CSV | Not run (admin) | Role checks pass: student and recruiter 403 on `/analytics/placements` and `/export`. |
-| TC-ANL-02 — Student progress | Pass (API) | New result appears at the end of the trend, `testsTaken` +1, average = mean of trend, weakest two topics, application counts match `/applications/mine`; a student with no results gets `averageScore: null`; recruiter 403. |
-| TC-DOM-03 — Per graduation year | Not run (admin) | |
-| TC-SAFE-01 — Browser refresh / close / offline | Not run | Browser check, run with #97 on each browser. |
-| TC-SAFE-02 — Deactivation keeps data | Not run (admin) | Run with `--admin --safe2` on one seeded student. |
-| UI-TST-01 to UI-ANL-02 | Not run | Manual UI steps. |
+Two environments are used, and every result says which:
 
-**Issue #96 summary (05-11-2026):** 3 Pass (API), 1 Partial, 1 Fail, 12 Not run (6 need the admin account, 6 are browser/UI steps).
+- **Render**: the Part-3 test build, `main` @ `1e07391` (the exact SHA was not re-checked on Render Events). Student and recruiter accounts only: the admin password is not in the repository, and deactivation cannot be undone on the shared data.
+- **Local**: the same code (`dev` @ `8cb16a0`) on a team laptop: in-memory MongoDB replica set, `npm run seed` + `seed:demo` (the same data set as Render), Vite dev server, and the Chromium-based browser built into the Claude desktop app. Used for the admin cases, SAFE-2 and the UI steps. A local pass is not a Render pass.
+
+| Test case | Render | Local | Notes |
+|:--|:--|:--|:--|
+| TC-TST-01 Resume after refresh / closed tab | Pass (API) | Pass (UI) | Same attempt and `endsAt` after restart; 3 concurrent starts → one attempt |
+| TC-TST-02 Auto-submit and score by topic | **Partial** | Pass | Local: sweep submitted 1.0 s after `endsAt`; 2 s before → 204, 5 s and 40 s after → 409 `ATTEMPT_CLOSED`; 4/6 by topic as expected. Render: hard cutoff and `TIMEOUT` scoring hold, but the sleeping free instance closed the attempt only on the next request, 8.5 h later (DEVIATIONS row 11) |
+| TC-TST-03 Question bank | Role checks pass | Pass | Boundaries, stale version, archive |
+| TC-TST-04 Draft, publish, archive | Role checks pass | Pass | `TEST_LOCKED`, `STALE_VERSION`, `INVALID_QUESTIONS` |
+| TC-TST-05 Single attempt | Pass (API) | Pass (UI) | `ATTEMPT_EXISTS`, owner isolation, idempotent submit |
+| TC-TST-06 Save within 1 s | **Fail** (#118) | Pass (max 29 ms) | Render: median 931 ms, p95 1,023 ms; `/health` alone median 694 ms. Recorded as DEVIATIONS row 28 (PR #119) |
+| TC-ANL-01 Placement statistics and CSV | Role checks pass | Pass | CSV counts equal the filtered dashboard |
+| TC-ANL-02 Student progress | Pass (API) | Pass (UI) | Empty state `averageScore: null` checked on Render |
+| TC-DOM-03 Per graduation year | Not run | Pass | 2027: 104, 2028: 96; 2099 empty; 1999 → 400 |
+| TC-SAFE-01 Refresh / close / offline in a browser | Not run | Pass (Chromium) | Offline simulated in the page; "Not saved" after 3 retries, saved again after reconnect; 360 px OK |
+| TC-SAFE-02 Deactivation keeps data | Not run | Pass | Old token 401, login 403, totals unchanged (202 results, 600 applications) |
+| UI-TST-01 Tests list | Not run | Pass | |
+| UI-TST-02 Attempt screen and timer | Not run | Pass | Sticky timer, warning under 5 min, auto-move to result at 0:00 |
+| UI-TST-03 Result page | Not run | Pass | Matches the API |
+| UI-TST-04 Question bank and test builder | Not run | Pass | Field messages, confirmations, Draft → Published → Archived |
+| UI-ANL-01 Progress dashboard | Not run | Pass | Data in 234 ms |
+| UI-ANL-02 Statistics dashboard | Not run | Pass | Data in 744 ms; filter, validation and CSV |
+
+**Issue #96 summary (05-11-2026):** 17 cases. Best result per case: 15 Pass (3 on Render, 12 on the local build only), 1 Partial (TC-TST-02 on Render), 1 Fail (TC-TST-06 on Render, bug #118). Firefox, Edge and a real Android phone are covered by #97.
 
 ### 4.6 Postman collection on the deployed build
 
@@ -215,7 +225,7 @@ Every SRS requirement ID and whether it has a passed test on the test build. Fil
 |:--|:--|:--|:--|
 | Performance | PERF-1, PERF-2, PERF-3 | Issue #88 rerun: TC-PERF-01 and PERF-3 blocked pending dedicated environment and 2,000-student dataset. Historical 30-10-2026 results only: search p95 37 ms, other APIs p95 62 ms at 50 VUs; dashboard render 0.19–0.29 s for 2,000 students | #89, #88 |
 | Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 also on the deployed build (section 4.6); SEC-4 injection checks (`$ne`, `$gt`, `$where`) also pass on the deployed build (section 4.3). SEC-2 TLS check pending | #85 ([ZAP report](zap-baseline-report.md)), #84 |
-| Safety | SAFE-1, SAFE-2 | SAFE-1 server side passes on the deployed build (refresh, reopen and lost-response retry keep every acknowledged answer and the original `endsAt`; section 4.5). Browser check (TC-SAFE-01) and SAFE-2 deactivation (TC-SAFE-02, admin) not run yet | #96 |
+| Safety | SAFE-1, SAFE-2 | SAFE-1: server side passes on Render (refresh, reopen and lost-response retry keep every acknowledged answer and the original `endsAt`); the browser check passes on the local build in Chromium (TC-SAFE-01). SAFE-2: passes on the local build (TC-SAFE-02), not run on Render because deactivation cannot be undone | #96, section 4.5 |
 | Usability | QA-1 | | #97 |
 | Availability | QA-2 | Not measurable within the semester (Test Plan section 4) | |
 | Reliability | QA-3 | 540 of 540 automated tests pass (487 server, 53 client); TC-REV-04 concurrent change passes on the deployed build | Unit Test Report, TC-REV-04 |
