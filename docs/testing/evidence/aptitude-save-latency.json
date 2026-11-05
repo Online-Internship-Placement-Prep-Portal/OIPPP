@@ -1,0 +1,71 @@
+{
+  "at": "2026-11-05T05:31:14.911Z",
+  "test": "Placement Practice Test 2",
+  "testId": "6ae88d64886d7159de90b108",
+  "attemptId": "6aec147d8e3253d388b02afd",
+  "endsAt": "2026-11-05T06:00:37.935Z",
+  "saveMs": [
+    950,
+    989,
+    1191,
+    1018,
+    835,
+    765,
+    885,
+    912,
+    971,
+    887,
+    976,
+    938,
+    741,
+    814,
+    931,
+    852,
+    886,
+    1013,
+    1023,
+    757
+  ],
+  "healthMs": [
+    652,
+    2586,
+    789,
+    804,
+    842,
+    478,
+    620,
+    694,
+    700,
+    715,
+    703,
+    693,
+    593,
+    596,
+    630,
+    661,
+    670,
+    764,
+    990,
+    671
+  ],
+  "save": {
+    "median": 931,
+    "p95": 1023,
+    "max": 1191,
+    "under1s": 16
+  },
+  "health": {
+    "median": 694,
+    "p95": 990
+  },
+  "invalidOption": {
+    "status": 400,
+    "body": {
+      "error": {
+        "code": "INVALID_ANSWER",
+        "message": "Choose an option from this attempt"
+      }
+    }
+  },
+  "answersAfterRefresh": 20
+}

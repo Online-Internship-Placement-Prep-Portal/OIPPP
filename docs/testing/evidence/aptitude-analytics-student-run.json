@@ -1,0 +1,255 @@
+{
+  "api": "https://oippp-api.onrender.com/api",
+  "startedAt": "2026-11-05T05:28:48.559Z",
+  "finishedAt": "2026-11-05T05:29:44.987Z",
+  "options": [],
+  "students": [
+    "student0187@students.example.com",
+    "student0188@students.example.com"
+  ],
+  "recruiter": "recruiter07@example.com",
+  "passed": 37,
+  "failed": 3,
+  "results": [
+    {
+      "tc": "ENV",
+      "name": "GET /health",
+      "pass": true,
+      "detail": "200 {\"status\":\"ok\"}"
+    },
+    {
+      "tc": "TST-RBAC",
+      "name": "unauthenticated GET /tests is 401",
+      "pass": true,
+      "detail": "401"
+    },
+    {
+      "tc": "TST-RBAC",
+      "name": "recruiter GET /tests is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-1",
+      "name": "recruiter GET /questions is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-1",
+      "name": "student GET /questions is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-1",
+      "name": "student POST /questions is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-2",
+      "name": "student POST /tests is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "TST-2",
+      "name": "student test list shows only PUBLISHED tests",
+      "pass": true,
+      "detail": "6 tests: T1 mvzb6i0f (20q/30m, myAttempt=none); Placement Practice Test 5 (20q/30m, myAttempt=none); Placement Practice Test 4 (20q/30m, myAttempt=none); Placement Practice Test 3 (20q/30m, myAttempt=none); Placement Practice Test 2 (20q/30m, myAttempt=none); Placement Practice Test 1 (20q/30m, myAttempt=SUBMITTED)"
+    },
+    {
+      "tc": "TC-TST-01",
+      "name": "start returns 201 with endsAt and questions",
+      "pass": true,
+      "detail": "201, 20 questions, endsAt 2026-11-05T05:59:05.042Z"
+    },
+    {
+      "tc": "TST-5",
+      "name": "endsAt = startedAt + durationMin (server clock)",
+      "pass": true,
+      "detail": "30 min vs 30"
+    },
+    {
+      "tc": "TST-1",
+      "name": "student attempt questions carry no answerIdx",
+      "pass": true,
+      "detail": "questionId,text,topic,difficulty,options"
+    },
+    {
+      "tc": "TC-TST-01",
+      "name": "5 saves acknowledged with 204 (incl. option 0)",
+      "pass": true,
+      "detail": "ms: 938, 2832, 1091, 1435, 1192"
+    },
+    {
+      "tc": "TST-4",
+      "name": "each save acknowledged within 1 s (client round trip)",
+      "pass": false,
+      "detail": "max 2832 ms"
+    },
+    {
+      "tc": "TST-4",
+      "name": "changing an answer returns 204",
+      "pass": true,
+      "detail": "204"
+    },
+    {
+      "tc": "SAFE-1",
+      "name": "retry of an already stored answer (lost 204) is 204, even with an old version",
+      "pass": true,
+      "detail": "204"
+    },
+    {
+      "tc": "TST-4",
+      "name": "different answer with a stale version is 409 STALE_VERSION",
+      "pass": true,
+      "detail": "409 STALE_VERSION"
+    },
+    {
+      "tc": "TST-4",
+      "name": "out-of-range option is 400 INVALID_ANSWER",
+      "pass": false,
+      "detail": "400 VALIDATION"
+    },
+    {
+      "tc": "SAFE-1",
+      "name": "refresh (GET attempt) returns all 5 acknowledged answers and the original endsAt",
+      "pass": true,
+      "detail": "200, answers {\"6ae893afc36d2bd734a52dc4\":0,\"6ae893b0c36d2bd734a52dc7\":2,\"6ae893b0c36d2bd734a52dca\":2,\"6ae893b0c36d2bd734a52dce\":3,\"6ae893b1c36d2bd734a52dd1\":0}"
+    },
+    {
+      "tc": "SAFE-1",
+      "name": "remaining time = endsAt − serverTime, counted from the original start",
+      "pass": true,
+      "detail": "1787 s left"
+    },
+    {
+      "tc": "TC-TST-01",
+      "name": "reopen (start again) returns 200 with the same attempt and endsAt",
+      "pass": true,
+      "detail": "200, same id true"
+    },
+    {
+      "tc": "TST-3",
+      "name": "3 concurrent starts all resume the same attempt",
+      "pass": true,
+      "detail": "200,200,200"
+    },
+    {
+      "tc": "TST-3",
+      "name": "another student cannot read, save or submit A's attempt (404)",
+      "pass": true,
+      "detail": "404,404,404"
+    },
+    {
+      "tc": "TST-6",
+      "name": "result before submission is 409 ATTEMPT_OPEN",
+      "pass": true,
+      "detail": "409 ATTEMPT_OPEN"
+    },
+    {
+      "tc": "TST-6",
+      "name": "submit returns 200 with score and per-topic breakdown that sums to the totals",
+      "pass": true,
+      "detail": "200, 4/20 = 20%, topics Quantitative 2/5, Logical 0/5, Verbal 1/5, Technical 1/5, 1182 ms"
+    },
+    {
+      "tc": "TST-6",
+      "name": "scored immediately (submit round trip < 1 s)",
+      "pass": false,
+      "detail": "1182 ms"
+    },
+    {
+      "tc": "TST-6",
+      "name": "repeat submit returns the same result",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-6",
+      "name": "GET result matches submit",
+      "pass": true,
+      "detail": "200"
+    },
+    {
+      "tc": "TST-6",
+      "name": "another student cannot read A's result (404)",
+      "pass": true,
+      "detail": "404"
+    },
+    {
+      "tc": "TST-3",
+      "name": "attempt is SUBMITTED / MANUAL",
+      "pass": true,
+      "detail": "SUBMITTED MANUAL"
+    },
+    {
+      "tc": "TST-5",
+      "name": "answer after submission is 409 ATTEMPT_CLOSED",
+      "pass": true,
+      "detail": "409 ATTEMPT_CLOSED"
+    },
+    {
+      "tc": "TST-3",
+      "name": "starting a submitted test again is 409 ATTEMPT_EXISTS",
+      "pass": true,
+      "detail": "409 ATTEMPT_EXISTS"
+    },
+    {
+      "tc": "TST-3",
+      "name": "test list shows myAttempt SUBMITTED for that test",
+      "pass": true,
+      "detail": "{\"attemptId\":\"6aec14218e3253d388b02a3c\",\"status\":\"SUBMITTED\"}"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "GET /analytics/me shows the new result at the end of the trend",
+      "pass": true,
+      "detail": "200, testsTaken 1 -> 2, last T1 mvzb6i0f 20"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "testsTaken increased by 1; trend oldest first",
+      "pass": true,
+      "detail": "2"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "averageScore is the mean of the trend scores",
+      "pass": true,
+      "detail": "35 vs 35"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "weakestTopics = first two of topics (weakest first)",
+      "pass": true,
+      "detail": "Logical 10.0%, Technical 30.0%"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "application counts per status match GET /applications/mine",
+      "pass": true,
+      "detail": "{\"APPLIED\":1,\"SHORTLISTED\":1,\"INTERVIEW\":0,\"OFFER\":0,\"REJECTED\":1} total 3"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "recruiter GET /analytics/me is 403",
+      "pass": true,
+      "detail": "403"
+    },
+    {
+      "tc": "ANL-2",
+      "name": "student and recruiter GET /analytics/placements(+/export) are 403",
+      "pass": true,
+      "detail": "403,403,403"
+    },
+    {
+      "tc": "ANL-1",
+      "name": "student with no tests: averageScore null, empty trend/topics",
+      "pass": true,
+      "detail": "student0200"
+    }
+  ]
+}

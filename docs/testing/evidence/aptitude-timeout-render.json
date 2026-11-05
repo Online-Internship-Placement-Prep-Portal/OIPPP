@@ -1,0 +1,50 @@
+{
+  "checkedAt": "2026-11-05T14:31:15.220Z",
+  "attemptId": "6aec147d8e3253d388b02afd",
+  "status": "SUBMITTED",
+  "submissionReason": "TIMEOUT",
+  "endsAt": "2026-11-05T06:00:37.935Z",
+  "submittedAt": "2026-11-05T14:31:09.655Z",
+  "secondsAfterEndsAt": 30631.72,
+  "answers": 20,
+  "lateSave": {
+    "status": 409,
+    "body": {
+      "error": {
+        "code": "ATTEMPT_CLOSED",
+        "message": "Attempt is closed"
+      }
+    }
+  },
+  "result": {
+    "totalQuestions": 20,
+    "correctAnswers": 20,
+    "score": 100,
+    "topicBreakdown": [
+      {
+        "topic": "Quantitative",
+        "totalQuestions": 5,
+        "correctAnswers": 5,
+        "percentage": 100
+      },
+      {
+        "topic": "Logical",
+        "totalQuestions": 5,
+        "correctAnswers": 5,
+        "percentage": 100
+      },
+      {
+        "topic": "Verbal",
+        "totalQuestions": 5,
+        "correctAnswers": 5,
+        "percentage": 100
+      },
+      {
+        "topic": "Technical",
+        "totalQuestions": 5,
+        "correctAnswers": 5,
+        "percentage": 100
+      }
+    ]
+  }
+}
