@@ -246,7 +246,7 @@ Five classmates who did not build OIPPP each took part remotely on their own pho
 | P4 | Samsung Galaxy M55s, Chrome | 2:56 | Yes | 4 |
 | P5 | Nothing Phone, Brave | 4:10 | No | 5 |
 
-**QA-1: Fail.** All five completed the task without help, but only 2 of 5 within 3 minutes (median 3:44, range 2:33–4:10). Times were self-measured. No participant reported a specific problem, so no usability issue was raised; the likely cost is the number of steps between the home page and the filtered search on a phone. Recommended follow-up after release: a short observed session to find where the time goes.
+**QA-1: Fail.** All five completed the task without help, but only 2 of 5 within 3 minutes (median 3:44, range 2:33–4:10). Times were self-measured. The slower participants spent part of their time entering profile details and uploading a resume before applying. That is task S1, so those times include S1 work and overstate S2, but the split was not measured and the times are reported as measured. No specific interface problem was reported, so no usability issue was raised. Recommended follow-up: rerun S2 with an observer and a profile already filled in, to measure search-and-apply on its own.
 
 ## 8. Defects
 

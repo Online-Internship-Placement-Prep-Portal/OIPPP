@@ -83,7 +83,7 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 
 **QA-1 verdict: Fail.** Pass needs all five students to complete S2 without help within 3 minutes. Result (06-11-2026): all 5 completed S2, **2 of 5 within 3:00** (P1 2:33, P4 2:56); P2 3:44, P3 4:08, P5 4:10. Median 3:44, mean 3:30, range 2:33–4:10.
 
-**How the session was run.** Because the session moved into the test week, P1–P5 took part remotely on 06-11-2026: each opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked, so S1 and S3–S5 have no times. Self-timing is less exact than an observer's stopwatch. P1 reported no confusion; P2–P5 were not asked what slowed them down. The recruiter tasks (R1–R4) were not run. Environment: Render test build (`main`).
+**How the session was run.** Because the session moved into the test week, P1–P5 took part remotely on 06-11-2026: each opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked, so S1 and S3–S5 have no times. Self-timing is less exact than an observer's stopwatch. P1 reported no confusion. According to the coordinator, the participants who took longer spent part of the time entering their profile details and uploading a resume before applying. That belongs to S1, so those S2 times include S1 work and overstate S2; how much was not measured. The times are recorded as reported. The recruiter tasks (R1–R4) were not run. Environment: Render test build (`main`).
 
 ### 5.2 Questionnaire scores
 
