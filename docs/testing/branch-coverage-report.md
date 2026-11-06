@@ -251,12 +251,12 @@ The logic that decides correctness on the client (`lib/timer.js` 88.9%, `lib/val
 
 ## 7. Final rerun on the last commit (Fri 06-11-2026)
 
-Rerun on 06-11-2026 on `dev` @ `7ab69d2`, after all Part-3 PRs were merged. The numbers match 05-11-2026 because the later commits changed only documentation.
+Rerun on 06-11-2026 at 23:50 IST on the latest `dev` commit `44c9e78` (all Part-3 test and coverage changes merged; later PRs were docs only). The numbers are unchanged from 05-11-2026.
 
 | | Server branches | Server statements | Server tests | Client branches | Client tests |
 |:--|--:|--:|--:|--:|--:|
 | 05-11-2026, `8cb16a0` + #98 tests | 94.37% (587 / 622) | 96.16% (1,254 / 1,304) | 509 / 509 | 39.85% (393 / 986) | 64 / 64 |
-| 06-11-2026, final commit `7ab69d2` | 94.37% (587 / 622) | 96.16% (1,254 / 1,304) | 509 / 509 | 39.85% (393 / 986) | 64 / 64 |
+| 06-11-2026, final `dev` commit `44c9e78` | 94.37% (587 / 622) | 96.16% (1,254 / 1,304) | 509 / 509 | 39.85% (393 / 986) | 64 / 64 |
 
 ## 8. Conclusion
 
