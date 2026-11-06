@@ -10,7 +10,7 @@ Release 1.0 of OIPPP, measured against the [Software Test Plan](../Part-1_Delive
 | Server statement coverage (QA-4 target â‰¥ 70%) | 95.16% statements (1,241/1,304), 89.06% branches, 94.9% functions, 95.99% lines, over every file in `server/src` |
 | Client tests (Vitest) | 6 files, 53 tests, all passing |
 | API collection (Postman / newman, 18 folders) | 112 requests, 157 assertions, 0 failures (3 min 15 s; includes three 61 s waits for the SEC-5 window) |
-| Load run (PERF-1/2/3) | All three PERF targets met; p95 37 ms (search), 62 ms (other calls), 62 ms (dashboard), 0% errors |
+| Load run (PERF-1/2/3) | 6 Nov local rerun: p95 292 ms (search), 673 ms (other API calls), 238 ms (dashboard API); targets met. Test-VM/deployed rerun and JMeter CSV/HTML pending |
 | Dependency audit (`npm audit --omit=dev --audit-level=high`) | Server: 0 vulnerabilities. Client: 0 vulnerabilities |
 | Open Critical or High defects | None known |
 | Pending | SEC-2 TLS and the live ZAP scan need the deployed URL. QA-1 (UAT) and the QA-5 real-phone check need people. QA-2 can't be measured within the semester (STP section 4) |
@@ -67,6 +67,19 @@ PERF-3: the first, uncached request took 62 ms. The other nine were served from 
 
 Limits of this run: the client, API and database shared one laptop, with no network in between. The STP's own risk table says free-tier numbers will differ. Rerun [search_load.jmx](search_load.jmx) on the test VM and against Render before the final demo, and add the results here.
 
+### Issue #89 rerun — 6 Nov 2026 (local)
+
+The local rerun used an isolated Docker MongoDB replica set (`oippp_issue89`), seeded with 2,000 students, 5,000 listings, 6,000 applications and 1,999 results. The API ran in production mode with `TRUST_PROXY=1`; the load test used 50 virtual users for 300 seconds.
+
+| Requirement | Requests | p50 | p95 | Max | Errors | Target (p95) | Result |
+|:--|--:|--:|--:|--:|--:|:--|:--|
+| PERF-1 listing search | 12,434 | 67 ms | 292 ms | 107,372 ms | 0.00% | < 2 s | **Pass** |
+| PERF-2 other API calls | 12,417 | 101 ms | 673 ms | 108,922 ms | 0.06% | < 1 s | **Pass** |
+| PERF-3 placement dashboard API | 10 | 17 ms | 238 ms | 238 ms | 0.00% | < 3 s | **Pass** |
+
+Evidence: [issue-89-local-load-run-2026-11-06.md](issue-89-local-load-run-2026-11-06.md).
+
+Limitations: this was a local run with the load generator, API and database on the same machine. PERF-3 measures the API endpoint, not browser rendering. The dedicated 4-vCPU test-VM/deployed rerun and raw JMeter CSV/HTML evidence remain pending.
 ## 5. Requirement coverage
 
 Every SRS requirement ID with the evidence for it. "Jest" means server/tests; "API" means the newman run.
