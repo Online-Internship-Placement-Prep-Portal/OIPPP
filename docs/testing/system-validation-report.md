@@ -236,7 +236,7 @@ Every SRS requirement ID and whether it has a passed test on the test build. Fil
 
 Run on 06-11-2026 against the Render test build (#97). Full sheet: [uat-and-devices.md](uat-and-devices.md).
 
-Five classmates who did not build OIPPP each took part remotely on their own phone: they registered with made-up details and timed task S2 ("find a remote internship paying at least ₹10,000 and apply") from the home page to *Applied*, then rated "it was easy to find an internship" from 1 to 5. Only S2 and that rating were collected; the recruiter tasks were not run.
+Five classmates who did not build OIPPP each took part remotely on their own phone: they registered with made-up details and timed task S2 ("find a remote internship paying at least ₹10,000 and apply") from the home page to *Applied*, then rated "it was easy to find an internship" from 1 to 5. Only S2 and that rating were collected; one more classmate took the recruiter role on the same build: they logged in, shortlisted one applicant and moved them to Interview, and rejected another, with no problems reported (times not recorded).
 
 | Participant | Phone and browser | Run 1: S2 incl. profile work | Run 2: S2 only | Ease (1–5) |
 |:--|:--|:--|:--|:-:|

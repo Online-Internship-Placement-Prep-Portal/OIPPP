@@ -20,7 +20,7 @@ The session was planned for 19–21 Nov 2026 and moved into the Part-3 test week
 | P3 | Student | Registered a new account on their own phone | Yes |
 | P4 | Student | Registered a new account on their own phone | Yes |
 | P5 | Student | Registered a new account on their own phone | Yes |
-| R1 | Recruiter | `recruiter01@example.com` (seeded, already approved) | |
+| R1 | Recruiter | `recruiter01@example.com` (seeded, already approved) | Yes |
 
 - Participants are classmates who did not build OIPPP. Record them only as P1–P5 and R1; their names stay out of the repository.
 - **No real student data.** Participants register with a made-up name, an email of the form `uat-p1-0511@example.com`, a made-up SRN in the right format (for example `PES1UG24CS901`) and made-up CGPA and skills. The resume is `docs/testing/fixtures/resume.pdf`.
@@ -79,7 +79,7 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 
 | Participant | Browser | R1 | R2 | R3 | R4 | Problems seen |
 |:--|:--|:--|:--|:--|:--|:--|
-| R1 | | | | | | |
+| R1 | Not recorded | Y (logged in) | Opened the applicants of a listing (resume not reported) | Y: shortlisted one applicant, then moved them to Interview | Y: rejected one applicant (a reason is required by the form) | None reported. Times not recorded |
 
 **QA-1 verdict: Partial.** Pass needs all five students to complete S2 without help within 3 minutes. Run 1 (06-11-2026, first visit, timed span also included profile and resume entry): all 5 completed, **2 of 5 within 3:00** (P1 2:33, P4 2:56); P2 3:44, P3 4:08, P5 4:10; median 3:44. Run 2 (search and apply only, second visit): **5 of 5 within 3:00**, median 1:55. Searching and applying meets the target; a first-time student who must also complete the profile does not.
 
@@ -95,7 +95,7 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 
 Run 2: **5 of 5 within 3:00**, median 1:55, range 1:22–2:47.
 
-**How the session was run.** Because the session moved into the test week, P1–P5 took part remotely on 06-11-2026: each opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked, so S1 and S3–S5 have no times. Self-timing is less exact than an observer's stopwatch. P1 reported no confusion. According to the coordinator, the participants who took longer spent part of the time entering their profile details and uploading a resume before applying. That belongs to S1, so those S2 times include S1 work and overstate S2; how much was not measured. The times are recorded as reported. The recruiter tasks (R1–R4) were not run. Environment: Render test build (`main`).
+**How the session was run.** Because the session moved into the test week, P1–P5 took part remotely on 06-11-2026: each opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked, so S1 and S3–S5 have no times. Self-timing is less exact than an observer's stopwatch. P1 reported no confusion. According to the coordinator, the participants who took longer spent part of the time entering their profile details and uploading a resume before applying. That belongs to S1, so those S2 times include S1 work and overstate S2; how much was not measured. The times are recorded as reported. A classmate who did not build OIPPP took the recruiter role (R1) late on 06-11-2026 on the Render build: logged in as `recruiter01`, shortlisted one applicant and moved them to Interview, and rejected another. Times and the R-Q rating were not recorded. Environment: Render test build (`main`).
 
 ### 5.2 Questionnaire scores
 
