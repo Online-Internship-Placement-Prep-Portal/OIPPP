@@ -246,7 +246,7 @@ Every SRS requirement has a passing automated test (Unit Test Report; RTM in the
 | Aptitude and analytics | TST, ANL, DOM-3 | TC-TST-01, TC-TST-05, TC-ANL-02 | TST-4 (TC-TST-06, #118); TC-TST-02 partial; admin and UI cases passed locally only |
 | Safety | SAFE-1, SAFE-2 | SAFE-1 server side | SAFE-2 local only |
 | Security | SEC-1 to SEC-6 | SEC-2, SEC-4; SEC-5 on 02-11 only | SEC-5 fails on the 06-11 rerun (#124); SEC-1, SEC-3, SEC-6 automated only |
-| Quality | QA-1, QA-5 | - | QA-1 (1 of 5 participants), QA-5 (device rows not run) |
+| Quality | QA-1, QA-5 | - | QA-1 Partial (5 of 5 UAT participants, 2 of 5 within 3:00 on first visit), QA-5 Partial (desktop browsers not run) |
 
 ## 6. Non-functional results
 
@@ -255,21 +255,29 @@ Every SRS requirement has a passing automated test (Unit Test Report; RTM in the
 | Performance | PERF-1, PERF-2, PERF-3 | Render 06-11-2026: search p95 1,370 ms (Pass), other APIs p95 3,584 ms (Fail, #123), PERF-3 not rerun. Local 30-10-2026 baseline: search p95 37 ms, other APIs p95 62 ms at 50 VUs; dashboard render 0.19–0.29 s for 2,000 students | #89 ([performance-rerun.md](performance-rerun.md)), #88 |
 | Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 passed on the deployed build on 02-11 (section 4.6) but failed the 06-11 rerun (#124: no 429 behind the Render proxy; account lockout still works); SEC-4 injection checks (`$ne`, `$gt`, `$where`) also pass on the deployed build (section 4.3). SEC-2 passes: on 06-11-2026 both `https://oippp-client.onrender.com` and `https://oippp-api.onrender.com` answered over TLS with a valid certificate (curl, no `-k`), plain HTTP returns 301 to HTTPS, and both send `Strict-Transport-Security` (client `max-age=315360000; includeSubdomains; preload`, API `max-age=15552000; includeSubDomains`) | #85 ([ZAP report](zap-baseline-report.md)), #84 |
 | Safety | SAFE-1, SAFE-2 | SAFE-1: server side passes on Render (refresh, reopen and lost-response retry keep every acknowledged answer and the original `endsAt`); the browser check passes on the local build in Chromium (TC-SAFE-01). SAFE-2: passes on the local build (TC-SAFE-02), not run on Render because deactivation cannot be undone | #96, section 4.5 |
-| Usability | QA-1 | Not met yet: 1 of 1 verified participant applied within 3 minutes (P1, 2:33, Q1 = 4/5); the plan needs 5 students | #97 ([uat-and-devices.md](uat-and-devices.md)) |
+| Usability | QA-1 | **Partial**: first visit 2 of 5 within 3 minutes (median 3:44, incl. profile setup); search and apply alone 5 of 5 (median 1:55, second visit). All completed without help. Mean ease rating 4.0 / 5 | #97, section 7 |
 | Availability | QA-2 | Not measurable within the semester (Test Plan section 4) | |
 | Reliability | QA-3 | 540 of 540 automated tests pass (487 server, 53 client); TC-REV-04 concurrent change passes on the deployed build | Unit Test Report, TC-REV-04 |
 | Maintainability | QA-4 | Pass: server coverage 96.16% statements, 94.37% branches on the final commit (509 tests); client 39.85% branches (64 tests) | Branch Coverage Report section 7 |
-| Portability | QA-5 | Not run as a device matrix: the eight rows in uat-and-devices.md section 6 are empty. Evidence so far: P1 completed S2 on a real Android phone in Chrome; the student flow passed in Chromium at 360 px on the local build (#96) | #97 |
+| Portability | QA-5 | **Partial**: real Android (Chrome, Brave) and iOS (Safari) phones completed the apply task on Render; full flow at 360 px passes on the local build. Desktop Chrome, Firefox and Edge not run | #97, section 7 |
 
 ## 7. User acceptance testing
 
-Plan and script: [uat-and-devices.md](uat-and-devices.md) (#97). The session moved from 19–21 Nov into the test week (DEVIATIONS row 27).
+Run on 06-11-2026 against the Render test build (#97). Full sheet: [uat-and-devices.md](uat-and-devices.md).
 
-| Participant | Device | Task S2 (find and apply, target 3:00) | Q1 |
-|:--|:--|:--|:--|
-| P1 | Samsung phone, Chrome for Android, remote | 2:33, completed without help | 4 / 5 |
+Five classmates who did not build OIPPP each took part remotely on their own phone: they registered with made-up details and timed task S2 ("find a remote internship paying at least ₹10,000 and apply") from the home page to *Applied*, then rated "it was easy to find an internship" from 1 to 5. Only S2 and that rating were collected; one more classmate took the recruiter role on the same build: they logged in, shortlisted one applicant and moved them to Interview, and rejected another, with no problems reported (times not recorded).
 
-Only P1 is verified; P2–P5 and the recruiter R1 have not been recorded, and no usability defects were raised. QA-1 needs five students, so it is not met yet.
+| Participant | Phone and browser | Run 1: S2 incl. profile work | Run 2: S2 only | Ease (1–5) |
+|:--|:--|:--|:--|:-:|
+| P1 | Samsung, Chrome | 2:33 ✓ | 1:22 ✓ | 4 |
+| P2 | iPhone 16, Safari | 3:44 ✗ | 1:55 ✓ | 4 |
+| P3 | Motorola, Chrome | 4:08 ✗ | 2:47 ✓ | 3 |
+| P4 | Samsung Galaxy M55s, Chrome | 2:56 ✓ | 1:55 ✓ | 4 |
+| P5 | Nothing Phone, Brave | 4:10 ✗ | 2:20 ✓ | 5 |
+
+✓ within 3:00. Run 2 was the same participants' second visit, logged in with their profile and resume already saved, applying to a different listing.
+
+**QA-1: Partial.** QA-1 asks that a first-time student applies within 3 minutes. On the first visit, 2 of 5 did (median 3:44), but that run also included entering profile details and uploading a resume. Measured on its own in a second run (search and apply only), all 5 were within 3 minutes (median 1:55, slowest 2:47). Run 2 was a second visit, so it does not prove the first-time case; the requirement is reported as partly met. Times were self-measured. No specific interface problem was reported, so no usability issue was raised. The main finding: on a phone, completing the profile before the first application is what pushes a new student past 3 minutes.
 
 ## 8. Defects
 
@@ -302,7 +310,7 @@ Observations (not defects against the SRS):
 
 Release 1.0 runs on the deployed build with no open Critical or High defect. All 51 test cases were executed: 39 pass, 4 partial, 2 fail and 6 blocked, all nine applications cases pass their API steps, the full Postman collection passes (157 assertions, 0 failures), SEC-2 passes, and server coverage is 96.16% statements and 94.37% branches with all 509 server and 64 client tests passing.
 
-Every planned test case was executed. Six are blocked on Render because testers had no admin or database access (they pass in the automated suite) or no 2,000-student dataset (PERF-3, passes locally). Two fail on the free Render environment and are recorded as deviations: TC-TST-06 (#118, row 28) and TC-SEC-02 (#124, row 30); PERF-2 inside TC-PERF-01 also fails there (#123, row 29). UAT has one participant of five and the device matrix is not filled (#97). These gaps are recorded, not closed.
+Every planned test case was executed. Six are blocked on Render because testers had no admin or database access (they pass in the automated suite) or no 2,000-student dataset (PERF-3, passes locally). Two fail on the free Render environment and are recorded as deviations: TC-TST-06 (#118, row 28) and TC-SEC-02 (#124, row 30); PERF-2 inside TC-PERF-01 also fails there (#123, row 29). UAT ran with five students and one recruiter: QA-1 and QA-5 are Partial (#97). These gaps are recorded, not closed.
 
 | Role | Name | Date |
 |:--|:--|:--|
