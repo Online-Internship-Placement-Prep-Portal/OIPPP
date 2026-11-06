@@ -81,7 +81,7 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 |:--|:--|:--|:--|:--|:--|:--|
 | R1 | | | | | | |
 
-**QA-1 verdict: Fail.** Pass needs all five students to complete S2 without help within 3 minutes. Result (06-11-2026): all 5 completed S2, **2 of 5 within 3:00** (P1 2:33, P4 2:56); P2 3:44, P3 4:08, P5 4:10. Median 3:44, mean 3:30, range 2:33–4:10.
+**QA-1 verdict: Partial.** Pass needs all five students to complete S2 without help within 3 minutes. Run 1 (06-11-2026, first visit, timed span also included profile and resume entry): all 5 completed, **2 of 5 within 3:00** (P1 2:33, P4 2:56); P2 3:44, P3 4:08, P5 4:10; median 3:44. Run 2 (search and apply only, second visit): **5 of 5 within 3:00**, median 1:55. Searching and applying meets the target; a first-time student who must also complete the profile does not.
 
 **Second run, search and apply only (06-11-2026).** The same five participants logged in to the accounts they had made (profile and resume already saved), found a *different* remote internship paying at least ₹10,000 and applied, timing themselves from the home page after login until *Applied*. This isolates S2 from the profile work in S1. It was each person's second time on the site, so they knew it a little.
 
@@ -91,9 +91,9 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 | P2 | 3:44 | 1:55 | Yes |
 | P3 | 4:08 | 2:47 | Yes |
 | P4 | 2:56 | 1:55 | Yes |
-| P5 | 4:10 | 3:20 | No |
+| P5 | 4:10 | 2:20 | Yes |
 
-Run 2: **4 of 5 within 3:00**, median 1:55, range 1:22–3:20.
+Run 2: **5 of 5 within 3:00**, median 1:55, range 1:22–2:47.
 
 **How the session was run.** Because the session moved into the test week, P1–P5 took part remotely on 06-11-2026: each opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked, so S1 and S3–S5 have no times. Self-timing is less exact than an observer's stopwatch. P1 reported no confusion. According to the coordinator, the participants who took longer spent part of the time entering their profile details and uploading a resume before applying. That belongs to S1, so those S2 times include S1 work and overstate S2; how much was not measured. The times are recorded as reported. The recruiter tasks (R1–R4) were not run. Environment: Render test build (`main`).
 
@@ -144,7 +144,7 @@ How to record each row:
 
 | Requirement | Result | Evidence |
 |:--|:--|:--|
-| QA-1 | **Fail** (not all five within 3:00). Run 1, first visit including profile work: 2 of 5, median 3:44. Run 2, search and apply only, second visit: 4 of 5, median 1:55 (P5 3:20). All five completed both runs | Section 5.1 |
+| QA-1 | **Partial**. Run 1, first visit including profile work: 2 of 5 within 3:00, median 3:44. Run 2, search and apply only, second visit: 5 of 5 within 3:00, median 1:55. All five completed both runs without help | Section 5.1 |
 | QA-5 | **Partial**: real phones on Android (Chrome, Brave) and iOS (Safari) completed the apply task; full flow at 360 px passes on the local build (D8). Desktop Chrome, Firefox and Edge (D1–D6) not run | Section 6 |
 | SAFE-1 in real browsers | Pass in Chromium on the local build (TC-SAFE-01); not run on other browsers | Section 6, TC-SAFE-01 |
 | Satisfaction | Q1 "easy to find an internship": mean 4.0 / 5 (P1–P5: 4, 4, 3, 4, 5). Q2–Q5 and the recruiter question not asked | Section 5.2 |
