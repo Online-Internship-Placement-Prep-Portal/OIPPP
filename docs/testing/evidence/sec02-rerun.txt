@@ -1,0 +1,12 @@
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 9 ratelimit-reset: 60
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 8 ratelimit-reset: 45
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 7 ratelimit-reset: 45
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 8 ratelimit-reset: 60
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 8 ratelimit-reset: 53
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 7 ratelimit-reset: 52
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 7 ratelimit-reset: 59
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 5 ratelimit-reset: 43
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 6 ratelimit-reset: 58
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 6 ratelimit-reset: 51
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 5 ratelimit-reset: 57
+HTTP/1.1 401 Unauthorized ratelimit-limit: 10 ratelimit-policy: 10;w=60 ratelimit-remaining: 5 ratelimit-reset: 50

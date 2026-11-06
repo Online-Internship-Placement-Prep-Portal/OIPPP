@@ -1,0 +1,242 @@
+{
+  "api": "https://oippp-api.onrender.com/api",
+  "startedAt": "2026-11-06T18:13:30.542Z",
+  "results": {
+    "TC-AUTH-06 register": {
+      "status": 201,
+      "body": {
+        "user": {
+          "id": "6aee18ce8631361f7ae18ae4",
+          "name": "TC Auth Six",
+          "email": "tc-auth06-1793988810542@students.example.com",
+          "role": "STUDENT",
+          "status": "ACTIVE",
+          "srn": "PES2UG24CS542"
+        }
+      }
+    },
+    "TC-AUTH-01 duplicate": {
+      "status": 409,
+      "body": {
+        "error": {
+          "code": "DUPLICATE",
+          "message": "An account with this email already exists"
+        }
+      }
+    },
+    "TC-AUTH-02 password": [
+      {
+        "password": "abc",
+        "status": 400,
+        "body": {
+          "error": {
+            "code": "VALIDATION",
+            "message": "\"password\" length must be at least 8 characters long",
+            "details": [
+              {
+                "field": "password",
+                "message": "\"password\" length must be at least 8 characters long"
+              },
+              {
+                "field": "password",
+                "message": "Password must contain at least one digit"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "password": "abcdefgh",
+        "status": 400,
+        "body": {
+          "error": {
+            "code": "VALIDATION",
+            "message": "Password must contain at least one digit",
+            "details": [
+              {
+                "field": "password",
+                "message": "Password must contain at least one digit"
+              }
+            ]
+          }
+        }
+      },
+      {
+        "password": "12345678",
+        "status": 400,
+        "body": {
+          "error": {
+            "code": "VALIDATION",
+            "message": "Password must contain at least one letter",
+            "details": [
+              {
+                "field": "password",
+                "message": "Password must contain at least one letter"
+              }
+            ]
+          }
+        }
+      }
+    ],
+    "logins": {
+      "newStudent": true,
+      "student0001": true,
+      "recruiter01": true
+    },
+    "TC-PROF-01 resume": {
+      "valid": {
+        "status": 200,
+        "body": {
+          "message": "Resume uploaded successfully",
+          "resumeFileId": "6aee18d58631361f7ae18af7"
+        }
+      },
+      "big": {
+        "status": 413,
+        "body": {
+          "error": {
+            "code": "FILE_TOO_LARGE",
+            "message": "Resume must not exceed 2 MB"
+          }
+        }
+      },
+      "docx": {
+        "status": 400,
+        "body": {
+          "error": {
+            "code": "INVALID_FILE_TYPE",
+            "message": "Only PDF resumes are allowed"
+          }
+        }
+      }
+    },
+    "TC-AUTH-04 resume access": {
+      "listing": "6ae897037521fedf635a06a5",
+      "apply": {
+        "status": 201
+      }
+    },
+    "DOM-2 one-offer": {
+      "blocked": "no OFFER holder found in recruiter01 listings"
+    },
+    "TC-AUTH-03 lockout": {
+      "attempts": [
+        {
+          "attempt": 1,
+          "status": 401,
+          "code": "UNAUTHENTICATED"
+        },
+        {
+          "attempt": 2,
+          "status": 401,
+          "code": "UNAUTHENTICATED"
+        },
+        {
+          "attempt": 3,
+          "status": 401,
+          "code": "UNAUTHENTICATED"
+        },
+        {
+          "attempt": 4,
+          "status": 401,
+          "code": "UNAUTHENTICATED"
+        },
+        {
+          "attempt": 5,
+          "status": 401,
+          "code": "UNAUTHENTICATED"
+        },
+        {
+          "attempt": 6,
+          "status": 423,
+          "code": "ACCOUNT_LOCKED",
+          "body": {
+            "error": {
+              "code": "ACCOUNT_LOCKED",
+              "message": "Too many failed logins, please try again later",
+              "details": [
+                {
+                  "field": "retryAt",
+                  "message": "2026-11-06T18:30:11.602Z"
+                }
+              ]
+            }
+          }
+        }
+      ],
+      "correctPasswordAfterLock": {
+        "status": 423,
+        "body": {
+          "error": {
+            "code": "ACCOUNT_LOCKED",
+            "message": "Too many failed logins, please try again later",
+            "details": [
+              {
+                "field": "retryAt",
+                "message": "2026-11-06T18:30:11.602Z"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "TC-SEC-02 rate limit": [
+      {
+        "n": 1,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 2,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 3,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 4,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 5,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 6,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 7,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 8,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 9,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 10,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      },
+      {
+        "n": 11,
+        "status": 401,
+        "code": "UNAUTHENTICATED"
+      }
+    ]
+  },
+  "finishedAt": "2026-11-06T18:16:18.009Z"
+}

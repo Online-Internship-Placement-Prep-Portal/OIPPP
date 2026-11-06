@@ -48,8 +48,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | **API:** 1. As S1, `POST /applications` with `{listingId: L1, coverNote}`. 2. Send the same request again. 3. `GET /applications/mine`. 4. As R1, open the bell or `GET /notifications`.<br>**UI:** 1. As S1, open L1 from Search, write the cover note and press **Submit application**. 2. Reload L1. 3. Open **My applications** and press **History**. |
 | Test data | L1; a 200-character cover note. For the boundary, a 1,000-character note is accepted and a 1,001-character note is refused. |
 | Expected result | Step 1: 201 `{applicationId, status: "APPLIED"}`. Step 2: 409 `ALREADY_APPLIED`, "You have already applied to this internship", and `details` carries the existing `applicationId`. Step 3: one item for L1 whose history has one entry, `null → APPLIED`, with the actor and time. Step 4: R1 has an `APPLICATION_RECEIVED` notification, "New application for <L1 title>". UI: after applying, the page says "You have applied to this internship" instead of showing the form, and the counter under the cover note shows `n/1000`. The application stores the resume, and **Resume sent** in My applications opens it. A 1,001-character note disables **Submit application** and the API returns 400. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, `f044d21`, SVR 4.2):** 7 of 7 checks pass: 201 `APPLIED`, repeat gives 409 `ALREADY_APPLIED` with the existing `applicationId`, one history entry `null → APPLIED`, R1 gets the notification, resume copy opens, 1,001-character note gives 400. **UI (Render, 06-11-2026, Playwright/Edge, `student0003` on a new listing):** cover note entered and **Submit application** pressed; after reload the form is no longer offered; the application is listed in **My applications** and **History** shows `Applied`. Evidence: `evidence/ui-render-results.json`, `evidence/ui-render/app01-*.png`. |
+| Status | Pass (API and UI) |
 | Automated by | `integration/apply.test.js`: "first apply is 201 APPLIED, second is 409, list shows one entry", "stores the current resume and notifies the recruiter in-app"; `integration/reliability.test.js`: "concurrent submits create exactly one application" |
 | Changes from v1.0 | Response body and the `ALREADY_APPLIED` details now match the API contract (DEVIATIONS row 18 for the shared error table). Added: recruiter notification, stored resume, the 1,000-character limit (APP-1) and UI steps. |
 
@@ -62,8 +62,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | **API:** 1. As S2, `POST /applications` for L2. 2. As S2, apply to L3. 3. As R1, apply to L1.<br>**UI:** 1. As S2, open L2. 2. Open L3 and press **Submit application**. |
 | Test data | L2, L3; S2 with CGPA 7.4 |
 | Expected result | Step 1: 409 `LISTING_CLOSED`, "Applications for this internship are closed". Step 2: 422 `NOT_ELIGIBLE`, "Minimum CGPA required is 8.0". Step 3: 403, because only students can apply. UI: L2 shows Status **Closed** and the warning "Applications for this internship are closed." with no form. L3 shows the error banner naming 8.0. No application is created in either case. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** 4 of 4 checks pass: 409 `LISTING_CLOSED`, 422 `NOT_ELIGIBLE` naming 8.0, 403 for a recruiter, nothing stored. UI steps not run. |
+| Status | Pass (API); UI not run |
 | Automated by | `integration/apply.test.js`: "closed listing is 409 LISTING_CLOSED with the SRS message", "past deadline counts as closed", "CGPA below minimum is 422 naming 8.0", "recruiters cannot apply" |
 | Changes from v1.0 | Error code `NOT_ELIGIBLE` and the exact messages added. A listing past its deadline counts as closed even before the deadline job runs. DOM-1 is now traced here. |
 
@@ -76,8 +76,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | **API:** 1. As S1, `GET /applications/mine`. 2. As S2, `GET /applications/mine`.<br>**UI:** 1. As S1, open **My applications**. 2. Press **History** on L1. |
 | Test data | S1, S2 |
 | Expected result | Step 1: the L3 application comes before L1 (newest first). Each item has `listing` (title, company, status, deadline) and `history` newest first: L1 shows `APPLIED → SHORTLISTED`, then `null → APPLIED`. Step 2: S2 sees none of S1's applications. UI: the table shows Internship, Company, Applied and Status, and the History dialog lists each change with its time. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** 4 of 4 checks pass: newest first, history newest first, S2 sees only S2's applications. **UI (06-11-2026):** **My applications** table and **History** panel shown for `student0003` (see TC-APP-01 evidence). |
+| Status | Pass (API and UI) |
 | Automated by | `integration/apply.test.js`: "my applications are newest first", "a student can see only their own applications" |
 | Changes from v1.0 | New. v1.0 covered APP-5 only in the automated suite. |
 
@@ -90,8 +90,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | 1. Set S1's profile CGPA to 7.99 and apply to L3. 2. Set it to 8.0 and apply to L3 again. |
 | Test data | CGPA 7.99, 8.0 |
 | Expected result | Step 1: 422 `NOT_ELIGIBLE`. Step 2: 201 `APPLIED`. A CGPA equal to the minimum is eligible. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** CGPA 7.99 gives 422 `NOT_ELIGIBLE`; 8.0 gives 201 `APPLIED`. |
+| Status | Pass |
 | Automated by | `integration/apply.test.js`: "eligible student can apply to the CGPA-gated listing" (above the minimum; the equal case is checked only here) |
 | Changes from v1.0 | New |
 
@@ -104,8 +104,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | **API:** 1. As R1, `PATCH /applications/A1/status` `{status: "SHORTLISTED"}`. 2. `{status: "APPLIED"}`. 3. `{status: "REJECTED"}` with no `reasonCode`. 4. As S1, `GET /notifications`. Check the Mailtrap inbox.<br>**UI:** 1. As R1, open **My listings → Applicants** for L1 and press **Move to Shortlisted** on S1. 2. Press **Reject**, leave the reason empty and confirm. 3. As S1, open the bell. |
 | Test data | A1 |
 | Expected result | Step 1: 200 `{status: "SHORTLISTED"}`. Step 2: 422 `INVALID_TRANSITION`, "Cannot move an application from SHORTLISTED to APPLIED". Step 3: 400 `REASON_REQUIRED`, with `details` listing the five reason codes; A1 stays SHORTLISTED. Step 4: one `APPLICATION_STATUS` notification, "<L1 title>: Shortlisted". Within 2 minutes, one email to `student0001@students.example.com` with the same subject arrives in Mailtrap. Nothing is sent for the refused steps. UI: the reject dialog shows "Choose a reason" and does not submit. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** 6 of 6 checks pass, including the shortlist email in Mailtrap 6 s after the change. **UI (Render, 06-11-2026, Playwright/Edge):** as `recruiter01`, **Applicants → Move to Shortlisted** changed the status to Shortlisted in the table. Evidence: `evidence/ui-render/rev01-shortlisted.png`. |
+| Status | Pass (API and UI) |
 | Automated by | `integration/status.test.js`: "shortlist 200, back to APPLIED 422 INVALID_TRANSITION, one notification + one email"; `integration/review.test.js`: "reject without a reason is 400 REASON_REQUIRED"; `integration/notifications.test.js`: "writes the in-app row and sends one email", "failed email keeps the row and retries 3 times (1, 5, 15 min), then FAILED", "a retry succeeds once mail is back" |
 | Changes from v1.0 | The email check now uses the Mailtrap sandbox (the v1.0 run used a local inbox). Error codes `INVALID_TRANSITION` and `REASON_REQUIRED` added. Retry rule: a failed email is retried after 1, 5 and 15 minutes, then marked FAILED, by the in-process job (DEVIATIONS row 4). Retries are proven by the Jest test only, because Mailtrap does not fail on request. |
 
@@ -118,8 +118,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | **API:** 1. As R1, `GET /listings/L1/applications`. 2. Add `?status=SHORTLISTED`. 3. Add `?limit=51`. 4. As R1, `GET /applications/<id>/resume` using a `resumeUrl` from step 1. 5. As R2, repeat steps 1 and 4.<br>**UI:** 1. As R1, open **Applicants** for L1, filter Status to Shortlisted, and press **Resume**. |
 | Test data | L1, R1, R2 |
 | Expected result | Step 1: 200 `{items, total, page}`. Each item has the student's name, branch, graduation year, CGPA, skills, cover note, status and `resumeUrl`. Step 2: only shortlisted applicants. Step 3: 400 (the page size is at most 50). Step 4: 200 `application/pdf`, the resume sent with the application. Step 5: 403 `NOT_LISTING_OWNER` for both. UI: the table shows Student, Profile, Applied and Status, and the resume opens in the viewer. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** 6 of 6 checks pass: page shape, status filter, limit 51 gives 400, owner gets the PDF, R2 gets 403 `NOT_LISTING_OWNER`. Re-checked 06-11-2026: `recruiter02` gets 403 `NOT_LISTING_OWNER` on another recruiter's application resume (`evidence/identity-render-results-2.json`). UI filter step not run. |
+| Status | Pass (API); UI not run |
 | Automated by | `integration/review.test.js`: "owner sees applicants with profile summary and resume link, filterable by status", "another recruiter is refused", "page size is capped at 50"; `integration/resume.test.js`: "listing owner can download the application resume", "another recruiter cannot download the application resume" |
 | Changes from v1.0 | New. v1.0 covered REV-1 only in the automated suite. The resume route is `GET /applications/:id/resume` (DEVIATIONS row 16). |
 
@@ -132,8 +132,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | **API:** 1. As R1, `GET /applications/reject-reasons`. 2. Move A1 to INTERVIEW, then OFFER. 3. Try A1 → REJECTED and A1 → INTERVIEW. 4. Try A2 → INTERVIEW (skipping a stage). 5. A2 → REJECTED with `reasonCode: "NOT_A_CODE"`. 6. A2 → REJECTED with `reasonCode: "SKILLS_MISMATCH"`. 7. Try A2 → SHORTLISTED. 8. As S1 and S2, `GET /applications/mine`.<br>**UI:** in Applicants, the buttons offered for each status are only the allowed next steps; **Reject** opens a dialog with the five reasons. |
 | Test data | A1, A2 |
 | Expected result | Step 1: five reasons: `SKILLS_MISMATCH`, `POSITION_FILLED`, `INTERVIEW_NOT_CLEARED`, `INCOMPLETE_PROFILE`, `OTHER`, each with a label. Step 2: 200 twice. Step 3: 422 for both (OFFER is final). Step 4: 422. Step 5: 400. Step 6: 200; A2 stores `rejectReason`, and S2's notification and email end with "Reason: Skills do not match the role." Step 7: 422 (REJECTED is final). Step 8: A1's history is APPLIED → SHORTLISTED → INTERVIEW → OFFER, and A2's is APPLIED → REJECTED with the reason; every entry has `from`, `to`, `by` and `at`. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** 11 of 11 checks pass; the rejection email ends with "Reason: Skills do not match the role." and arrived on the third attempt (Mailtrap rate limit, app retry). |
+| Status | Pass (API) |
 | Automated by | `integration/status.test.js`: "skipping a stage is refused", "full path to OFFER is in history and the audit log; OFFER is final"; `integration/review.test.js`: "a reason outside the list is refused", "reject with a reason stores it and tells the student why", "the reason list is served to the client"; `unit/application-transitions.test.js` |
 | Changes from v1.0 | New. The reason list endpoint is an addition (DEVIATIONS row 1). |
 
@@ -146,8 +146,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | Send two `PATCH /applications/A3/status` `{status: "SHORTLISTED"}` requests at the same moment, for example two `curl` commands started together with `&` in one shell. Then `GET /listings/L3/applications`. |
 | Test data | A3 |
 | Expected result | One request returns 200. The other returns 409 `STALE_STATUS`, "The application changed meanwhile, please reload" if the two overlapped, or 422 `INVALID_TRANSITION` if it ran second. A3's history has exactly one `APPLIED → SHORTLISTED` entry and S2 gets one notification. Record which response the second request returned. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** two simultaneous shortlists gave one 200 and one 422 `INVALID_TRANSITION`; one history entry, one notification. |
+| Status | Pass |
 | Automated by | None; the conditional update is covered only by code review. Add a test if this case fails. |
 | Changes from v1.0 | New. `409 STALE_STATUS` is an addition (DEVIATIONS row 2). |
 
@@ -160,8 +160,8 @@ These are the Test Plan v1.0 section 13 cases, updated to match what was built, 
 | Steps | **API:** 1. As S1, `GET /notifications?unread=true`. 2. `PATCH /notifications/<id>/read` for one of them. 3. Repeat step 1. 4. As S2, `PATCH /notifications/<S1's id>/read`. 5. `GET /notifications` with no token.<br>**UI:** 1. As S1, check the bell badge. 2. Open the bell and press **Mark read** on one item. |
 | Test data | S1, S2 |
 | Expected result | Step 1: S1's unread notifications only, newest first, without the `email` delivery fields. Step 2: 200 with `read: true`. Step 3: one fewer. Step 4: 404, because users can only mark their own. Step 5: 401. UI: the badge count falls by one, and the item changes from unread to read without a reload. |
-| Actual result | |
-| Status | Not run |
+| Actual result | **API (Render, 02-11-2026, SVR 4.2):** 5 of 5 checks pass: unread list, mark read, other user's notification 404, no token 401. **UI (Render, 06-11-2026):** after the shortlist, `student0003`'s bell showed "Notifications, 1 unread" and the item "…: Shortlisted" with a **Mark read** link (not pressed in this run). Evidence: `evidence/ui-render/rev05-bell.png`. |
+| Status | Pass (API); UI partial (badge and list checked, Mark read not pressed) |
 | Automated by | `integration/notifications.test.js`: "lists only my own, filters unread, marks read, hides email state", "requires login" |
 | Changes from v1.0 | New. `PATCH /notifications/:id/read` is an addition (DEVIATIONS row 1). |
 

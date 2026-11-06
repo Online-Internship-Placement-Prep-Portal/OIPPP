@@ -5,7 +5,7 @@
 | Project | Online Internship & Placement Preparation Portal (OIPPP) |
 | Version | 2.0 |
 | Authors | Deekshith Gowda G, Sharath H G, Guru R Bharadwaj, E S Sukruth |
-| Date | 06-11-2026 |
+| Date | 07-11-2026 |
 | Replaces | Software Test Plan v1.0 (05-10-2026), section 13 |
 
 ## 1. Purpose
@@ -44,7 +44,7 @@ The test build, accounts and data set are in [deployment.md section 6](../other-
 | Identity and security | [test-cases/identity.md](test-cases/identity.md) | Deekshith Gowda G (#83) | AUTH, PROF, SEC, DOM-2 |
 | Listings and search | [test-cases/listings.md](test-cases/listings.md) | Sharath H G (#87) | LST, SRCH, PERF |
 | Applications, review and notifications | [test-cases/applications.md](test-cases/applications.md) | Guru R Bharadwaj (#91) | APP, REV, DOM-1 |
-| Aptitude and analytics | `test-cases/aptitude-analytics.md` (pending) | E S Sukruth (#95) | TST, ANL, SAFE, DOM-3 |
+| Aptitude and analytics | [test-cases/aptitude-analytics.md](test-cases/aptitude-analytics.md) | E S Sukruth (#95) | TST, ANL, SAFE, DOM-3 |
 
 The PDF places the four files in this order after this section.
 
@@ -65,21 +65,28 @@ The PDF places the four files in this order after this section.
 | TC-TST-01 | Acknowledged saves; same attempt and same `endsAt` after reopening | |
 | TC-TST-02 | Hard cutoff: any answer at or after `endsAt` returns 409 `ATTEMPT_CLOSED`; auto-submit by the timeout sweep | 10, 11 |
 | TC-ANL-01 | `GET /analytics/placements` and `/analytics/placements/export`; no combined readiness score | 13, 21 |
+| TC-TST-06 | New: answer save acknowledged within 1 s; failed on Render (4 of 20 saves over 1 s, bug #118) | 28 |
 | TC-PERF-01 | `npm run test:load` or `search_load.jmx` against the deployed build; PERF-3 added | |
 | TC-SEC-01 | bcrypt cost 12, so the stored hash starts with `$2b$12$` | |
 | TC-SEC-02 | 11th login returns 429 `RATE_LIMITED`; HTTPS and TLS checked on the deployed hostnames | |
 
 ## 5. Summary of results
 
-Status on 04-11-2026: test cases written for three modules; system-test results (#84, #88, #96) and the aptitude and analytics cases (#95) are still to come. Re-filled from the four module files and re-exported on 06-11-2026.
+Status on 07-11-2026 (final), taken from the four module files and the System Validation Report section 4.1.
 
-| Module | Test cases | Pass | Fail | Blocked | Not run |
-|:--|--:|--:|--:|--:|--:|
-| Identity and security | 14 | | | | 14 |
-| Listings and search | 11 | | | | 11 |
-| Applications, review and notifications | 9 | | | | 9 |
-| Aptitude and analytics | Pending #95 | | | | |
-| **Total** | **34 + #95** | | | | **34** |
+| Module | Test cases | Pass | Partial | Fail | Blocked | Not run |
+|:--|--:|--:|--:|--:|--:|--:|
+| Identity and security | 14 | 7 | 1 | 1 | 5 | 0 |
+| Listings and search | 11 | 8 | 2 | 0 | 1 | 0 |
+| Applications, review and notifications | 9 | 9 (API; UI for 3) | 0 | 0 | 0 | 0 |
+| Aptitude and analytics | 17 | 15 | 1 | 1 | 0 | 0 |
+| **Total** | **51** | **39** | **4** | **2** | **6** | **0** |
+
+The two failures are TC-TST-06 (TST-4 save latency on the free Render instance, bug #118, DEVIATIONS row 28) and TC-SEC-02 (login rate limit not enforced behind the Render proxy, bug #124, DEVIATIONS row 30). TC-PERF-01 is partial: PERF-1 passes, PERF-2 fails on Render (#123, row 29). The six blocked cases (five identity cases needing admin or database access, and PERF-3 needing 2,000 students) pass in the automated suite or on the local build.
+
+### Schedule deviation
+
+System testing and UAT ran from 2 to 6 Nov 2026, not 9 to 23 Nov as planned in Test Plan section 7 (DEVIATIONS row 27).
 
 ## 6. Requirements traceability matrix
 
@@ -115,20 +122,20 @@ Status on 04-11-2026: test cases written for three modules; system-test results 
 | REV-2 | TC-REV-01 | TC-REV-01, TC-REV-03, TC-REV-04 | `integration/status.test.js`, `unit/application-transitions.test.js` |
 | REV-3 | TC-REV-01 | TC-REV-01, TC-REV-03 | `integration/review.test.js` |
 | REV-4 | TC-REV-01 | TC-REV-01, TC-REV-05 | `integration/notifications.test.js`, `integration/status.test.js` |
-| TST-1 | Unit/integration suite only | Pending #95 | `integration/aptitude-api.test.js`, `unit/aptitude-models.test.js` |
-| TST-2 | Unit/integration suite only | Pending #95 | `integration/aptitude-api.test.js` |
-| TST-3 | TC-TST-01 | Pending #95 | `integration/aptitude-recovery.test.js` |
-| TST-4 | TC-TST-01 | Pending #95 | `integration/aptitude-recovery.test.js`, `integration/aptitude-indexes.test.js` |
-| TST-5 | TC-TST-02 | Pending #95 | `integration/aptitude-recovery.test.js`, `unit/attempt-timeout-job.test.js` |
-| TST-6 | TC-TST-02 | Pending #95 | `unit/aptitude-scoring.test.js` |
-| ANL-1 | Unit/integration suite only | Pending #95 | `integration/analytics.test.js` |
-| ANL-2 | TC-ANL-01 | Pending #95 | `integration/analytics.test.js` |
-| ANL-3 | TC-ANL-01 | Pending #95 | `integration/analytics.test.js` |
+| TST-1 | Unit/integration suite only | TC-TST-03, UI-TST-04 | `integration/aptitude-api.test.js`, `unit/aptitude-models.test.js` |
+| TST-2 | Unit/integration suite only | TC-TST-04, UI-TST-04 | `integration/aptitude-api.test.js` |
+| TST-3 | TC-TST-01 | TC-TST-01, TC-TST-05, UI-TST-01 | `integration/aptitude-recovery.test.js` |
+| TST-4 | TC-TST-01 | TC-TST-01, TC-TST-06, TC-SAFE-01, UI-TST-02 | `integration/aptitude-recovery.test.js`, `integration/aptitude-indexes.test.js` |
+| TST-5 | TC-TST-02 | TC-TST-02, TC-SAFE-01, UI-TST-02 | `integration/aptitude-recovery.test.js`, `unit/attempt-timeout-job.test.js` |
+| TST-6 | TC-TST-02 | TC-TST-02, TC-TST-05, UI-TST-03 | `unit/aptitude-scoring.test.js` |
+| ANL-1 | Unit/integration suite only | TC-ANL-02, UI-ANL-01 | `integration/analytics.test.js` |
+| ANL-2 | TC-ANL-01 | TC-ANL-01, TC-DOM-03, UI-ANL-02 | `integration/analytics.test.js` |
+| ANL-3 | TC-ANL-01 | TC-ANL-01, UI-ANL-02 | `integration/analytics.test.js` |
 | PERF-1 | TC-PERF-01 | TC-PERF-01 | `integration/listing-search-performance.test.js`; load run (#89) |
 | PERF-2 | TC-PERF-01 | TC-PERF-01 | Load run (#89) |
-| PERF-3 | Reviewed in Sprint 3 | PERF-3 | `integration/analytics-performance.test.js`; load run (#89) |
-| SAFE-1 | TC-TST-01 | Pending #95 | `integration/aptitude-recovery.test.js` |
-| SAFE-2 | Reviewed in Sprint 3 | Pending #95 | `integration/identity-edge-cases.test.js` |
+| PERF-3 | Reviewed in Sprint 3 | PERF-3, UI-ANL-01, UI-ANL-02 | `integration/analytics-performance.test.js`; load run (#89) |
+| SAFE-1 | TC-TST-01 | TC-TST-01, TC-SAFE-01, UI-TST-02 | `integration/aptitude-recovery.test.js` |
+| SAFE-2 | Reviewed in Sprint 3 | TC-SAFE-02 | `integration/identity-edge-cases.test.js` |
 | SEC-1 | TC-SEC-01 | TC-SEC-01 | `unit/auth-service.test.js` |
 | SEC-2 | TC-SEC-02 | TC-SEC-02 (deployed-URL part, #85) | Deployed-URL check (#85) |
 | SEC-3 | TC-AUTH-04 | TC-AUTH-04 | `integration/rbac.test.js`, `integration/resume.test.js` |
@@ -137,6 +144,6 @@ Status on 04-11-2026: test cases written for three modules; system-test results 
 | SEC-6 | Security checklist 5.1 | SEC-6 | `integration/audit.test.js`, `integration/status.test.js` |
 | DOM-1 | Not listed | TC-APP-02, TC-APP-04 | `integration/apply.test.js` |
 | DOM-2 | Not listed | DOM-2 | `integration/settings.test.js` |
-| DOM-3 | Not listed | Pending #95 | `integration/analytics.test.js` |
+| DOM-3 | Not listed | TC-DOM-03, UI-ANL-02 | `integration/analytics.test.js` |
 
 Quality attributes QA-1 to QA-5 are measured in the System Validation Report (UAT and devices in #97, QA-3 and QA-4 from the automated suites), not by individual test cases.

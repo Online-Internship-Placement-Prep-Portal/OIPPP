@@ -1,0 +1,23 @@
+{
+  "at": "2026-11-06T18:30:32.997Z",
+  "email": "tc-auth06-1793988810542@students.example.com",
+  "loginAfterLock": {
+    "status": 200,
+    "hasToken": true
+  },
+  "applicationId": "6aee18d78631361f7ae18b06",
+  "owner": {
+    "status": 200,
+    "body": {
+      "bytes": 20016,
+      "contentType": "application/pdf"
+    }
+  },
+  "listingRecruiter": {
+    "status": 200,
+    "body": {
+      "bytes": 20016,
+      "contentType": "application/pdf"
+    }
+  }
+}

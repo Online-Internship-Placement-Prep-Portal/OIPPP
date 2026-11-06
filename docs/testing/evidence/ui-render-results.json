@@ -1,0 +1,65 @@
+{
+  "base": "https://oippp-client.onrender.com",
+  "startedAt": "2026-11-06T18:19:59.329Z",
+  "cases": {
+    "UI-LST-02": [
+      {
+        "step": "invalid values show errors (empty, negative stipend, past deadline)",
+        "ok": true,
+        "note": "empty submit: 6 errors; Company is required | Role title is required | Location is required | Stipend must be 0 or more | Add at least one skill | Deadline must be in the future"
+      },
+      {
+        "step": "create valid listing, appears in My listings",
+        "ok": true,
+        "note": "listing 6aee1a558631361f7ae18df4"
+      },
+      {
+        "step": "owner edits title and sees the change",
+        "ok": true,
+        "note": ""
+      },
+      {
+        "step": "another recruiter cannot edit the listing",
+        "ok": true,
+        "note": "You can only manage your own listings"
+      }
+    ],
+    "UI-SRCH-04": [
+      {
+        "step": "save listing, appears once in Saved, remove",
+        "ok": true,
+        "note": "limit text: 3 of 100 saved"
+      }
+    ],
+    "TC-APP-01 (UI)": [
+      {
+        "step": "apply from listing page, reload, My applications + History",
+        "ok": true,
+        "note": "history panel: 2026 Rejected History History: UI QA 1793989199515 edited × Applied submitted 06-11-2026 23:50 Online Internship & Placement Pr"
+      }
+    ],
+    "UI-SRCH-05": [
+      {
+        "step": "home shows recommendations and matched skills; search navigates",
+        "ok": true,
+        "note": "home: Welcome, Student Internships picked for your skills. Search internships Search Recommended for you Product Design Intern 67 Wayne Analytics Pune On-site ₹40,000/month CGPA ≥ 6 Figma Embedded C Docker Machine Learning App | search url https://oippp-client.onrender.com/listings?search=React"
+      }
+    ],
+    "TC-REV-01 (UI)": [
+      {
+        "step": "recruiter moves the applicant to Shortlisted",
+        "ok": true,
+        "note": "Shortlisted shown in the applicants table"
+      }
+    ],
+    "TC-REV-05 (UI)": [
+      {
+        "step": "student bell shows the shortlist notification",
+        "ok": true,
+        "note": "bell: Notifications, 1 unread"
+      }
+    ]
+  },
+  "listingId": "6aee1a558631361f7ae18df4",
+  "finishedAt": "2026-11-06T18:20:58.619Z"
+}

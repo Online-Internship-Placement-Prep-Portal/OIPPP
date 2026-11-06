@@ -1,0 +1,83 @@
+{
+  "api": "https://oippp-api.onrender.com/api",
+  "listing": "6aee1a558631361f7ae18df4",
+  "startedAt": "2026-11-06T18:21:30.661Z",
+  "results": {
+    "TC-AUTH-04 resume access": {
+      "applicationId": "6aee1a738631361f7ae18e6b",
+      "owner": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "RESUME_NOT_FOUND",
+            "message": "No resume was submitted with this application"
+          }
+        }
+      },
+      "listingRecruiter": {
+        "status": 404,
+        "body": {
+          "error": {
+            "code": "RESUME_NOT_FOUND",
+            "message": "No resume was submitted with this application"
+          }
+        }
+      },
+      "otherRecruiter": {
+        "status": 403,
+        "body": {
+          "error": {
+            "code": "NOT_LISTING_OWNER",
+            "message": "You can only manage applications for your own listings"
+          }
+        }
+      },
+      "unrelatedStudent": {
+        "status": 403,
+        "body": {
+          "error": {
+            "code": "FORBIDDEN",
+            "message": "You cannot access this application"
+          }
+        }
+      },
+      "noToken": {
+        "status": 401,
+        "body": {
+          "error": {
+            "code": "UNAUTHENTICATED",
+            "message": "Please log in"
+          }
+        }
+      }
+    },
+    "DOM-2 one-offer": {
+      "student": "student0003",
+      "moves": [
+        {
+          "status": "INTERVIEW",
+          "http": 200,
+          "body": {
+            "status": "INTERVIEW"
+          }
+        },
+        {
+          "status": "OFFER",
+          "http": 200,
+          "body": {
+            "status": "OFFER"
+          }
+        }
+      ],
+      "otherListing": "6ae88d63886d7159de90892d",
+      "apply": {
+        "status": 201,
+        "body": {
+          "applicationId": "6aee1ae58631361f7ae18f64",
+          "status": "APPLIED"
+        }
+      }
+    }
+  },
+  "finishedAt": "2026-11-06T18:22:28.428Z"
+}
