@@ -15,7 +15,7 @@ The session was planned for 19–21 Nov 2026 and moved into the Part-3 test week
 
 | ID | Role in the session | Account used | First time on OIPPP? |
 |:--|:--|:--|:--|
-| P1 | Student | Registers a new account (task S1) | |
+| P1 | Student | Registered a new account on their own phone | Yes |
 | P2 | Student | Registers a new account | |
 | P3 | Student | Registers a new account | |
 | P4 | Student | Registers a new account | |
@@ -71,7 +71,7 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 
 | Participant | Browser / device | S1 | S2 (QA-1, ≤ 3:00) | S3 | S4 | S5 | Problems seen |
 |:--|:--|:--|:--|:--|:--|:--|:--|
-| P1 | | | | | | | |
+| P1 | Samsung phone (model not given), Chrome for Android | – | 2:33, Y | – | – | – | None reported |
 | P2 | | | | | | | |
 | P3 | | | | | | | |
 | P4 | | | | | | | |
@@ -81,13 +81,15 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 |:--|:--|:--|:--|:--|:--|:--|
 | R1 | | | | | | |
 
-**QA-1 verdict:** Pass if all five students complete S2 without help within 3 minutes. Result: ___ of 5 within 3:00, median ___.
+**QA-1 verdict:** Pass if all five students complete S2 without help within 3 minutes. Result so far (06-11-2026): **1 of 1 verified participant within 3:00** (P1, 2:33). Four more participants still to be collected; no other results are recorded.
+
+**How P1 was run.** Because the session moved into the test week, P1 took part remotely on 06-11-2026: they opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked. Environment: Render test build (`main`).
 
 ### 5.2 Questionnaire scores
 
 | Participant | Q1 | Q2 | Q3 | Q4 | Q5 | R-Q | Most confusing moment | Suggested change |
 |:--|:-:|:-:|:-:|:-:|:-:|:-:|:--|:--|
-| P1 | | | | | | – | | |
+| P1 | 4 | – | – | – | – | – | – | – |
 | P2 | | | | | | – | | |
 | P3 | | | | | | – | | |
 | P4 | | | | | | – | | |
