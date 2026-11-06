@@ -226,15 +226,27 @@ Every SRS requirement ID and whether it has a passed test on the test build. Fil
 | Performance | PERF-1, PERF-2, PERF-3 | Issue #88 rerun: TC-PERF-01 and PERF-3 blocked pending dedicated environment and 2,000-student dataset. Historical 30-10-2026 results only: search p95 37 ms, other APIs p95 62 ms at 50 VUs; dashboard render 0.19–0.29 s for 2,000 students | #89, #88 |
 | Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 also on the deployed build (section 4.6); SEC-4 injection checks (`$ne`, `$gt`, `$where`) also pass on the deployed build (section 4.3). SEC-2 TLS check pending | #85 ([ZAP report](zap-baseline-report.md)), #84 |
 | Safety | SAFE-1, SAFE-2 | SAFE-1: server side passes on Render (refresh, reopen and lost-response retry keep every acknowledged answer and the original `endsAt`); the browser check passes on the local build in Chromium (TC-SAFE-01). SAFE-2: passes on the local build (TC-SAFE-02), not run on Render because deactivation cannot be undone | #96, section 4.5 |
-| Usability | QA-1 | | #97 |
+| Usability | QA-1 | **Fail**: 2 of 5 students found a listing and applied within 3 minutes (median 3:44; all 5 completed it). Mean ease rating 4.0 / 5 | #97, section 7 |
 | Availability | QA-2 | Not measurable within the semester (Test Plan section 4) | |
 | Reliability | QA-3 | 540 of 540 automated tests pass (487 server, 53 client); TC-REV-04 concurrent change passes on the deployed build | Unit Test Report, TC-REV-04 |
 | Maintainability | QA-4 | Server coverage 95.16% statements, 89.06% branches | Unit Test Report; Code Coverage Report (#90) |
-| Portability | QA-5 | | #97 |
+| Portability | QA-5 | **Partial**: real Android (Chrome, Brave) and iOS (Safari) phones completed the apply task on Render; full flow at 360 px passes on the local build. Desktop Chrome, Firefox and Edge not run | #97, section 7 |
 
 ## 7. User acceptance testing
 
-Pending #97.
+Run on 06-11-2026 against the Render test build (#97). Full sheet: [uat-and-devices.md](uat-and-devices.md).
+
+Five classmates who did not build OIPPP each took part remotely on their own phone: they registered with made-up details and timed task S2 ("find a remote internship paying at least ₹10,000 and apply") from the home page to *Applied*, then rated "it was easy to find an internship" from 1 to 5. Only S2 and that rating were collected; the recruiter tasks were not run.
+
+| Participant | Phone and browser | S2 time | Within 3:00 | Ease (1–5) |
+|:--|:--|:--|:--|:-:|
+| P1 | Samsung, Chrome | 2:33 | Yes | 4 |
+| P2 | iPhone 16, Safari | 3:44 | No | 4 |
+| P3 | Motorola, Chrome | 4:08 | No | 3 |
+| P4 | Samsung Galaxy M55s, Chrome | 2:56 | Yes | 4 |
+| P5 | Nothing Phone, Brave | 4:10 | No | 5 |
+
+**QA-1: Fail.** All five completed the task without help, but only 2 of 5 within 3 minutes (median 3:44, range 2:33–4:10). Times were self-measured. No participant reported a specific problem, so no usability issue was raised; the likely cost is the number of steps between the home page and the filtered search on a phone. Recommended follow-up after release: a short observed session to find where the time goes.
 
 ## 8. Defects
 

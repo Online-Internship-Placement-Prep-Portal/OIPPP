@@ -16,10 +16,10 @@ The session was planned for 19–21 Nov 2026 and moved into the Part-3 test week
 | ID | Role in the session | Account used | First time on OIPPP? |
 |:--|:--|:--|:--|
 | P1 | Student | Registered a new account on their own phone | Yes |
-| P2 | Student | Registers a new account | |
-| P3 | Student | Registers a new account | |
-| P4 | Student | Registers a new account | |
-| P5 | Student | Registers a new account | |
+| P2 | Student | Registered a new account on their own phone | Yes |
+| P3 | Student | Registered a new account on their own phone | Yes |
+| P4 | Student | Registered a new account on their own phone | Yes |
+| P5 | Student | Registered a new account on their own phone | Yes |
 | R1 | Recruiter | `recruiter01@example.com` (seeded, already approved) | |
 
 - Participants are classmates who did not build OIPPP. Record them only as P1–P5 and R1; their names stay out of the repository.
@@ -72,30 +72,30 @@ Fill in time as mm:ss, success as Y or N, and a short note on any problem seen.
 | Participant | Browser / device | S1 | S2 (QA-1, ≤ 3:00) | S3 | S4 | S5 | Problems seen |
 |:--|:--|:--|:--|:--|:--|:--|:--|
 | P1 | Samsung phone (model not given), Chrome for Android | – | 2:33, Y | – | – | – | None reported |
-| P2 | | | | | | | |
-| P3 | | | | | | | |
-| P4 | | | | | | | |
-| P5 | | | | | | | |
+| P2 | iPhone 16, Safari | – | 3:44, Y (over 3:00) | – | – | – | Not reported |
+| P3 | Motorola phone, Chrome for Android | – | 4:08, Y (over 3:00) | – | – | – | Not reported |
+| P4 | Samsung Galaxy M55s, Chrome for Android | – | 2:56, Y | – | – | – | Not reported |
+| P5 | Nothing Phone, Brave | – | 4:10, Y (over 3:00) | – | – | – | Not reported |
 
 | Participant | Browser | R1 | R2 | R3 | R4 | Problems seen |
 |:--|:--|:--|:--|:--|:--|:--|
 | R1 | | | | | | |
 
-**QA-1 verdict:** Pass if all five students complete S2 without help within 3 minutes. Result so far (06-11-2026): **1 of 1 verified participant within 3:00** (P1, 2:33). Four more participants still to be collected; no other results are recorded.
+**QA-1 verdict: Fail.** Pass needs all five students to complete S2 without help within 3 minutes. Result (06-11-2026): all 5 completed S2, **2 of 5 within 3:00** (P1 2:33, P4 2:56); P2 3:44, P3 4:08, P5 4:10. Median 3:44, mean 3:30, range 2:33–4:10.
 
-**How P1 was run.** Because the session moved into the test week, P1 took part remotely on 06-11-2026: they opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked. Environment: Render test build (`main`).
+**How the session was run.** Because the session moved into the test week, P1–P5 took part remotely on 06-11-2026: each opened the deployed client on their own phone, registered with made-up details, and timed S2 themselves from landing on the home page until the application showed *Applied*. Only S2 and Q1 were asked, so S1 and S3–S5 have no times. Self-timing is less exact than an observer's stopwatch. P1 reported no confusion; P2–P5 were not asked what slowed them down. The recruiter tasks (R1–R4) were not run. Environment: Render test build (`main`).
 
 ### 5.2 Questionnaire scores
 
 | Participant | Q1 | Q2 | Q3 | Q4 | Q5 | R-Q | Most confusing moment | Suggested change |
 |:--|:-:|:-:|:-:|:-:|:-:|:-:|:--|:--|
 | P1 | 4 | – | – | – | – | – | – | – |
-| P2 | | | | | | – | | |
-| P3 | | | | | | – | | |
-| P4 | | | | | | – | | |
-| P5 | | | | | | – | | |
-| R1 | – | – | – | – | – | | | |
-| **Mean** | | | | | | | | |
+| P2 | 4 | – | – | – | – | – | – | – |
+| P3 | 3 | – | – | – | – | – | – | – |
+| P4 | 4 | – | – | – | – | – | – | – |
+| P5 | 5 | – | – | – | – | – | – | – |
+| R1 | – | – | – | – | – | Not run | | |
+| **Mean** | 4.0 | – | – | – | – | – | | |
 
 ### 5.3 Usability defects raised
 
@@ -117,8 +117,8 @@ QA-5: the client supports the latest two versions of Chrome, Firefox and Edge, a
 | D4 | Firefox ___ (previous) | | 1366+ | | | | | |
 | D5 | Edge ___ (latest) | Windows 11 laptop | 1366+ | | | | | |
 | D6 | Edge ___ (previous) | | 1366+ | | | | | |
-| D7 | Chrome ___ for Android | Real Android phone, model ___ | 360 px CSS width | | | | | |
-| D8 | Chrome DevTools device mode | Desktop | 360 × 740 | | | | | |
+| D7 | Chrome, Brave for Android (versions not recorded) | Real Android phones: Samsung (P1), Motorola (P3), Samsung Galaxy M55s (P4), Nothing Phone (P5) | Phone width | S2 only: register, search, apply, all 4 completed | Not checked | Not checked | Not run | Real phones also used: iPhone 16 and an iPhone with Safari (P2). Only the UAT task S2 was run |
+| D8 | Chromium-based browser built into the Claude desktop app, viewport set to 360 × 740 | Windows 11 laptop, **local build** (`dev` @ `8cb16a0`), not Render | 360 × 740 | Yes: test, result, progress | Yes (sticky, visible after scrolling) | Yes (no horizontal scroll, nothing overflowing) | Pass: refresh, closed tab, simulated offline (TC-SAFE-01) | From #96 |
 
 How to record each row:
 
@@ -132,10 +132,10 @@ How to record each row:
 
 | Requirement | Result | Evidence |
 |:--|:--|:--|
-| QA-1 | ___ of 5 students applied within 3 minutes, median ___ | Section 5.1 |
-| QA-5 | ___ of 8 browser/device rows pass | Section 6 |
-| SAFE-1 in real browsers | ___ | Section 6, TC-SAFE-01 |
-| Satisfaction | Mean Q1–Q5: ___ / 5; recruiter ___ / 5 | Section 5.2 |
-| Usability defects | ___ issues raised | Section 5.3 |
+| QA-1 | **Fail**: 2 of 5 students applied within 3 minutes, median 3:44 (all 5 completed the task) | Section 5.1 |
+| QA-5 | **Partial**: real phones on Android (Chrome, Brave) and iOS (Safari) completed the apply task; full flow at 360 px passes on the local build (D8). Desktop Chrome, Firefox and Edge (D1–D6) not run | Section 6 |
+| SAFE-1 in real browsers | Pass in Chromium on the local build (TC-SAFE-01); not run on other browsers | Section 6, TC-SAFE-01 |
+| Satisfaction | Q1 "easy to find an internship": mean 4.0 / 5 (P1–P5: 4, 4, 3, 4, 5). Q2–Q5 and the recruiter question not asked | Section 5.2 |
+| Usability defects | None raised: no participant reported a specific problem. The QA-1 failure itself is listed in the System Validation Report | Section 5.3 |
 
-Environment: Render test build, commit ___ (from Render Events), date ___, observer ___.
+Environment: Render test build (`main`, deployed SHA not re-checked on Render Events), 06-11-2026, remote self-timed sessions coordinated by E S Sukruth. D8: local build.
