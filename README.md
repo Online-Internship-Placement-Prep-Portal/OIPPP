@@ -1,19 +1,19 @@
 # OIPPP — Online Internship & Placement Preparation Portal
 
 <p align="center">
-  <a href="Sprint%201%20Demo.mp4">
+  <a href="docs/sprints/Sprint%201%20Demo.mp4">
     <img src="docs/sprints/Sprint%201%20Demo%20thumbnail.png" alt="Watch the Sprint 1 demo video" width="720">
   </a>
   <br>
-  <sub>▶ <b><a href="Sprint%201%20Demo.mp4">Watch the Sprint 1 demo</a></b> (74 s): board, issues, PRs, CI and the live API</sub>
+  <sub>▶ <b><a href="docs/sprints/Sprint%201%20Demo.mp4">Watch the Sprint 1 demo</a></b> (74 s): board, issues, PRs, CI and the live API</sub>
 </p>
 
 <p align="center">
-  <a href="Sprint%202%20Demo.mp4">
+  <a href="docs/sprints/Sprint%202%20Demo.mp4">
     <img src="docs/sprints/Sprint%202%20Demo%20thumbnail.png" alt="Watch the Sprint 2 demo video" width="720">
   </a>
   <br>
-  <sub>▶ <b><a href="Sprint%202%20Demo.mp4">Watch the Sprint 2 demo</a></b> (4:22): the working product for all three roles, then tests, CI and results</sub>
+  <sub>▶ <b><a href="docs/sprints/Sprint%202%20Demo.mp4">Watch the Sprint 2 demo</a></b> (4:22): the working product for all three roles, then tests, CI and results</sub>
 </p>
 
 > Software Engineering project — PES University, Dept. of Computer Science and Engineering
@@ -64,10 +64,11 @@ OIPPP/
 ├── server/                    Node.js + Express API — src/, tests/, scripts/
 └── docs/
     ├── Part-1_Deliverables/   submitted SRS, SAD and Test Plan (PDF)
+    ├── Part-3_Deliverables/   submitted test case document, validation and coverage reports (PDF)
     ├── adr/                   architecture decision records
     ├── other-docs/            SRS map, API references, schemas, diagrams, deviations log, deployment
-    ├── testing/               Postman collection and test reports
-    └── sprints/               sprint charts, video thumbnails and the final presentation
+    ├── testing/               test case document, validation and coverage reports, evidence, Postman and JMeter files
+    └── sprints/               sprint demo videos, charts, thumbnails and the final presentation
 ```
 
 Only the submitted deliverables in `docs/Part-*_Deliverables/` are committed as PDFs. Course-supplied
@@ -137,6 +138,7 @@ environment variables and checks are in the [deployment guide](docs/other-docs/d
 | [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [Deployment guide](docs/other-docs/deployment.md) | Hosting setup, environment variables and post-deploy checks. |
 | [Test summary report](docs/testing/test-report.md) | Results for every test case and SRS ID, defects found, and the Postman collection and load test in [docs/testing](docs/testing/). |
+| [Part-3 testing reports](docs/testing/README.md) | Index of the Part-3 deliverables: Test Case Document v2.0, System Validation Report, unit test and coverage reports, with the submitted PDFs in [docs/Part-3_Deliverables](docs/Part-3_Deliverables/). |
 | [docs/other-docs/DEVIATIONS.md](docs/other-docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
 | [Final presentation](docs/sprints/Final%20Presentation.pptx) | Slides and speaker notes for the final demo (S6). |
 

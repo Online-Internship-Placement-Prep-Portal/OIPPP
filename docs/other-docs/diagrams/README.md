@@ -64,7 +64,7 @@ From the repository root:
 
 ```sh
 bash docs/other-docs/diagrams/render.sh
-python3 server/scripts/check-member4-docs.py
+python3 server/scripts/check-docs.py
 ```
 
 The render script compiles all six views, fails on syntax errors and checks each PNG exists. The Python check verifies local links and anchors, the owned requirement IDs, the paired sources and PNGs, and the local style include. Open every PNG after rendering and check labels, arrows and overlap; a successful render is not visual QA.

@@ -1,4 +1,4 @@
-# Issue #89 — Local performance rerun (6 November 2026)
+# Issue #89 â€” Local performance rerun (6 November 2026)
 
 ## Environment
 - API: local production-mode process (`NODE_ENV=production`, `TRUST_PROXY=1`)

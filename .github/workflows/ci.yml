@@ -67,4 +67,4 @@ jobs:
         with:
           python-version: '3.11'
       # The docs check uses only the standard library, so there is nothing for pip-audit to scan.
-      - run: python server/scripts/check-member4-docs.py
+      - run: python server/scripts/check-docs.py
