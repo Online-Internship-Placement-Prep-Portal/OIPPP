@@ -2,6 +2,10 @@ const Profile = require('../users/profile.model');
 const Listing = require('./listing.model');
 const AppError = require('../../utils/AppError');
 
+function escapeRegex(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function getRecommendations(studentId) {
   const profile = await Profile.findOne({ userId: studentId }).lean();
 
@@ -38,7 +42,12 @@ async function getRecommendations(studentId) {
     ];
   }
 
-  const listings = await Listing.find(eligibility).lean();
+  // Match skills in the query so only candidate listings leave the database (#123).
+  // Skills are stored trimmed, so an anchored case-insensitive regex is an exact match.
+  const listings = await Listing.find({
+    ...eligibility,
+    skills: { $in: [...skills].map(skill => new RegExp(`^${escapeRegex(skill)}$`, 'i')) },
+  }).lean();
 
   return listings
     .map(listing => {
