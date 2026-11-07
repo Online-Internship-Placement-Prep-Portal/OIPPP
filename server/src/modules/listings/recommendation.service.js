@@ -6,7 +6,10 @@ function escapeRegex(text) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-async function getRecommendations(studentId) {
+const DEFAULT_LIMIT = 20;
+
+// Returns the best matches only; the home page shows the top 10.
+async function getRecommendations(studentId, limit = DEFAULT_LIMIT) {
   const profile = await Profile.findOne({ userId: studentId }).lean();
 
   if (!profile) {
@@ -68,7 +71,8 @@ async function getRecommendations(studentId) {
       b.matchCount - a.matchCount
       || new Date(a.deadline) - new Date(b.deadline)
       || String(a._id).localeCompare(String(b._id)),
-    );
+    )
+    .slice(0, limit);
 }
 
 module.exports = { getRecommendations };
