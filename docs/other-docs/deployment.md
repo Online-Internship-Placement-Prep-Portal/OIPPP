@@ -55,7 +55,7 @@ How to put OIPPP on the free services named in the SRS (2.4, 2.5) and the SAD (3
 
 ## 5. Post-deploy checks
 
-These are the Test Plan checks that only make sense on the deployed URL. Record the results in [the test report](../testing/test-report.md).
+These are the Test Plan checks that only make sense on the deployed URL. Record the results in [the test report](../Part-3_Deliverables/System%20Validation%20Report.pdf).
 
 | Check | How | Expected |
 |:--|:--|:--|

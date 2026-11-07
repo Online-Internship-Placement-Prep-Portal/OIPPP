@@ -121,7 +121,7 @@ invalid IDs/bodies return 400; unauthenticated/unauthorized roles return 401/403
 6. On terminal/expired responses stop editing. Browser timers are presentation only.
 
 The attempt screen in `client/src/pages/student/Attempt.jsx` implements this flow. Test results are
-in the [test report](../testing/test-report.md).
+in the [test report](../Part-3_Deliverables/System%20Validation%20Report.pdf).
 
 ## Deadline policy (TST-5)
 

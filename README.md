@@ -1,19 +1,19 @@
 # OIPPP — Online Internship & Placement Preparation Portal
 
 <p align="center">
-  <a href="Sprint%201%20Demo.mp4">
+  <a href="docs/sprints/Sprint%201%20Demo.mp4">
     <img src="docs/sprints/Sprint%201%20Demo%20thumbnail.png" alt="Watch the Sprint 1 demo video" width="720">
   </a>
   <br>
-  <sub>▶ <b><a href="Sprint%201%20Demo.mp4">Watch the Sprint 1 demo</a></b> (74 s): board, issues, PRs, CI and the live API</sub>
+  <sub>▶ <b><a href="docs/sprints/Sprint%201%20Demo.mp4">Watch the Sprint 1 demo</a></b> (1:00): board, issues, PRs, CI and the live API</sub>
 </p>
 
 <p align="center">
-  <a href="Sprint%202%20Demo.mp4">
+  <a href="docs/sprints/Sprint%202%20Demo.mp4">
     <img src="docs/sprints/Sprint%202%20Demo%20thumbnail.png" alt="Watch the Sprint 2 demo video" width="720">
   </a>
   <br>
-  <sub>▶ <b><a href="Sprint%202%20Demo.mp4">Watch the Sprint 2 demo</a></b> (4:22): the working product for all three roles, then tests, CI and results</sub>
+  <sub>▶ <b><a href="docs/sprints/Sprint%202%20Demo.mp4">Watch the Sprint 2 demo</a></b> (2:00): board, PRs and CI, then the working product for all three roles, full screen</sub>
 </p>
 
 > Software Engineering project — PES University, Dept. of Computer Science and Engineering
@@ -35,7 +35,7 @@ other.
 | Recruiter | Register and wait for approval; post, edit and close listings; review applicants and their resumes; move applications through Applied → Shortlisted → Interview → Offer / Rejected, with a reason on rejection |
 | Placement Admin | Approve or reject recruiters and disable accounts; turn the one-offer policy on or off; build the question bank and tests; view placement statistics by branch and graduation year; export the report as CSV |
 
-Everyone gets in-app notifications, and status changes are also emailed. The full itemized feature list (F1–F16) is in [docs/PROPOSAL.md](docs/PROPOSAL.md#34-functional-features).
+Everyone gets in-app notifications, and status changes are also emailed. The full itemized feature list (F1–F16) is in the [project proposal](docs/Part-1_Deliverables/Proposal.pdf).
 
 ## Architecture
 
@@ -64,10 +64,10 @@ OIPPP/
 ├── server/                    Node.js + Express API — src/, tests/, scripts/
 └── docs/
     ├── Part-1_Deliverables/   submitted SRS, SAD and Test Plan (PDF)
+    ├── Part-3_Deliverables/   submitted test case document, validation and coverage reports (PDF)
     ├── adr/                   architecture decision records
     ├── other-docs/            SRS map, API references, schemas, diagrams, deviations log, deployment
-    ├── testing/               Postman collection and test reports
-    └── sprints/               sprint charts, video thumbnails and the final presentation
+    └── sprints/               sprint demo videos, charts, thumbnails and the final presentation
 ```
 
 Only the submitted deliverables in `docs/Part-*_Deliverables/` are committed as PDFs. Course-supplied
@@ -113,8 +113,8 @@ Sign in with the admin email and password from `server/.env`. For a deployed cli
 | `npm run test:load` | `server/` | Load test for PERF-1 and PERF-2 |
 | `npm test` | `client/` | Vitest component tests |
 
-The first server test run downloads a MongoDB binary. Results and the test summary are in
-[docs/testing](docs/testing/).
+The first server test run downloads a MongoDB binary. Results and the submitted reports are in
+[docs/Part-3_Deliverables](docs/Part-3_Deliverables/).
 
 ## Deployment
 
@@ -125,7 +125,7 @@ environment variables and checks are in the [deployment guide](docs/other-docs/d
 
 | Document | Purpose |
 |:---------|:--------|
-| [docs/PROPOSAL.md](docs/PROPOSAL.md) | Project proposal — title, team profile, description, functional features, plan of work, product ownership. |
+| [Project proposal](docs/Part-1_Deliverables/Proposal.pdf) | Title, team profile, description, functional features, plan of work, product ownership. |
 | [Architecture decision records](docs/adr/README.md) | Why the system is built the way it is: monolith, server timer, analytics in the API, no controller layer, resume storage. |
 | [Architecture and diagrams](docs/other-docs/diagrams/README.md) | Component, ER, use-case and sequence views; editable PlantUML, rendered PNGs and the render script. |
 | [API contract (S5)](docs/other-docs/api-contract.md) | Every route, role, payload and error code across all four modules; the client builds against this. |
@@ -136,7 +136,7 @@ environment variables and checks are in the [deployment guide](docs/other-docs/d
 | [Progress and analytics](docs/other-docs/analytics-api.md) | Student readiness, admin placement statistics and CSV export endpoints, plus the weak-topic and cohort rules (task 4.4). |
 | [Aptitude database schema](docs/other-docs/database/aptitude-schema.md) | Question, Test, Attempt and Result models, indexes, lifecycle rules and schema tests (task 4.6). |
 | [Deployment guide](docs/other-docs/deployment.md) | Hosting setup, environment variables and post-deploy checks. |
-| [Test summary report](docs/testing/test-report.md) | Results for every test case and SRS ID, defects found, and the Postman collection and load test in [docs/testing](docs/testing/). |
+| [Part-3 testing reports](docs/Part-3_Deliverables/) | Test Case Document v2.0, System Validation Report, Unit Test Report, Code and Branch Coverage Reports (PDF). Editable sources, evidence, Postman and JMeter files live on the `dev` branch under `docs/testing/`. |
 | [docs/other-docs/DEVIATIONS.md](docs/other-docs/DEVIATIONS.md) | Deviations from the submitted SRS / SAD / Test Plan, to be explained at the final demo. |
 | [Final presentation](docs/sprints/Final%20Presentation.pptx) | Slides and speaker notes for the final demo (S6). |
 
@@ -219,7 +219,7 @@ One owner each; everyone reviews all of them.
 
 | # | Deliverable | Owner |
 |:-:|:------------|:------|
-| S1 | Project proposal — `docs/PROPOSAL.md` → PDF | [@deekshithgowdag](https://github.com/deekshithgowdag) |
+| S1 | Project proposal — `docs/Part-1_Deliverables/Proposal.pdf` | [@deekshithgowdag](https://github.com/deekshithgowdag) |
 | S2 | SRS document — `docs/other-docs/SRS.md` → PDF | [@Sharathhg123](https://github.com/Sharathhg123) |
 | S3 | Repo setup, branching rules, CI, `.env.example` | [@guru-bharadwaj20](https://github.com/guru-bharadwaj20) |
 | S4 | Architecture & ER / use-case diagrams — [sources and guide](docs/other-docs/diagrams/README.md), [ADRs](docs/adr/README.md) | [@SUKRUTH-ES](https://github.com/SUKRUTH-ES) |
@@ -228,7 +228,7 @@ One owner each; everyone reviews all of them.
 
 ## Development freeze
 
-Development froze on 30 Oct 2026 at tag `v1.0.0`, as Part-2 rule 3d requires. `main` and `dev` are protected. After the freeze, change the code only to fix a defect, through a reviewed PR. Open checks are listed in the [test report](docs/testing/test-report.md#6-pending-items-and-how-to-close-them).
+Development froze on 30 Oct 2026 at tag `v1.0.0`, as Part-2 rule 3d requires. `main` and `dev` are protected. After the freeze, change the code only to fix a defect, through a reviewed PR. Open checks are listed in the [System Validation Report](docs/Part-3_Deliverables/System%20Validation%20Report.pdf).
 
 ## Working agreement
 

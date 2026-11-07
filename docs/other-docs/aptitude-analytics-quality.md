@@ -92,7 +92,7 @@ The submitted architecture uses an API Analytics Gateway and a private Python/Fl
 
 ## 6.3 Quality Attributes and Related Constraints
 
-The numbered quality targets below are the submitted requirements. Measured results are in the [test report](../testing/test-report.md). Member 4 owns attempt recovery/fairness and contributes to shared quality verification; the owners of auth, listings and applications keep their respective implementation responsibility.
+The numbered quality targets below are the submitted requirements. Measured results are in the [test report](../Part-3_Deliverables/System%20Validation%20Report.pdf). Member 4 owns attempt recovery/fairness and contributes to shared quality verification; the owners of auth, listings and applications keep their respective implementation responsibility.
 
 | ID / submitted location | Baseline target | Verification / responsibility |
 | --- | --- | --- |
@@ -120,7 +120,7 @@ Security dependencies remain SRS SO-1–SO-3, SEC-2/SEC-4 and BR-3/BR-4: role/ow
 | TST-4, SAFE-1 | Answer map, immutable deadline/snapshot, save/recovery flow | `aptitude-recovery.test.js`: refresh, reopen, lost-response retry, offline deadline, restart. Refresh and a dropped connection were also exercised in the browser for the Sprint 2 demo. |
 | TST-5 | Server-side timeout sweep (`attempt-timeout.job.js`), deadline/status guards | `attempt-timeout-job.test.js` and the expiry cases in `aptitude-api.test.js`, including the 0–30 second window under the hard cutoff (D1). |
 | TST-6 | Canonical Result, snapshotted answer key, consistent per-topic counts | `aptitude-scoring.test.js` (all-correct/wrong, unanswered, mixed topics) and submit/idempotency cases in `aptitude-api.test.js`. |
-| ANL-1–ANL-3, PERF-3 | [Component diagram](diagrams/component.png), Result/Application/Profile aggregation, admin export — [analytics API](analytics-api.md) | `analytics.test.js` covers owner scoping, RBAC, cohort filters and CSV escaping. `analytics-performance.test.js` checks the API share of PERF-3 with 2,000 students. Dashboard rendering took 0.19–0.29 s; see the [test report](../testing/test-report.md). |
+| ANL-1–ANL-3, PERF-3 | [Component diagram](diagrams/component.png), Result/Application/Profile aggregation, admin export — [analytics API](analytics-api.md) | `analytics.test.js` covers owner scoping, RBAC, cohort filters and CSV escaping. `analytics-performance.test.js` checks the API share of PERF-3 with 2,000 students. Dashboard rendering took 0.19–0.29 s; see the [test report](../Part-3_Deliverables/System%20Validation%20Report.pdf). |
 | SAFE-2, QA-1–QA-5, PERF-1–PERF-2 | Shared modules and the quality verification matrix above | Record results with fixtures, environment, timing/coverage and reviewer, rather than infer success from a diagram. |
 
 ## Decision register for implementation hand-off
@@ -132,4 +132,4 @@ Security dependencies remain SRS SO-1–SO-3, SEC-2/SEC-4 and BR-3/BR-4: role/ow
 | D3 — Score and schema conventions | Current models choose separate Result, equal-weight percentages and Easy/Medium/Hard. | Adopted with #30: separate Result, equal-weight percentages, Easy/Medium/Hard. |
 | D4 — Cohort and cache semantics | Profile changes, missing cohorts, invalidation and CSV response are unspecified. | Adopted in [analytics-api.md](analytics-api.md#decisions-d2-and-d4): current Profile cohort, 5-minute placement-statistics cache; routes are in the [S5 contract](api-contract.md). |
 
-These decisions fill gaps in the SRS. Acceptance results are in the [test report](../testing/test-report.md). Submitted PDFs and other members' requirements remain unchanged.
+These decisions fill gaps in the SRS. Acceptance results are in the [test report](../Part-3_Deliverables/System%20Validation%20Report.pdf). Submitted PDFs and other members' requirements remain unchanged.
