@@ -1,0 +1,57 @@
+{
+  "base": "https://oippp-api.onrender.com/api",
+  "users": 50,
+  "seconds": 300,
+  "thinkMs": 11000,
+  "ranAt": "2026-11-07T05:42:07.740Z",
+  "rows": [
+    {
+      "name": "PERF-1 listing search",
+      "requests": 662,
+      "p50": 192,
+      "p95": 327,
+      "max": 1703,
+      "errorRate": "0.00%",
+      "rateLimited": 0,
+      "target": "< 2000 ms",
+      "pass": true
+    },
+    {
+      "name": "PERF-2 other API calls",
+      "requests": 650,
+      "p50": 390,
+      "p95": 1679,
+      "max": 2710,
+      "errorRate": "0.00%",
+      "rateLimited": 0,
+      "target": "< 1000 ms",
+      "pass": false
+    },
+    {
+      "name": "PERF-3 placement dashboard",
+      "requests": 10,
+      "p50": 179,
+      "p95": 896,
+      "max": 896,
+      "errorRate": "0.00%",
+      "rateLimited": 0,
+      "target": "< 3000 ms",
+      "pass": true
+    }
+  ],
+  "dashboardMs": [
+    896,
+    181,
+    179,
+    167,
+    187,
+    170,
+    175,
+    309,
+    173,
+    184
+  ],
+  "statuses": {
+    "200": 1312
+  }
+}

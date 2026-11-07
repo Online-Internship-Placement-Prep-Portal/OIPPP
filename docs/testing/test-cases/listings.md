@@ -89,7 +89,7 @@ Actual results and execution status must be updated only after the corresponding
 | Test data | 5,000 listings and representative student, attempt, answer, result and analytics data. |
 | Expected result | Filtered listing search has p95 response time below 2 seconds. Other API calls, excluding file uploads, have p95 response time below 1 second under the same 50-user load. Record errors and environment details. |
 | Actual result | Not run on the Issue #87 branch. Historical release evidence from 30 October 2026: search p95 37 ms and other API p95 62 ms with 50 virtual users. These are historical results, not a fresh execution. |
-| Status | Partial — Render 06-11-2026: PERF-1 search p95 1,370 ms Pass; PERF-2 other calls p95 3,584 ms Fail (#123). See performance-rerun.md |
+| Status | Partial — Render 07-11-2026 after the #123 fix: PERF-1 search p95 327 ms Pass; PERF-2 other calls p95 1,679 ms Fail (#123; 3,584 ms on 06-11). See performance-rerun.md |
 | Automated by | `docs/testing/search_load.jmx (currently exercises listing searches and /api/health only; attempt, answer, result and analytics API samplers remain to be added or verified for complete PERF-2 load coverage)` – load-test plan. `server/tests/integration/listing-search-performance.test.js` provides a separate synthetic 5,000-listing service-level performance check; it is not a substitute for the 50-user load test. |
 | Changes from v1.0 | Explicitly documents PERF-1 and PERF-2 load conditions, percentile targets, API categories and historical-versus-current execution evidence. |
 

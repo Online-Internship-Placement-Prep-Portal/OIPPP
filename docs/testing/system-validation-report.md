@@ -40,7 +40,7 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 | Entry: seed data loaded | Met, 02-11-2026 | `seed` and `seed:demo` output |
 | Entry: test cases reviewed | Met, 05-11-2026 | Identity (#83, PR #105), listings (#87, PR #109), applications (#91, PR #101) and aptitude and analytics (#95, PR #114) merged |
 | Exit: all planned test cases executed | Met with exceptions | All 51 cases executed (section 4.1): 44 pass, 4 partial, 2 fail, 1 blocked, 0 not run. The five admin-only identity cases were run on Render on 07-11-2026 and pass. PERF-3 is blocked (needs a 2,000-student dataset; passes locally) |
-| Exit: no open Critical or High defects | Met, 07-11-2026 | Section 8: #99 fixed; #118 Low, #123 Medium and #124 Medium are recorded as deviations; ZAP found 0 High |
+| Exit: no open Critical or High defects | Met, 07-11-2026 | Section 8: #99 and #124 fixed; #118 Low and #123 Medium are recorded as deviations; ZAP found 0 High |
 | Exit: server statement coverage at least 70% (QA-4) | Met | 96.16% statements, 94.37% branches on the final commit ([Branch Coverage Report](branch-coverage-report.md) section 7) |
 | Exit: every requirement in the RTM has at least one passed test | Met for automated tests; partly met on the deployed build | Every requirement has a passing automated test (Unit Test Report). Section 5 lists the requirements without a deployed-build pass |
 
@@ -50,11 +50,11 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 
 | Module | Owner | Test cases | Pass | Partial | Fail | Blocked | Not run |
 |:--|:--|--:|--:|--:|--:|--:|--:|
-| Identity and security | Deekshith Gowda G (#84) | 14 | 12 | 1 | 1 | 0 | 0 |
+| Identity and security | Deekshith Gowda G (#84) | 14 | 13 | 1 | 0 | 0 | 0 |
 | Listings and search | Sharath H G (#88) | 11 | 8 | 2 | 0 | 1 | 0 |
 | Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API; UI also for TC-APP-01, TC-APP-03, TC-REV-01) | 0 | 0 | 0 | 0 |
 | Aptitude and analytics | E S Sukruth (#96) | 17 | 15 (3 Render, 12 local) | 1 | 1 | 0 | 0 |
-| **Total** | | **51** | **44** | **4** | **2** | **1** | **0** |
+| **Total** | | **51** | **45** | **4** | **1** | **1** | **0** |
 
 Counting rule: a case counts as Pass only if every step run passed; TC-AUTH-04 is Partial because its admin path was not run, and TC-PERF-01 is Partial because PERF-1 passes and PERF-2 fails (#123). Applications UI: TC-APP-02 and TC-REV-02 UI steps were not run and TC-REV-05 UI is partial (badge and list checked, Mark read not pressed); their API steps pass. Identity also ran 12 login, RBAC and injection checks on the deployed build (section 4.3); they are not counted because they are not separate test cases in identity.md.
 
@@ -102,13 +102,13 @@ Issue #84 checks (below) ran on 04-11-2026; the remaining identity.md cases ran 
 | TC-PROF-01 Resume upload validation | Pass | 20 KB PDF 200; 2.1 MB 413; `.docx` rejected |
 | PROF-1 Profile editing | Pass | Deployed UI |
 | TC-SEC-01 bcrypt hashing | Pass | New account's stored hash starts `$2b$12$`, 60 chars, no plain text; Render 07-11-2026 (`evidence/admin-render-results.json`) |
-| TC-SEC-02 Login rate limit | **Fail** | 11 bad logins in a minute all 401, no 429; `ratelimit-remaining` jumps between buckets (bug #124, DEVIATIONS row 30). Passed on 02-11 (section 4.6) and in the automated suite |
+| TC-SEC-02 Login rate limit | Pass | 06-11: 11 bad logins all 401, no 429 (bug #124). Fixed in PR #125 (limiter keyed on the email); 07-11 retest on Render: the 11th bad login returned 429 `RATE_LIMITED` |
 | PROF-3 Recruiter approval | Pass | Two new pending recruiters: reject without reason 400; approve 200 ACTIVE; reject `INVALID_COMPANY` 200 REJECTED; 2 audit entries; Render 07-11-2026 (`evidence/admin-render-results.json`) |
 | PROF-4 Deactivation revokes tokens | Pass | New test student: `/auth/me` 200, deactivate 200 DISABLED, same token then 401, re-login refused 403; Render 07-11-2026 (`evidence/admin-render-results.json`) |
 | DOM-2 One-offer policy | Pass | Policy switched on; `student0003` (holds an OFFER) applying again got 422 `OFFER_HELD`; policy switched back off; Render 07-11-2026 (`evidence/admin-render-results.json`) |
 | SEC-6 Audit log integrity | Pass | Deactivation wrote a `USER_DEACTIVATED` entry; no API route edits or deletes audit entries (all 404); the model refuses updates; Render 07-11-2026 (`evidence/admin-render-results.json`) |
 
-**Identity summary:** 12 Pass, 1 Partial, 1 Fail, 0 Blocked. The five admin-only cases were run on Render on 07-11-2026 after the admin password was reset; only new `ST-ADM` test accounts were changed.
+**Identity summary:** 13 Pass, 1 Partial, 0 Fail, 0 Blocked. The five admin-only cases were run on Render on 07-11-2026 after the admin password was reset; only new `ST-ADM` test accounts were changed.
 
 **Deployed UI checks**
 
@@ -150,7 +150,7 @@ Issue #88 execution against the deployed test build on 04-11-2026. API checks us
 | LST-3 — Listing ownership | Pass | Other recruiter received 403 for edit and close. Owner successfully edited and closed the listing; GET confirmed CLOSED. |
 | SRCH-4 — Saved internships and bookmark limit | Partial | Save returned 201; duplicate save returned the same bookmark ID; GET showed one occurrence; removal returned 204. Closed and expired listings returned 400 `LISTING_NOT_BOOKMARKABLE`. The 100/101 boundary and duplicate-at-limit case were not tested to avoid polluting shared seeded data. |
 | SRCH-5 — Recommendations | Pass | 1,455 recommendations returned. All were OPEN and not expired; match counts were consistent and ranking descending. Unauthenticated access returned 401; recruiter access returned 403. Empty profile (06-11-2026): `{"listings":[]}` and "No matches yet" in the UI. |
-| TC-PERF-01 — Search/API load performance | Partial | 50 users x 5 min on Render, 1,265 requests, 0% errors. PERF-1 search p95 1,370 ms: Pass. PERF-2 other calls p95 3,584 ms: Fail (bug #123, DEVIATIONS row 29). Cold start 32.5 s. [performance-rerun.md](performance-rerun.md) |
+| TC-PERF-01 — Search/API load performance | Partial | Render 07-11-2026 rerun after the #123 fix (50 users x 5 min, 1,312 requests, 0% errors): PERF-1 search p95 327 ms: Pass. PERF-2 other calls p95 1,679 ms: Fail (was 3,584 ms on 06-11; bug #123, DEVIATIONS row 29). PERF-3 dashboard p95 896 ms on 200 students. Cold start 32.5 s. [performance-rerun.md](performance-rerun.md) |
 | PERF-3 — Dashboard rendering | Blocked | Not rerun on Render: deployed seed has 200 students, not the 2,000 PERF-3 needs. Local 30-10-2026 run with 2,000 students: 0.19–0.29 s (Pass) |
 | TC-SRCH-01 — Search, filters, sort and pagination | Pass | Search, mode, stipend and skill queries returned expected results. Stipend-descending order was monotonic across 50 records; pages 1 and 2 had no duplicate IDs. Invalid mode, sort and stipend range returned 400. Newman run: 10 requests, 15 assertions, 0 failures. |
 | UI-LST-01 — Listing search page | Pass | Manual check showed 803 React search results. User confirmed filters, sorting and pagination worked. |
@@ -240,19 +240,19 @@ Every SRS requirement has a passing automated test (Unit Test Report; RTM in the
 
 | Area | Requirements | Passed on the deployed build | Not passed on the deployed build |
 |:--|:--|:--|:--|
-| Identity | AUTH, PROF, RBAC | TC-AUTH-01 to 03, 05, 06, TC-PROF-01, PROF-1, RBAC and injection checks (section 4.3) | PROF-3, PROF-4, DOM-2, SEC-6, TC-SEC-01 (admin run, 07-11-2026) | TC-SEC-02 fails (#124); TC-AUTH-04 admin path not run |
-| Listings and search | LST, SRCH | TC-LST-01, LST-3, TC-SRCH-01, SRCH-5, PERF-1, all four UI cases | SRCH-4 partial (limit boundary); PERF-2 fails (#123); PERF-3 blocked |
+| Identity | AUTH, PROF, RBAC | TC-AUTH-01 to 03, 05, 06, TC-PROF-01, PROF-1, RBAC and injection checks (section 4.3) | PROF-3, PROF-4, DOM-2, SEC-6, TC-SEC-01 (admin run, 07-11-2026) | TC-SEC-02 fixed (#124) and passes on 07-11; TC-AUTH-04 admin path not run |
+| Listings and search | LST, SRCH | TC-LST-01, LST-3, TC-SRCH-01, SRCH-5, PERF-1, all four UI cases | SRCH-4 partial (limit boundary); PERF-2 fails (#123, p95 1.7 s after fix); PERF-3 blocked |
 | Applications and review | APP, REV, NOTIF | All nine cases, API steps (section 4.2); UI for TC-APP-01, TC-APP-03, TC-REV-01 | UI steps of TC-APP-02, TC-REV-02 not run; TC-REV-05 UI partial |
 | Aptitude and analytics | TST, ANL, DOM-3 | TC-TST-01, TC-TST-05, TC-ANL-02 | TST-4 (TC-TST-06, #118); TC-TST-02 partial; admin and UI cases passed locally only |
 | Safety | SAFE-1, SAFE-2 | SAFE-1 server side | SAFE-2 local only |
-| Security | SEC-1 to SEC-6 | SEC-2, SEC-4; SEC-5 on 02-11 only | SEC-5 fails on the 06-11 rerun (#124); SEC-1, SEC-3, SEC-6 automated only |
+| Security | SEC-1 to SEC-6 | SEC-2, SEC-4, SEC-5 (07-11 retest after #124 fix) | SEC-5 failed on the 06-11 rerun (#124, fixed); SEC-1, SEC-3, SEC-6 automated only |
 | Quality | QA-1, QA-5 | - | QA-1 Partial (5 of 5 UAT participants, 2 of 5 within 3:00 on first visit), QA-5 Partial (desktop browsers not run) |
 
 ## 6. Non-functional results
 
 | Area | Requirement | Result | Source |
 |:--|:--|:--|:--|
-| Performance | PERF-1, PERF-2, PERF-3 | Render 06-11-2026: search p95 1,370 ms (Pass), other APIs p95 3,584 ms (Fail, #123), PERF-3 not rerun. Local 30-10-2026 baseline: search p95 37 ms, other APIs p95 62 ms at 50 VUs; dashboard render 0.19–0.29 s for 2,000 students | #89 ([performance-rerun.md](performance-rerun.md)), #88 |
+| Performance | PERF-1, PERF-2, PERF-3 | Render 07-11-2026 (after #123 fix): search p95 327 ms (Pass), other APIs p95 1,679 ms (Fail, #123; 3,584 ms on 06-11), dashboard p95 896 ms on 200 students. Local 30-10-2026 baseline: search p95 37 ms, other APIs p95 62 ms at 50 VUs; dashboard render 0.19–0.29 s for 2,000 students | #89 ([performance-rerun.md](performance-rerun.md)), #88 |
 | Security | SEC-1 to SEC-6, ZAP baseline, npm audit | ZAP baseline on the client URL: 0 High, 2 Medium (CSP, SRI), 5 Low. `npm audit --omit=dev --audit-level=high`: 0 on server and client. SEC-1, SEC-3 to SEC-6 pass in the automated suite; SEC-5 passed on the deployed build on 02-11 (section 4.6) but failed the 06-11 rerun (#124: no 429 behind the Render proxy; account lockout still works); SEC-4 injection checks (`$ne`, `$gt`, `$where`) also pass on the deployed build (section 4.3). SEC-2 passes: on 06-11-2026 both `https://oippp-client.onrender.com` and `https://oippp-api.onrender.com` answered over TLS with a valid certificate (curl, no `-k`), plain HTTP returns 301 to HTTPS, and both send `Strict-Transport-Security` (client `max-age=315360000; includeSubdomains; preload`, API `max-age=15552000; includeSubDomains`) | #85 ([ZAP report](zap-baseline-report.md)), #84 |
 | Safety | SAFE-1, SAFE-2 | SAFE-1: server side passes on Render (refresh, reopen and lost-response retry keep every acknowledged answer and the original `endsAt`); the browser check passes on the local build in Chromium (TC-SAFE-01). SAFE-2: passes on the local build (TC-SAFE-02), not run on Render because deactivation cannot be undone | #96, section 4.5 |
 | Usability | QA-1 | **Partial**: first visit 2 of 5 within 3 minutes (median 3:44, incl. profile setup); search and apply alone 5 of 5 (median 1:55, second visit). All completed without help. Mean ease rating 4.0 / 5 | #97, section 7 |
@@ -285,8 +285,8 @@ Five classmates who did not build OIPPP each took part remotely on their own pho
 |:--|:--|:--|:--|:--|:--|
 | #99 | API fails to start in production: Cannot find module 'mongodb' | Critical (blocks deployment) | Identity (resume storage) | Deployment, 02-11-2026 | Fixed in PR #100, merged and deployed 04-11-2026 |
 | #118 | TC-TST-06: answer saves exceed 1 s at the client on the Render build (TST-4) | Low (no data loss) | Aptitude | #96, 05-11-2026 | Recorded as DEVIATIONS row 28 (PR #119): mostly network latency to the free Render instance; local max 29 ms |
-| #123 | PERF-2: non-search API p95 3.6 s on the Render build | Medium (performance) | Listings / API | #89, 06-11-2026 | Recorded as DEVIATIONS row 29: free Render tier and cross-region database; local p95 62 ms |
-| #124 | TC-SEC-02: login rate limit not enforced on the Render build | Medium (security) | Identity | Rerun, 06-11-2026 | Recorded as DEVIATIONS row 30: rate-limit key changes behind the Render proxy; account lockout (TC-AUTH-03) still stops password guessing per account |
+| #123 | PERF-2: non-search API p95 3.6 s on the Render build | Medium (performance) | Listings / API | #89, 06-11-2026 | PR #126/#127 cut the recommendations payload from 1,575 listings (673 KB) to 20; p95 fell to 1.7 s on 07-11. Still over 1 s: recorded as DEVIATIONS row 29 (free Render tier, cross-region database; local p95 62 ms) |
+| #124 | TC-SEC-02: login rate limit not enforced on the Render build | Medium (security) | Identity | Rerun, 06-11-2026 | Fixed in PR #125 (limiter keyed on the email); retest on Render 07-11-2026: 11th bad login returns 429. DEVIATIONS row 30 closed |
 
 Observations (not defects against the SRS):
 
@@ -300,9 +300,9 @@ Observations (not defects against the SRS):
 | Test cases executed | 51 of 51 (44 pass, 4 partial, 2 fail, 1 blocked); 0 not run |
 | Test cases passed / failed | 44 / 2 (full passes; partial cases excluded) |
 | Blocked cases | 1 (PERF-3: needs a 2,000-student dataset) |
-| Defects by severity | Critical 1 (fixed), High 0, Medium 2 (#123, #124, deviations), Low 1 (#118, deviation) |
+| Defects by severity | Critical 1 (fixed), High 0, Medium 2 (#124 fixed; #123 deviation), Low 1 (#118, deviation) |
 | Defects by module | Identity 2, Aptitude 1, Listings / API 1 |
-| Defect age (days open) | #99: 2 days (02-11 to 04-11); #118: 1 day (05-11 to 06-11); #123, #124: opened 06-11, open as deviations |
+| Defect age (days open) | #99: 2 days (02-11 to 04-11); #118: 1 day (05-11 to 06-11); #124: 1 day (06-11 to 07-11); #123: opened 06-11, open as a deviation |
 | Requirement coverage (share of IDs with a passed test) | 100% with an automated test; see section 5 for deployed-build passes |
 | Server statement coverage | 96.16% |
 
@@ -310,7 +310,7 @@ Observations (not defects against the SRS):
 
 Release 1.0 runs on the deployed build with no open Critical or High defect. All 51 test cases were executed: 44 pass, 4 partial, 2 fail and 1 blocked, all nine applications cases pass their API steps, the full Postman collection passes (157 assertions, 0 failures), SEC-2 passes, and server coverage is 96.16% statements and 94.37% branches with all 509 server and 64 client tests passing.
 
-Every planned test case was executed. One is blocked on Render: PERF-3 needs a 2,000-student dataset (it passes locally). The five admin-only cases were run on Render on 07-11-2026 and pass. Two fail on the free Render environment and are recorded as deviations: TC-TST-06 (#118, row 28) and TC-SEC-02 (#124, row 30); PERF-2 inside TC-PERF-01 also fails there (#123, row 29). UAT ran with five students and one recruiter: QA-1 and QA-5 are Partial (#97). These gaps are recorded, not closed.
+Every planned test case was executed. One is blocked on Render: PERF-3 needs a 2,000-student dataset (it passes locally). The five admin-only cases were run on Render on 07-11-2026 and pass. One fails on the free Render environment and is recorded as a deviation: TC-TST-06 (#118, row 28); PERF-2 inside TC-PERF-01 also fails there (#123, row 29, p95 1.7 s after the fix). TC-SEC-02 failed on 06-11 (#124), was fixed and passes on the 07-11 retest. UAT ran with five students and one recruiter: QA-1 and QA-5 are Partial (#97). These gaps are recorded, not closed.
 
 | Role | Name | Date |
 |:--|:--|:--|

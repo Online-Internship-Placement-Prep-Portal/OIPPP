@@ -116,8 +116,8 @@ Actual results and execution status must be updated only after the tests are per
 | Steps             | 1. Send ten login requests within the configured rate-limit window. 2. Send an eleventh request. 3. Inspect the response.     |
 | Test data         | Eleven login requests from the same IP address.                                                                               |
 | Expected result   | The first ten requests are processed according to authentication rules. The eleventh request returns HTTP 429 `RATE_LIMITED`. |
-| Actual result | **Render, 06-11-2026: 11 failed logins in under a minute from one machine all returned 401; no 429.** A rerun with `curl` showed `ratelimit-remaining` going 9, 8, 7, 8, 8, 7, 7, 5, 6, 6, 5, 5, i.e. the requests were counted in several separate buckets, so the limit of 10 was never reached. The likely cause is the client IP the API sees behind Render's proxy changing between requests (`TRUST_PROXY=1`); not confirmed. The SVR 4.6 run on 02-11-2026 did get 429 on the 11th login. The limiter passes in the automated suite. Evidence: `docs/testing/evidence/identity-render-results.json`, `docs/testing/evidence/sec02-rerun.txt`. |
-| Status | Fail on Render (no 429 after 11 attempts); Pass in the automated suite |
+| Actual result | **Render, 06-11-2026: 11 failed logins in under a minute from one machine all returned 401; no 429.** A rerun with `curl` showed `ratelimit-remaining` going 9, 8, 7, 8, 8, 7, 7, 5, 6, 6, 5, 5, i.e. the requests were counted in several separate buckets, so the limit of 10 was never reached. The likely cause is the client IP the API sees behind Render's proxy changing between requests (`TRUST_PROXY=1`); not confirmed. The SVR 4.6 run on 02-11-2026 did get 429 on the 11th login. The limiter passes in the automated suite. Evidence: `docs/testing/evidence/identity-render-results.json`, `docs/testing/evidence/sec02-rerun.txt`. **Retest, Render 07-11-2026, after PR #125 (limiter keyed on the email): the 11th bad login returned 429 `RATE_LIMITED`.** |
+| Status | Pass (Render retest 07-11-2026; failed on 06-11, bug #124, fixed) |
 | Automated by      | `server/tests/integration/auth.test.js` – authentication rate-limit test.                                                     |
 | Changes from v1.0 | Updated to specify the eleventh request and HTTP 429 `RATE_LIMITED`.                                                          |
 
@@ -318,4 +318,4 @@ MongoDB Test Retry
 * Updated requirement-to-test-case mapping.
 * Added automation references based on `docs/testing/test-report.md`, Section 3.
 * 06-11-2026: executed the remaining cases against the Render build (API scripts and Playwright/Edge UI runs in `docs/testing/evidence/identity-render-run*.mjs`, `ui-register-run.mjs`). TC-SEC-02 failed on Render (no 429).
-* 07-11-2026: after the admin password was reset, PROF-3, PROF-4, DOM-2, SEC-6 and TC-SEC-01 were run on Render and pass (`evidence/admin-render-run.mjs`).
+* 07-11-2026: after the admin password was reset, PROF-3, PROF-4, DOM-2, SEC-6 and TC-SEC-01 were run on Render and pass (`evidence/admin-render-run.mjs`). TC-SEC-02 retested on Render after the #124 fix and passes.

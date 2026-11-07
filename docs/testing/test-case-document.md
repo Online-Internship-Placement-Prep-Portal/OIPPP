@@ -76,13 +76,13 @@ Status on 07-11-2026 (final), taken from the four module files and the System Va
 
 | Module | Test cases | Pass | Partial | Fail | Blocked | Not run |
 |:--|--:|--:|--:|--:|--:|--:|
-| Identity and security | 14 | 12 | 1 | 1 | 0 | 0 |
+| Identity and security | 14 | 13 | 1 | 0 | 0 | 0 |
 | Listings and search | 11 | 8 | 2 | 0 | 1 | 0 |
 | Applications, review and notifications | 9 | 9 (API; UI for 3) | 0 | 0 | 0 | 0 |
 | Aptitude and analytics | 17 | 15 | 1 | 1 | 0 | 0 |
-| **Total** | **51** | **44** | **4** | **2** | **1** | **0** |
+| **Total** | **51** | **45** | **4** | **1** | **1** | **0** |
 
-The two failures are TC-TST-06 (TST-4 save latency on the free Render instance, bug #118, DEVIATIONS row 28) and TC-SEC-02 (login rate limit not enforced behind the Render proxy, bug #124, DEVIATIONS row 30). TC-PERF-01 is partial: PERF-1 passes, PERF-2 fails on Render (#123, row 29). The five admin-only identity cases (PROF-3, PROF-4, DOM-2, SEC-6, TC-SEC-01) were run on Render on 07-11-2026 and pass. The one blocked case is PERF-3, which needs 2,000 students and passes on the local build.
+The one failure is TC-TST-06 (TST-4 save latency on the free Render instance, bug #118, DEVIATIONS row 28). TC-SEC-02 failed on 06-11 (bug #124), was fixed in PR #125 and passes on the 07-11 Render retest. TC-PERF-01 is partial: PERF-1 passes, PERF-2 fails on Render with p95 1,679 ms after the #123 fix (row 29). The five admin-only identity cases (PROF-3, PROF-4, DOM-2, SEC-6, TC-SEC-01) were run on Render on 07-11-2026 and pass. The one blocked case is PERF-3, which needs 2,000 students and passes on the local build.
 
 ### Schedule deviation
 
