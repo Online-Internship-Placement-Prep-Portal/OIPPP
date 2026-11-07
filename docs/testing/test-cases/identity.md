@@ -101,8 +101,8 @@ Actual results and execution status must be updated only after the tests are per
 | Steps             | 1. Create a user account. 2. Inspect the stored password hash in the test environment. 3. Verify the bcrypt cost.                                         |
 | Test data         | Test user password.                                                                                                                                       |
 | Expected result   | Password is stored as a bcrypt hash using cost 12. The hash begins with `$2b$12$`. Plain-text passwords must not be stored.                               |
-| Actual result | Not run on Render: inspecting the stored hash needs database access, which the tester did not have. The automated suite checks the `$2b$12$` prefix and cost 12 (`unit/auth-service.test.js`, passing on 06-11-2026). |
-| Status | Blocked on Render (no database access); Pass in the automated suite |
+| Actual result | **Render, 07-11-2026:** new test account's stored hash starts `$2b$12$`, is 60 characters and does not contain the plain password. Evidence: `docs/testing/evidence/admin-render-results.json` (script `admin-render-run.mjs`). |
+| Status | Pass |
 | Automated by      | `server/tests/unit/auth-service.test.js` and `server/tests/unit/validate-middleware.test.js`; cost configuration is also documented in `auth.service.js`. |
 | Changes from v1.0 | Updated to specify bcrypt cost 12 and the expected hash prefix.                                                                                           |
 
@@ -148,8 +148,8 @@ Actual results and execution status must be updated only after the tests are per
 | Steps             | 1. Log in as admin. 2. Open recruiter management. 3. Approve one pending recruiter. 4. Reject another pending recruiter with a valid reason code. 5. Inspect notifications and audit records. |
 | Test data         | Pending recruiters and valid rejection reason codes.                                                                                                                                          |
 | Expected result   | Approval and rejection update recruiter status. Rejection requires a reason. Both decisions are audit-logged and generate in-app and email notifications.                                     |
-| Actual result | Not run: needs the admin account, whose password was not available to the tester. Covered by `integration/admin.test.js` (passing). |
-| Status | Blocked (admin credentials) |
+| Actual result | **Render, 07-11-2026:** two new recruiters registered as PENDING. Reject without a reason 400; approve 200 → ACTIVE; reject with `INVALID_COMPANY` 200 → REJECTED; 2 audit entries written. Evidence: `docs/testing/evidence/admin-render-results.json` (script `admin-render-run.mjs`). |
+| Status | Pass |
 | Automated by      | `server/tests/integration/admin.test.js` – recruiter approval/rejection tests.                                                                                                                |
 | Changes from v1.0 | New test case for admin recruiter decisions with reason codes.                                                                                                                                |
 
@@ -163,8 +163,8 @@ Actual results and execution status must be updated only after the tests are per
 | Steps             | 1. Log in and obtain a token. 2. Deactivate the account. 3. Use the previously issued token to access a protected endpoint. |
 | Test data         | Previously valid authentication token belonging to the deactivated account.                                                 |
 | Expected result   | The previously issued token is rejected because the account is deactivated.                                                 |
-| Actual result | Not run: deactivation needs the admin account (password not available) and is irreversible on the shared data. Covered by the account-status integration tests (passing). |
-| Status | Blocked (admin credentials) |
+| Actual result | **Render, 07-11-2026:** new test student logged in (`/auth/me` 200); admin deactivated it (200, DISABLED); the same token then got 401 `UNAUTHENTICATED`; a fresh login was refused (403). Evidence: `docs/testing/evidence/admin-render-results.json` (script `admin-render-run.mjs`). |
+| Status | Pass |
 | Automated by      | Automation mapping to be confirmed from the account-status integration tests.                                               |
 | Changes from v1.0 | New test case for token revocation after account deactivation.                                                              |
 
@@ -178,8 +178,8 @@ Actual results and execution status must be updated only after the tests are per
 | Steps             | 1. Authenticate as the student. 2. Attempt to accept another offer. 3. Inspect the API response. |
 | Test data         | Student account holding one accepted offer and another offer to accept.                          |
 | Expected result   | The second offer acceptance is rejected with HTTP 422 `OFFER_HELD`.                              |
-| Actual result | **Render, 06-11-2026:** `recruiter01` moved `student0003`'s application to INTERVIEW then OFFER (200 both); `student0003` then applied to another listing and got **201**, not 422. This matches the code: the one-offer policy is an admin setting that defaults to off (`settings.service.js`), and the deployed setting could not be switched on without the admin account. The 422 `OFFER_HELD` path was not reached. Evidence: `docs/testing/evidence/identity-render-results-2.json`. |
-| Status | Blocked (policy is off on Render; turning it on needs admin) |
+| Actual result | **Render, 06-11-2026:** `recruiter01` moved `student0003`'s application to INTERVIEW then OFFER (200 both); `student0003` then applied to another listing and got **201**, not 422. This matches the code: the one-offer policy is an admin setting that defaults to off (`settings.service.js`), and the deployed setting could not be switched on without the admin account. **Rerun 07-11-2026 with admin:** policy switched on, `student0003` (holds the OFFER) applied again and got **422 `OFFER_HELD`**; policy switched back off. Evidence: `identity-render-results-2.json`, `admin-render-results.json`. |
+| Status | Pass |
 | Automated by      | API run recorded in the test report; matching Postman collection request.                        |
 | Changes from v1.0 | New test case for the one-offer policy.                                                          |
 
@@ -193,8 +193,8 @@ Actual results and execution status must be updated only after the tests are per
 | Steps             | 1. Perform an admin account action or status change. 2. Inspect the generated audit entry. 3. Attempt to edit or delete the audit entry through available application routes. |
 | Test data         | Existing audit record and an admin action.                                                                                                                                    |
 | Expected result   | Audit entries are created for applicable actions. Application routes do not allow audit entries to be edited or deleted.                                                      |
-| Actual result | Not run: needs an admin action and the admin audit view; admin password not available to the tester. Covered by `integration/audit.test.js` (passing). |
-| Status | Blocked (admin credentials) |
+| Actual result | **Render, 07-11-2026:** the deactivation wrote a `USER_DEACTIVATED` audit entry; PATCH/DELETE probes on audit paths all return 404 (no route edits or deletes entries); the model refuses an update. Evidence: `docs/testing/evidence/admin-render-results.json` (script `admin-render-run.mjs`). |
+| Status | Pass |
 | Automated by      | Automation mapping to be confirmed from audit-related tests.                                                                                                                  |
 | Changes from v1.0 | New test case for audit-log integrity.                                                                                                                                        |
 
@@ -317,4 +317,5 @@ MongoDB Test Retry
 * Added UI testing steps for registration, login, profile management, and admin screens.
 * Updated requirement-to-test-case mapping.
 * Added automation references based on `docs/testing/test-report.md`, Section 3.
-* 06-11-2026: executed the remaining cases against the Render build (API scripts and Playwright/Edge UI runs in `docs/testing/evidence/identity-render-run*.mjs`, `ui-register-run.mjs`). Admin-only cases (PROF-3, PROF-4, SEC-6, the admin path of TC-AUTH-04 and the policy switch for DOM-2) stay blocked because the admin password was not available to the tester. TC-SEC-02 failed on Render (no 429).
+* 06-11-2026: executed the remaining cases against the Render build (API scripts and Playwright/Edge UI runs in `docs/testing/evidence/identity-render-run*.mjs`, `ui-register-run.mjs`). TC-SEC-02 failed on Render (no 429).
+* 07-11-2026: after the admin password was reset, PROF-3, PROF-4, DOM-2, SEC-6 and TC-SEC-01 were run on Render and pass (`evidence/admin-render-run.mjs`).

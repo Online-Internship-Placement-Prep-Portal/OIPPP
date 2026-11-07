@@ -1,0 +1,100 @@
+{
+  "run": "2026-11-07T04:50:28.176Z",
+  "base": "https://oippp-api.onrender.com/api",
+  "cases": {
+    "PROF-3": {
+      "registered": [
+        201,
+        201,
+        "PENDING",
+        "PENDING"
+      ],
+      "rejectWithoutReason": 400,
+      "approve": [
+        200,
+        "ACTIVE"
+      ],
+      "reject": [
+        200,
+        "REJECTED"
+      ],
+      "auditEntries": 2,
+      "pass": true
+    },
+    "PROF-4": {
+      "register": 201,
+      "meBefore": 200,
+      "deactivate": [
+        200,
+        "DISABLED"
+      ],
+      "meAfterWithOldToken": [
+        401,
+        "UNAUTHENTICATED"
+      ],
+      "relogin": 403,
+      "pass": true
+    },
+    "DOM-2": {
+      "originalSetting": {
+        "settings": {
+          "oneOfferPolicy": false
+        }
+      },
+      "policyOn": 200,
+      "holdsOffer": true,
+      "apply": [
+        422,
+        "OFFER_HELD"
+      ],
+      "policyRestoredOff": [
+        200,
+        {
+          "settings": {
+            "oneOfferPolicy": false
+          }
+        }
+      ],
+      "pass": true
+    },
+    "SEC-6": {
+      "deactivateAuditEntries": [
+        {
+          "action": "USER_DEACTIVATED",
+          "entity": "User",
+          "at": "2026-11-07T04:50:44.858Z"
+        }
+      ],
+      "editDeleteRouteProbes": [
+        [
+          "GET",
+          "/audit",
+          404
+        ],
+        [
+          "PATCH",
+          "/audit/x",
+          404
+        ],
+        [
+          "DELETE",
+          "/audit/x",
+          404
+        ],
+        [
+          "DELETE",
+          "/admin/audit/x",
+          404
+        ]
+      ],
+      "modelRefusesUpdate": true,
+      "pass": true
+    },
+    "TC-SEC-01": {
+      "hashPrefix": "$2b$12$",
+      "length": 60,
+      "containsPlain": false,
+      "pass": true
+    }
+  }
+}

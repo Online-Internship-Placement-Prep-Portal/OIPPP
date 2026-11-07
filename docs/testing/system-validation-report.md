@@ -39,7 +39,7 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 | Entry: stable build deployed to the test environment | Met, 02-11-2026 | Post-deploy checks in deployment.md section 6 |
 | Entry: seed data loaded | Met, 02-11-2026 | `seed` and `seed:demo` output |
 | Entry: test cases reviewed | Met, 05-11-2026 | Identity (#83, PR #105), listings (#87, PR #109), applications (#91, PR #101) and aptitude and analytics (#95, PR #114) merged |
-| Exit: all planned test cases executed | Met with exceptions | All 51 cases executed (section 4.1): 39 pass, 4 partial, 2 fail, 6 blocked, 0 not run. Blocked cases need the admin account or database access on Render (5 identity) or a 2,000-student dataset (PERF-3); all pass in the automated suite |
+| Exit: all planned test cases executed | Met with exceptions | All 51 cases executed (section 4.1): 44 pass, 4 partial, 2 fail, 1 blocked, 0 not run. The five admin-only identity cases were run on Render on 07-11-2026 and pass. PERF-3 is blocked (needs a 2,000-student dataset; passes locally) |
 | Exit: no open Critical or High defects | Met, 07-11-2026 | Section 8: #99 fixed; #118 Low, #123 Medium and #124 Medium are recorded as deviations; ZAP found 0 High |
 | Exit: server statement coverage at least 70% (QA-4) | Met | 96.16% statements, 94.37% branches on the final commit ([Branch Coverage Report](branch-coverage-report.md) section 7) |
 | Exit: every requirement in the RTM has at least one passed test | Met for automated tests; partly met on the deployed build | Every requirement has a passing automated test (Unit Test Report). Section 5 lists the requirements without a deployed-build pass |
@@ -50,11 +50,11 @@ Unit and integration test results are in the Unit Test Report. Coverage is in th
 
 | Module | Owner | Test cases | Pass | Partial | Fail | Blocked | Not run |
 |:--|:--|--:|--:|--:|--:|--:|--:|
-| Identity and security | Deekshith Gowda G (#84) | 14 | 7 | 1 | 1 | 5 | 0 |
+| Identity and security | Deekshith Gowda G (#84) | 14 | 12 | 1 | 1 | 0 | 0 |
 | Listings and search | Sharath H G (#88) | 11 | 8 | 2 | 0 | 1 | 0 |
 | Applications, review and notifications | Guru R Bharadwaj | 9 | 9 (API; UI also for TC-APP-01, TC-APP-03, TC-REV-01) | 0 | 0 | 0 | 0 |
 | Aptitude and analytics | E S Sukruth (#96) | 17 | 15 (3 Render, 12 local) | 1 | 1 | 0 | 0 |
-| **Total** | | **51** | **39** | **4** | **2** | **6** | **0** |
+| **Total** | | **51** | **44** | **4** | **2** | **1** | **0** |
 
 Counting rule: a case counts as Pass only if every step run passed; TC-AUTH-04 is Partial because its admin path was not run, and TC-PERF-01 is Partial because PERF-1 passes and PERF-2 fails (#123). Applications UI: TC-APP-02 and TC-REV-02 UI steps were not run and TC-REV-05 UI is partial (badge and list checked, Mark read not pressed); their API steps pass. Identity also ran 12 login, RBAC and injection checks on the deployed build (section 4.3); they are not counted because they are not separate test cases in identity.md.
 
@@ -101,14 +101,14 @@ Issue #84 checks (below) ran on 04-11-2026; the remaining identity.md cases ran 
 | TC-AUTH-06 Student registration | Pass | API 201 and UI |
 | TC-PROF-01 Resume upload validation | Pass | 20 KB PDF 200; 2.1 MB 413; `.docx` rejected |
 | PROF-1 Profile editing | Pass | Deployed UI |
-| TC-SEC-01 bcrypt hashing | Blocked | Needs database access; passes in the automated suite |
+| TC-SEC-01 bcrypt hashing | Pass | New account's stored hash starts `$2b$12$`, 60 chars, no plain text; Render 07-11-2026 (`evidence/admin-render-results.json`) |
 | TC-SEC-02 Login rate limit | **Fail** | 11 bad logins in a minute all 401, no 429; `ratelimit-remaining` jumps between buckets (bug #124, DEVIATIONS row 30). Passed on 02-11 (section 4.6) and in the automated suite |
-| PROF-3 Recruiter approval | Blocked | Admin credentials not available to testers |
-| PROF-4 Deactivation revokes tokens | Blocked | Admin credentials; irreversible on shared data |
-| DOM-2 One-offer policy | Blocked | Policy is off on Render; enabling it needs admin. Apply after OFFER returned 201 as expected with the policy off |
-| SEC-6 Audit log integrity | Blocked | Admin credentials |
+| PROF-3 Recruiter approval | Pass | Two new pending recruiters: reject without reason 400; approve 200 ACTIVE; reject `INVALID_COMPANY` 200 REJECTED; 2 audit entries; Render 07-11-2026 (`evidence/admin-render-results.json`) |
+| PROF-4 Deactivation revokes tokens | Pass | New test student: `/auth/me` 200, deactivate 200 DISABLED, same token then 401, re-login refused 403; Render 07-11-2026 (`evidence/admin-render-results.json`) |
+| DOM-2 One-offer policy | Pass | Policy switched on; `student0003` (holds an OFFER) applying again got 422 `OFFER_HELD`; policy switched back off; Render 07-11-2026 (`evidence/admin-render-results.json`) |
+| SEC-6 Audit log integrity | Pass | Deactivation wrote a `USER_DEACTIVATED` entry; no API route edits or deletes audit entries (all 404); the model refuses updates; Render 07-11-2026 (`evidence/admin-render-results.json`) |
 
-**Identity summary:** 7 Pass, 1 Partial, 1 Fail, 5 Blocked. The blocked cases all pass in the automated suite (`admin.test.js`, `audit.test.js`, `auth-service` unit tests).
+**Identity summary:** 12 Pass, 1 Partial, 1 Fail, 0 Blocked. The five admin-only cases were run on Render on 07-11-2026 after the admin password was reset; only new `ST-ADM` test accounts were changed.
 
 **Deployed UI checks**
 
@@ -240,7 +240,7 @@ Every SRS requirement has a passing automated test (Unit Test Report; RTM in the
 
 | Area | Requirements | Passed on the deployed build | Not passed on the deployed build |
 |:--|:--|:--|:--|
-| Identity | AUTH, PROF, RBAC | TC-AUTH-01 to 03, 05, 06, TC-PROF-01, PROF-1, RBAC and injection checks (section 4.3) | TC-SEC-02 fails (#124); TC-AUTH-04 admin path; PROF-3, PROF-4, DOM-2, SEC-6, TC-SEC-01 blocked (automated only) |
+| Identity | AUTH, PROF, RBAC | TC-AUTH-01 to 03, 05, 06, TC-PROF-01, PROF-1, RBAC and injection checks (section 4.3) | PROF-3, PROF-4, DOM-2, SEC-6, TC-SEC-01 (admin run, 07-11-2026) | TC-SEC-02 fails (#124); TC-AUTH-04 admin path not run |
 | Listings and search | LST, SRCH | TC-LST-01, LST-3, TC-SRCH-01, SRCH-5, PERF-1, all four UI cases | SRCH-4 partial (limit boundary); PERF-2 fails (#123); PERF-3 blocked |
 | Applications and review | APP, REV, NOTIF | All nine cases, API steps (section 4.2); UI for TC-APP-01, TC-APP-03, TC-REV-01 | UI steps of TC-APP-02, TC-REV-02 not run; TC-REV-05 UI partial |
 | Aptitude and analytics | TST, ANL, DOM-3 | TC-TST-01, TC-TST-05, TC-ANL-02 | TST-4 (TC-TST-06, #118); TC-TST-02 partial; admin and UI cases passed locally only |
@@ -297,9 +297,9 @@ Observations (not defects against the SRS):
 
 | Metric | Value |
 |:--|:--|
-| Test cases executed | 51 of 51 (39 pass, 4 partial, 2 fail, 6 blocked); 0 not run |
-| Test cases passed / failed | 39 / 2 (full passes; partial cases excluded) |
-| Blocked cases | 6 (5 identity: admin or database access; PERF-3: dataset) |
+| Test cases executed | 51 of 51 (44 pass, 4 partial, 2 fail, 1 blocked); 0 not run |
+| Test cases passed / failed | 44 / 2 (full passes; partial cases excluded) |
+| Blocked cases | 1 (PERF-3: needs a 2,000-student dataset) |
 | Defects by severity | Critical 1 (fixed), High 0, Medium 2 (#123, #124, deviations), Low 1 (#118, deviation) |
 | Defects by module | Identity 2, Aptitude 1, Listings / API 1 |
 | Defect age (days open) | #99: 2 days (02-11 to 04-11); #118: 1 day (05-11 to 06-11); #123, #124: opened 06-11, open as deviations |
@@ -308,9 +308,9 @@ Observations (not defects against the SRS):
 
 ## 10. Conclusion and sign-off
 
-Release 1.0 runs on the deployed build with no open Critical or High defect. All 51 test cases were executed: 39 pass, 4 partial, 2 fail and 6 blocked, all nine applications cases pass their API steps, the full Postman collection passes (157 assertions, 0 failures), SEC-2 passes, and server coverage is 96.16% statements and 94.37% branches with all 509 server and 64 client tests passing.
+Release 1.0 runs on the deployed build with no open Critical or High defect. All 51 test cases were executed: 44 pass, 4 partial, 2 fail and 1 blocked, all nine applications cases pass their API steps, the full Postman collection passes (157 assertions, 0 failures), SEC-2 passes, and server coverage is 96.16% statements and 94.37% branches with all 509 server and 64 client tests passing.
 
-Every planned test case was executed. Six are blocked on Render because testers had no admin or database access (they pass in the automated suite) or no 2,000-student dataset (PERF-3, passes locally). Two fail on the free Render environment and are recorded as deviations: TC-TST-06 (#118, row 28) and TC-SEC-02 (#124, row 30); PERF-2 inside TC-PERF-01 also fails there (#123, row 29). UAT ran with five students and one recruiter: QA-1 and QA-5 are Partial (#97). These gaps are recorded, not closed.
+Every planned test case was executed. One is blocked on Render: PERF-3 needs a 2,000-student dataset (it passes locally). The five admin-only cases were run on Render on 07-11-2026 and pass. Two fail on the free Render environment and are recorded as deviations: TC-TST-06 (#118, row 28) and TC-SEC-02 (#124, row 30); PERF-2 inside TC-PERF-01 also fails there (#123, row 29). UAT ran with five students and one recruiter: QA-1 and QA-5 are Partial (#97). These gaps are recorded, not closed.
 
 | Role | Name | Date |
 |:--|:--|:--|
